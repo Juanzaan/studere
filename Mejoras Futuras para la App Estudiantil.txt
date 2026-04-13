@@ -1,0 +1,184 @@
+﻿Estrategias de Innovación Funcional para Ecosistemas de Productividad y Aprendizaje: Un Análisis Profundo de la Inteligencia Conversacional, Síntesis Multimodal y Accesibilidad Cognitiva
+El panorama contemporáneo del desarrollo de aplicaciones de productividad y educación se encuentra en un punto de inflexión donde la mera acumulación de datos ha cedido el paso a la orquestación inteligente de la información. Para mejorar sustancialmente una plataforma digital desde la perspectiva funcional, es imperativo trascender las herramientas básicas de captura y organización para adoptar sistemas de inteligencia proactiva que comprendan el contexto, anticipen las necesidades del usuario y faciliten la colaboración global sin fricciones. Este informe técnico analiza las dimensiones críticas para la expansión funcional de una aplicación, basándose en la convergencia de la inteligencia de ingresos, la computación multimodal y los marcos avanzados de accesibilidad para la neurodiversidad.
+La Inteligencia Conversacional como Pilar de la Eficiencia Operativa y Académica
+La maduración de plataformas de inteligencia de ingresos como Gong y Chorus ha establecido un estándar de oro para la captura de interacciones que puede ser transferido directamente a los entornos educativos y de productividad profesional. Estos sistemas no funcionan simplemente como grabadoras pasivas; emplean modelos de inteligencia artificial patentados para identificar señales de riesgo, rastrear menciones competitivas y detectar comportamientos de éxito en tiempo real.1 En una aplicación educativa, esto se traduce en la capacidad de analizar el ciclo de vida del conocimiento, desde la entrega inicial en una conferencia hasta su asimilación en sesiones de estudio grupal.
+Gong se distingue por su enfoque en la "inteligencia de realidad", que utiliza el procesamiento de lenguaje natural para desglosar las conversaciones en puntos de datos estructurados, identificando proporciones de habla, objeciones y señales de compra.3 La implementación de una función de "ratio de habla" permite a los usuarios medir el equilibrio de la conversación; por ejemplo, se ha determinado que en entornos de ventas exitosos, el prospecto habla aproximadamente el 43% del tiempo, mientras que el representante ocupa el 57%.3 Al adaptar esta función a la educación, la aplicación podría alertar a un tutor si está dominando demasiado la sesión de asesoría, fomentando una participación estudiantil más activa.
+Comparativa de Capacidades en Inteligencia Conversacional y de Ingresos
+Categoría de Función           Gong (Revenue Intelligence)    Chorus by ZoomInfo             Aplicación Potencial en
+                                                                                              Educación
+Enfoque Principal              Inteligencia de ingresos y     Inteligencia de conversación y Inteligencia de aprendizaje y
+                                coaching de                    coaching en                    mentoría
+                                ventas                         ecosistema                     académica
+Captura de Datos               Grabación automática de        Grabación y transcripción con  Registro de clases, debates y
+                                llamadas, video y              etiquetas                      materiales de
+                                correos                        personalizables                lectura
+Análisis de Sentimiento        Identificación de indicadores  Seguimiento de sentimientos y  Detección de frustración o
+                                emocionales                    puntuación de                  confusión del
+                                positivos/negativos            llamadas                       estudiante
+Visibilidad de Pipeline        Seguimiento robusto de tratos  Visibilidad básica con         Seguimiento del progreso del
+                                y alertas de                   seguimiento de                 curso y hitos de
+                                riesgo                         actividad                      aprendizaje
+Ecosistema de Integración      Salesforce, HubSpot, Slack,    Integración profunda con       Canvas, Blackboard, Moodle,
+                                Zoom,                          ZoomInfo y CRMs                Notion,
+                                Outreach                       selectos                       Discord
+Coaching                       Sugerencias impulsadas por IA  Bibliotecas de llamadas para   Generación automática de guías
+                                en momentos                    revisión de                    de estudio y
+                                clave                          desempeño                      repaso
+La integración de herramientas como Forecastio añade una capa de precisión predictiva al vincular los datos de compromiso directamente con la salud del "pipeline", que en un contexto académico podría representar la probabilidad de éxito en un examen final basado en la interacción previa con el material.1 Además, funciones como "AI Meeting Prep" de Cirrus Insight demuestran cómo la inteligencia proactiva puede entregar resúmenes de interacciones previas antes de que comience una reunión, asegurando que el usuario esté plenamente preparado para la sesión.5
+Síntesis Multimodal y Gestión del Conocimiento en Cuatro Modos
+Una aplicación de próxima generación debe ser capaz de procesar información a través de múltiples modalidades —texto, audio, escritura a mano y captura visual— de forma sincronizada. El análisis de las herramientas líderes revela que los usuarios académicos y profesionales operan principalmente en cuatro flujos de trabajo o "modos estudiantiles": Modo Conferencia, Modo Lectura, Modo Escritura a mano y Modo Examen.6
+El Modo Conferencia prioriza la transcripción en tiempo real con identificación de oradores y etiquetas de palabras clave. Herramientas como Otter.ai y Krisp destacan en este ámbito por su capacidad para generar notas estructuradas incluso en entornos con ruido ambiente significativo, utilizando algoritmos de cancelación de ruido que elevan la precisión de la transcripción hasta un 96%.6 Por otro lado, el Modo Lectura requiere una transformación de materiales estáticos (PDF o libros de texto) en contenido listo para el estudio. La función de "grounding" o anclaje en fuentes es crucial aquí, como se observa en Google NotebookLM, donde la IA cita pasajes específicos para evitar alucinaciones y permitir la verificación de datos por parte del usuario.6
+Matriz de Funcionalidades para la Toma de Notas Multimodal
+Aplicación                     Tipos de Entrada               Funciones Especializadas       Capacidades de IA
+Otter.ai                       Audio, Imágenes                Transcripción en vivo,         Resúmenes automáticos y puntos
+                                                               etiquetas de                   de
+                                                               orador                         acción
+Notability                     Escritura, Audio               Notas sincronizadas con audio  Búsqueda OCR en manuscritos
+GoodNotes 6                    Escritura, PDF                 Cuaderno digital, anotación de Reconocimiento de escritura y
+                                                               diapositivas                   conversión a
+                                                                                              texto
+Microsoft OneNote              Texto, Imagen, Audio           Organización jerárquica,       Integración con Copilot para
+                                                               sincronización                 resúmenes
+                                                               total
+Whisper AI                     Audio, Video                   Transcripción de alta          Q&A interactivo basado en el
+                                                               precisión (92                  audio
+                                                               idiomas)
+NotebookLM                     PDF, Web, Slides               Análisis de documentos fuente  Generación de guías de estudio
+                                                                                              ancladas
+Krisp                          Audio en vivo                  Cancelación de ruido,          Resúmenes de reuniones y clases
+                                                               transcripción
+La escritura a mano sigue siendo una función vital, especialmente en dispositivos iPad con Apple Pencil. La capacidad de Notability para vincular el audio grabado con el trazo exacto de la pluma permite una recuperación contextual sin precedentes: al tocar una palabra escrita, el usuario puede escuchar lo que se decía en ese instante preciso.7 Esta sincronización temporal es una de las funciones más solicitadas para mejorar la retención en materias complejas. Finalmente, el Modo Examen se beneficia de la conversión automática de notas en herramientas de recuperación activa, como tarjetas de memoria (flashcards) y cuestionarios de autoevaluación con repetición espaciada, una característica central de plataformas como RemNote.6
+Diseño Funcional para la Neurodiversidad y Accesibilidad Cognitiva
+La mejora de las funciones de una aplicación debe contemplar de manera central la accesibilidad para usuarios con TDAH, dislexia y otros perfiles neurodivergentes. Las funciones que reducen la "fricción cognitiva" y gestionan la "ceguera temporal" no solo benefician a estos grupos, sino que optimizan el rendimiento de todos los usuarios al simplificar flujos de trabajo complejos.9
+Para usuarios con TDAH, la parálisis ante el inicio de tareas y la abrumación por proyectos grandes son barreras críticas. Funciones como las de Goblin.tools permiten desglosar una tarea ambigua (por ejemplo, "escribir informe") en pasos manejables y detallados de forma automática.10 Asimismo, el uso de "bloqueo de tiempo visual" en aplicaciones como Structured ayuda a los usuarios a percibir el paso del tiempo de manera intuitiva, transformando una lista de tareas abstracta en una línea de tiempo visual.10 En el ámbito de la escritura, la eliminación automática de palabras de relleno (como "eh", "este", "um") durante el dictado por voz permite que los usuarios mantengan el flujo de pensamiento sin la distracción de una edición posterior intensiva.9
+Funciones Críticas para la Accesibilidad y el Enfoque
+Función                                  Implementación Técnica                   Beneficio para el Usuario
+Eliminación de Relleno                   Procesamiento de audio en <200ms         Mantiene el impulso de escritura y
+                                                                                   reduce
+                                                                                   fatiga
+Modo Silencioso                          Modelado acústico de alta sensibilidad   Permite dictado en susurros en espacios
+                                                                                   públicos
+Diccionarios Auto-aprendidos             IA consciente del contexto               Reconoce términos técnicos y nombres
+                                                                                   propios sin
+                                                                                   error
+Descomposición de Tareas                 Algoritmos de IA generativa              Supera la parálisis de inicio dividiendo
+                                                                                   tareas
+Anotación Sincronizada                   Indexación temporal audio-texto          Proporciona contexto instantáneo para
+                                                                                   notas
+                                                                                   confusas
+Traducción Inmediata                     OCR y síntesis de voz multilingüe        Apoya a estudiantes internacionales y
+                                                                                   con
+                                                                                   dislexia
+Para la dislexia, aplicaciones como MYdys ofrecen funciones de personalización visual extrema, permitiendo cambiar el tamaño de fuente, el espaciado y, crucialmente, resaltar o codificar por colores letras que suelen confundirse (como "b" y "d").12 La capacidad de convertir instantáneamente cualquier texto impreso en audio mediante una fotografía es una función que "nivela el campo de juego" para lectores con dificultades.12 Además, la integración de metodologías pedagógicas como el método CRA (Concreto-Representacional-Abstracto) en funciones táctiles permite que los conceptos matemáticos se vuelvan tangibles antes de ser simbólicos, lo cual ha demostrado duplicar el comportamiento de atención en estudiantes con TDAH.13
+Automatización del Flujo de Trabajo Post-Sesión y Orquestación de IA
+Una de las áreas con mayor potencial de mejora funcional es la automatización de las tareas que siguen a una clase o reunión. En lugar de que el usuario actúe como un puente manual entre aplicaciones, la plataforma debe actuar como un centro de orquestación donde los agentes de IA ejecutan flujos de trabajo transversales entre herramientas como Discord, Notion, Jira y Slack.14
+El conector de IA de Notion para Jira es un ejemplo de esta integración profunda, permitiendo realizar consultas de lenguaje natural sobre el estado de los proyectos directamente desde la página de notas, eliminando la necesidad de cambiar de contexto entre pestañas.14 Para un entorno estudiantil, esto podría significar que una nota tomada en una clase se convierta automáticamente en una tarea en un calendario compartido, se publique un resumen en el servidor de Discord del grupo de estudio y se generen tarjetas de repaso en una base de datos de aprendizaje.15
+Modelos de Integración y Automatización de Ecosistemas
+Tipo de Conexión                         Mecanismo de Acción                      Impacto en la Productividad
+Vista Previa de Enlace                   Despliegue de datos enriquecidos         Visibilidad inmediata sin salir de la
+                                          mediante                                 aplicación
+                                          URL
+Base de Datos Sincronizada               Espejo de datos bidireccional            Alineación de equipos y seguimiento de
+                                          (Jira/Notion)                            progreso
+Disparadores (Triggers)                  Automatización basada en eventos         Eliminación de tareas administrativas
+                                          (Relay.app/n8n)                          manuales
+Agente de Orquestación                   IA que asigna y ejecuta trabajo en Jira  Transformación de la IA en un "compañero
+                                                                                   de
+                                                                                   equipo"
+Conectores de API                        Interfaz amigable para servicios de      Escalabilidad del ecosistema de funciones
+                                          terceros
+La evolución de Jira hacia un "centro de orquestación de agentes" sugiere un futuro donde las aplicaciones no solo almacenan información, sino que asignan trabajo a agentes de terceros que pueden ejecutar tareas complejas, como la revisión de código o la redacción de informes iniciales, bajo supervisión humana.16 Para un usuario académico, esto implica que la aplicación podría "leer" el sílabo de un curso y orquestar automáticamente todo el calendario de entregas y sesiones de estudio, integrando recordatorios inteligentes que se ajusten según el progreso real detectado en las notas del estudiante.
+Escalabilidad Global: Traducción y Doblaje por IA en Tiempo Real
+Para mejorar la app en su dimensión global, es fundamental integrar funciones de doblaje y traducción por IA que operen con latencias mínimas. Hacia 2025 y 2026, el doblaje en tiempo real se convertirá en una infraestructura estándar, permitiendo que un creador o profesor emita en su lengua materna mientras los espectadores reciben el audio en su propio idioma con una fidelidad emocional preservada.18
+Técnicamente, este proceso se basa en una cadena de cuatro modelos neuronales que deben trabajar en perfecta sincronía:
+1. Reconocimiento Automático de Voz (ASR): Captura el texto y el cronometraje del audio original.
+2. Traducción Automática Neuronal (NMT): Traduce el contenido considerando modismos y contextos culturales.
+3. Clonación de Voz o Texto a Voz (TTS): Genera audio que imita el tono, ritmo y marcadores emocionales del hablante original (como el modelo MARS8).
+4. Alineación y Renderizado: Ajusta el nuevo audio a los marcos de video o movimientos de los labios originales.18
+Plataformas de Doblaje y Traducción de Próxima Generación
+Plataforma                     Idiomas Soportados             Latencia / Enfoque             Ventaja Competitiva Funcional
+CAMB.AI                        140+                           Sub-segundo / En vivo          Estándar de referencia para
+                                                                                              eventos en
+                                                                                              vivo
+X-doc.AI                       Global                         Tiempo real / Seguro           Memoria a largo plazo para
+                                                                                              términos
+                                                                                              técnicos
+ElevenLabs                     30+                            Calidad expresiva              Preserva micro-emociones y
+                                                                                              matices
+                                                                                              sutiles
+Sonix                          49+                            Académico / LMS                Integración directa con Canvas
+                                                                                              y
+                                                                                              Blackboard
+HappyScribe                    120+                           Híbrido (IA + Humano)          Precisión del 99% para
+                                                                                              entornos
+                                                                                              profesionales
+Maestra                        125+                           Velocidad / MOOCs              Generación rápida de
+                                                                                              subtítulos y
+                                                                                              doblaje
+El uso de Sonix en entornos de educación superior demuestra cómo estas herramientas pueden transformar la accesibilidad institucional. Con una precisión superior al 99% y soporte para terminología académica compleja en campos como la medicina y la ingeniería, permite que las universidades sirvan a poblaciones internacionales de manera eficiente.19 La frontera técnica actual se desplaza hacia la "conversación bidireccional en vivo", donde los participantes de una reunión pueden hablar en idiomas distintos y escucharse mutuamente en sus lenguas nativas de forma casi instantánea, un avance que redefinirá la colaboración internacional.18
+Fronteras Cognitivas: Detección de Confusión y Consenso
+El siguiente nivel de sofisticación funcional reside en la capacidad de la aplicación para comprender el estado interno del usuario. Investigaciones recientes han avanzado en la detección de estados afectivos como la confusión y el aburrimiento mediante el análisis multimodal de señales lingüísticas, prosódicas y faciales.20
+Los modelos de aprendizaje multimodal que combinan semántica, tono de voz (pitch) y expresiones faciales han demostrado ser los más precisos para identificar cuándo un estudiante está confundido durante un diálogo colaborativo.20 Los resultados indican que las señales prosódicas —como las variaciones en la intensidad y frecuencia del habla— son predictoras clave de "conflicto" o desacuerdo, mientras que las señales faciales (como fruncir el ceño o rascarse la cabeza) son más indicativas de "confusión" conceptual.20
+Indicadores Multimodales del Estado del Usuario
+Modalidad                                Características Extraídas                Objetivo de Predicción
+Lingüística                              TF*IDF, semántica léxica, sentimiento    Ambigüedad de comprensión general
+Prosódica                                Frecuencia fundamental, pausas, duración Conflicto, excitación emocional,
+                                          de                                       desengaño
+                                          palabras
+Visual                                   Expresiones faciales, dirección de la    Confusión, falta de compromiso,
+                                          mirada                                   pensamiento
+                                                                                   profundo
+Fisiológica                              Señales de EEG (banda beta 12-30 Hz)     Enfoque sostenido frente a desconcierto
+La aplicación de redes neuronales de Memoria de Largo y Corto Plazo (LSTM) con mecanismos de atención permite monitorear la confusión del estudiante con una precisión de hasta el 82% mediante datos de EEG capturados mientras ven videos de cursos masivos en línea (MOOC).21 Para una aplicación comercial, la integración de seguimiento ocular y análisis de expresiones mediante la cámara del dispositivo ofrece una alternativa viable para detectar desajustes en la comprensión y sugerir automáticamente explicaciones simplificadas o materiales de apoyo.22
+Resumen Abstractivo Centrado en el Consenso (CFAS)
+En el ámbito de las reuniones y el trabajo grupal, los resúmenes automáticos tradicionales a menudo fallan al no capturar los acuerdos finales. El marco CFAS propone un modelo de tres etapas para mejorar esta función:
+1. Segmentación por Temas: División del transcripto en secciones coherentes orientadas a temas específicos.
+2. Identificación de Consenso: Detección de sub-diálogos donde los participantes alcanzan una decisión o acuerdo mutuo.
+3. Resumen Consciente del Consenso: Generación de un resumen abstractivo que enfatiza los puntos de acuerdo sobre los puntos de mera discusión.23
+Este enfoque mejora significativamente la alineación fáctica y la utilidad informativa de las notas de la reunión, permitiendo que la aplicación genere automáticamente secciones de "Decisiones" y "Acciones a seguir" con una precisión que iguala a los registros escritos por humanos.23
+Gestión Social del Conocimiento y Marcadores Colaborativos
+Finalmente, la dimensión social de la aplicación puede potenciarse mediante herramientas de "marcado social" y etiquetado colaborativo. Plataformas como Raindrop, Diigo e Instapaper permiten que los usuarios curen, conecten y discutan recursos en línea de manera colectiva.25
+Desde una perspectiva constructivista, las etiquetas compartidas por los usuarios se convierten en recursos de aprendizaje significativos que añaden una dimensión social a la investigación.25 En un contexto educativo, esto permite que los instructores creen grupos para sus estudiantes donde estos pueden añadir y anotar recursos relevantes, construyendo una base de conocimientos compartida que evoluciona con el curso.25 La función de "lectura rápida" de Instapaper, que muestra las palabras una por una a una velocidad controlada, puede integrarse para ayudar a los usuarios a aumentar su velocidad de lectura y enfoque.25
+Herramienta Social                       Función Principal                        Aplicación Educativa / Profesional
+Raindrop                                 Diseños visuales atractivos              Curación de galerías de recursos y
+                                                                                   referencias
+Pocket                                   Guardado fácil de artículos              Consumo asincrónico de material de
+                                                                                   investigación
+Diigo                                    Anotación y resaltado profundo           Investigación bibliográfica colaborativa
+Perusall                                 Anotación sobre diapositivas y lecturas  Fomenta el compromiso previo a la clase
+Instapaper                               Modo de lectura rápida y offline         Optimización del tiempo de estudio en
+                                                                                   tránsito
+La integración con gestores de citas como Zotero y Mendeley es igualmente crucial. Estas herramientas utilizan IA para la "extracción automática de metadatos", analizando la estructura de los PDF para extraer nombres de autores, títulos y fechas de publicación de manera instantánea.27 La capacidad de Zotero para "re-vincular" automáticamente citas creadas originalmente en Mendeley garantiza que el trabajo del usuario no quede atrapado en un solo ecosistema, promoviendo la interoperabilidad y la libertad de datos.28
+Conclusión: Hacia una Plataforma de Inteligencia Integral
+La mejora funcional de una aplicación no reside en la adición aislada de características, sino en la integración sinérgica de capacidades que aborden la complejidad total del flujo de trabajo humano. Al adoptar la inteligencia conversacional proactiva, la síntesis multimodal sincronizada, el diseño centrado en la neurodiversidad y la orquestación automatizada de IA, la plataforma deja de ser un repositorio pasivo para convertirse en un ecosistema activo de apoyo cognitivo.
+Las implicaciones de estas mejoras son profundas: la reducción de la carga cognitiva mediante la automatización y la accesibilidad permite que los usuarios dediquen más recursos mentales al pensamiento crítico y la creatividad. La capacidad de detectar el estado interno del usuario —ya sea su confusión ante un concepto o el consenso alcanzado en una reunión— cierra el ciclo de retroalimentación, permitiendo intervenciones oportunas que garantizan el éxito académico y profesional. En última instancia, la convergencia de estas funciones crea una plataforma que no solo ayuda a trabajar o estudiar, sino que expande activamente las capacidades del usuario en un entorno global e interconectado.
+Fuentes citadas
+1. Gong vs Chorus: Which Tool is Best for Your Team [2025] - Forecastio, acceso: marzo 16, 2026, https://forecastio.ai/blog/gong-vs-chorus
+2. Best conversation intelligence software of March 2026 - FitGap, acceso: marzo 16, 2026, https://us.fitgap.com/search/conversation-intelligence-software
+3. Gong AI Review: How Gong Works in Practice (2026) - tl;dv, acceso: marzo 16, 2026, https://tldv.io/blog/how-does-gong-work/
+4. Gong Analytics Features: What Works, What Fails in 2025 - Oliv AI, acceso: marzo 16, 2026, https://www.oliv.ai/blog/gong-analytics
+5. Gong vs Chorus Comparison: Features, Pricing & the Best Alternative for Sales Teams - Cirrus Insight, acceso: marzo 16, 2026, https://www.cirrusinsight.com/gong-vs-chorus
+6. Best Note-Taking Apps for Students - Krisp, acceso: marzo 16, 2026, https://krisp.ai/blog/blog-best-note-taking-apps-for-students/
+7. Useful Apps for SAS Students | Florida Atlantic University, acceso: marzo 16, 2026, https://www.fau.edu/sas/technology/useful-apps/
+8. 7 Best Lecture Note Taker Apps for Students (2025 Guide) - HoverNotes, acceso: marzo 16, 2026, https://hovernotes.io/en/blog/lecture-note-taker
+9. Best Voice Dictation Apps for ADHD January 2026 - Willow Voice, acceso: marzo 16, 2026, https://willowvoice.com/blog/best-voice-dictation-apps-adhd-neurodivergent-users
+10. Focus Apps for ADHD: Complete 2026 Analysis - Brain.fm, acceso: marzo 16, 2026, https://www.brain.fm/blog/focus-apps-for-adhd
+11. AI for School: Grammarly, Quizlet, Otter, Brainly, MathGPT, Goblin Tools - ADDitude, acceso: marzo 16, 2026, https://www.additudemag.com/slideshows/ai-for-school/
+12. MYdys: Dyslexia Reading App | Assistive Technology for All, acceso: marzo 16, 2026, https://mydys.app/
+13. ADHD-Friendly App Design: What to Look For (and What to Avoid) | Monster Math Blog, acceso: marzo 16, 2026, https://www.monstermath.app/blog/adhd-friendly-app-design-what-to-look-for-and-what-to-avoid
+14. A practical guide to the Notion AI Jira Connector in 2026 - eesel AI, acceso: marzo 16, 2026, https://www.eesel.ai/blog/notion-ai-jira-connector
+15. Connect Discord to Notion - Integrations - Relay.app, acceso: marzo 16, 2026, https://www.relay.app/apps/discord/integrations/notion
+16. Bring the power of AI agents to your Jira workflows - Session Details: Team '26, acceso: marzo 16, 2026, https://events.atlassian.com/team/session/3967980/bring-the-power-of-ai-agents-to-your-jira-workflows
+17. Jira Integrations | Connect Your Apps with Notion, acceso: marzo 16, 2026, https://www.notion.com/integrations/jira
+18. Top 8 AI Dubbing Software in 2026: Your 2‑Minute Guide ... - CAMB.AI, acceso: marzo 16, 2026, https://www.camb.ai/blog-post/top-ai-dubbing-software
+19. 5 Best AI Tools for Lectures in 2025 - Sonix, acceso: marzo 16, 2026, https://sonix.ai/ai/best-ai-for-lectures/
+20. Automatically Detecting Confusion and Conflict During Collaborative Learning Using Linguistic, Prosodic, and Facial Cues Please note: This is a manuscript submitted the journal of User Modeling and User-Adapted Interaction. Year of 2024. Under-review. - arXiv, acceso: marzo 16, 2026, https://arxiv.org/html/2401.15201v1
+21. Detecting the Confusion of Students in Massive Open Online Courses Using EEG, acceso: marzo 16, 2026, https://www.researchgate.net/publication/363607389_Detecting_the_Confusion_of_Students_in_Massive_Open_Online_Courses_Using_EEG
+22. Confusion Detection for Adaptive Conversational Strategies of An Oral Proficiency Assessment Interview Agent - ISCA Archive, acceso: marzo 16, 2026, https://www.isca-archive.org/interspeech_2022/saeki22d_interspeech.pdf
+23. (PDF) CFAS: consensus-focused abstractive meeting summarization ..., acceso: marzo 16, 2026, https://www.researchgate.net/publication/394775914_CFAS_consensus-focused_abstractive_meeting_summarization_through_multi-party_discourse_modeling
+24. Automatic meeting summarization and topic detection system - Emerald Publishing, acceso: marzo 16, 2026, https://www.emerald.com/dta/article/52/3/351/70187/Automatic-meeting-summarization-and-topic
+25. Social Bookmarking Tools | Centre for Teaching Excellence ..., acceso: marzo 16, 2026, https://uwaterloo.ca/centre-for-teaching-excellence/catalogs/tip-sheets/social-bookmarking-tools
+26. Start.me - Boost your Productivity with a Personalized Startpage, acceso: marzo 16, 2026, https://start.me/
+27. Top AI Citation Management Tools: EndNote, Mendeley ... - Zendy, acceso: marzo 16, 2026, https://zendy.io/blog/ai-citation-management-tools
+28. How do I import a Mendeley library into Zotero?, acceso: marzo 16, 2026, https://www.zotero.org/support/kb/mendeley_import
+29. Available for beta testing: Automatic relinking of Mendeley citations - Zotero Forums, acceso: marzo 16, 2026, https://forums.zotero.org/discussion/101464/available-for-beta-testing-automatic-relinking-of-mendeley-citations

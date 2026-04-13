@@ -1,0 +1,23 @@
+{
+  "swarms": {
+    "swarm-1774908199601-gqqbls": {
+      "swarmId": "swarm-1774908199601-gqqbls",
+      "topology": "hierarchical-mesh",
+      "maxAgents": 15,
+      "status": "running",
+      "agents": [],
+      "tasks": [],
+      "config": {
+        "topology": "hierarchical-mesh",
+        "maxAgents": 15,
+        "strategy": "specialized",
+        "communicationProtocol": "message-bus",
+        "autoScaling": true,
+        "consensusMechanism": "majority"
+      },
+      "createdAt": "2026-03-30T22:03:19.601Z",
+      "updatedAt": "2026-03-30T22:03:19.601Z"
+    }
+  },
+  "version": "3.0.0"
+}

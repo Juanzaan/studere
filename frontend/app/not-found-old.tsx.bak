@@ -1,0 +1,510 @@
+"use client";
+
+import Link from "next/link";
+import { Home, Search, ArrowLeft } from "lucide-react";
+
+export default function NotFound() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const textRef = useRef<SVGTextElement>(null);
+  
+  const [phase, setPhase] = useState<NarrativePhase>('showing404');
+  const papersRef = useRef<Paper[]>([]);
+  const figureRef = useRef<StickFigure>({
+    x: 200,
+    y: 400,
+    headAngle: 0,
+    torsoAngle: 0,
+    leftArmAngle: -30,
+    rightArmAngle: 30,
+    leftLegAngle: 0,
+    rightLegAngle: 0,
+    leftKneeAngle: 0,
+    rightKneeAngle: 0,
+    scale: 0,
+    opacity: 0
+  });
+  const [, forceUpdate] = useState({});
+  
+  const walkTimeRef = useRef(0);
+  const idleTimeRef = useRef(0);
+  const doorShakeRef = useRef({ x: 0, y: 0 });
+  const animationFrameRef = useRef<number>();
+  const hasStarted = useRef(false);
+  const phaseStartTimeRef = useRef(0);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      figureRef.current.y = window.innerHeight / 2;
+    }
+  }, []);
+
+  const startNarrative = () => {
+    if (hasStarted.current || phase !== 'showing404') return;
+    hasStarted.current = true;
+    
+    if (textRef.current) {
+      gsap.to(textRef.current, {
+        scale: 1.5,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power3.in",
+        onComplete: () => {
+          setPhase('exploding');
+          phaseStartTimeRef.current = Date.now();
+          createExplosion();
+          
+          setTimeout(() => {
+            setPhase('forming');
+            phaseStartTimeRef.current = Date.now();
+            formStickFigure();
+          }, 1800);
+        }
+      });
+    }
+  };
+
+  const createExplosion = () => {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const papers: Paper[] = [];
+    
+    for (let i = 0; i < 30; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 5 + Math.random() * 10;
+      const startRadius = Math.random() * 80;
+      
+      papers.push({
+        x: centerX + Math.cos(angle) * startRadius,
+        y: centerY + Math.sin(angle) * startRadius,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 5,
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 15,
+        opacity: 1,
+        width: 40 + Math.random() * 30,
+        height: 50 + Math.random() * 35,
+        foldAngle: Math.random() * 20 - 10
+      });
+    }
+    
+    papersRef.current = papers;
+  };
+
+  const formStickFigure = () => {
+    gsap.to(figureRef.current, {
+      scale: 1,
+      opacity: 1,
+      duration: 1.5,
+      ease: "elastic.out(1, 0.6)"
+    });
+    
+    setTimeout(() => {
+      setPhase('walking');
+      phaseStartTimeRef.current = Date.now();
+      walkTimeRef.current = 0;
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const animate = () => {
+      const now = Date.now();
+      const dt = 1 / 60;
+      
+      if (phase === 'exploding') {
+        papersRef.current.forEach(p => {
+          p.x += p.vx * dt * 60;
+          p.y += p.vy * dt * 60;
+          p.vy += 0.6;
+          p.rotation += p.vr;
+          p.vr *= 0.98;
+          p.foldAngle = Math.sin(Date.now() * 0.003 + p.x) * 15;
+        });
+      }
+      
+      else if (phase === 'walking') {
+        const walkDuration = 5500;
+        const elapsed = now - phaseStartTimeRef.current;
+        const progress = Math.min(elapsed / walkDuration, 1);
+        
+        const startX = 200;
+        const endX = window.innerWidth - 300;
+        figureRef.current.x = startX + progress * (endX - startX);
+        
+        walkTimeRef.current += dt * 6;
+        const t = walkTimeRef.current;
+        
+        figureRef.current.leftLegAngle = Math.sin(t) * 45;
+        figureRef.current.rightLegAngle = Math.sin(t + Math.PI) * 45;
+        figureRef.current.leftKneeAngle = Math.max(0, Math.sin(t) * 35);
+        figureRef.current.rightKneeAngle = Math.max(0, Math.sin(t + Math.PI) * 35);
+        
+        figureRef.current.leftArmAngle = -30 + Math.sin(t + Math.PI) * 35;
+        figureRef.current.rightArmAngle = 30 + Math.sin(t) * 35;
+        
+        figureRef.current.y = window.innerHeight / 2 + Math.sin(t * 2) * 5;
+        figureRef.current.torsoAngle = Math.sin(t) * 3;
+        
+        if (progress >= 1) {
+          setPhase('crashed');
+          phaseStartTimeRef.current = now;
+          
+          gsap.to(doorShakeRef.current, {
+            x: 10,
+            duration: 0.05,
+            yoyo: true,
+            repeat: 6,
+            ease: "power2.inOut",
+            onComplete: () => {
+              doorShakeRef.current.x = 0;
+            }
+          });
+          
+          gsap.to(figureRef.current, {
+            torsoAngle: -20,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+          
+          setTimeout(() => {
+            setPhase('idle');
+            phaseStartTimeRef.current = now;
+            idleTimeRef.current = 0;
+          }, 700);
+        }
+      }
+      
+      else if (phase === 'idle') {
+        idleTimeRef.current += dt;
+        const t = idleTimeRef.current;
+        
+        figureRef.current.headAngle = Math.sin(t * 0.8) * 8;
+        figureRef.current.torsoAngle = -15 + Math.sin(t * 0.6) * 4;
+        figureRef.current.leftArmAngle = -40 + Math.sin(t * 1.2) * 10;
+        figureRef.current.rightArmAngle = 40 + Math.sin(t * 1.4) * 8;
+      }
+      
+      forceUpdate({});
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [phase]);
+
+  const renderStickFigure = () => {
+    if (phase === 'showing404' || phase === 'exploding') return null;
+    
+    const fig = figureRef.current;
+    const headRadius = 18;
+    const headY = fig.y - 70;
+    
+    const torsoLength = 50;
+    const torsoStartY = headY + headRadius + 5;
+    const torsoEndY = torsoStartY + torsoLength;
+    
+    const legLength = 45;
+    const thighLength = 25;
+    
+    const leftLegX = fig.x + Math.sin((fig.leftLegAngle * Math.PI) / 180) * thighLength;
+    const leftLegY = torsoEndY + Math.cos((fig.leftLegAngle * Math.PI) / 180) * thighLength;
+    
+    const leftFootX = leftLegX + Math.sin(((fig.leftLegAngle + fig.leftKneeAngle) * Math.PI) / 180) * (legLength - thighLength);
+    const leftFootY = leftLegY + Math.cos(((fig.leftLegAngle + fig.leftKneeAngle) * Math.PI) / 180) * (legLength - thighLength);
+    
+    const rightLegX = fig.x + Math.sin((fig.rightLegAngle * Math.PI) / 180) * thighLength;
+    const rightLegY = torsoEndY + Math.cos((fig.rightLegAngle * Math.PI) / 180) * thighLength;
+    
+    const rightFootX = rightLegX + Math.sin(((fig.rightLegAngle + fig.rightKneeAngle) * Math.PI) / 180) * (legLength - thighLength);
+    const rightFootY = rightLegY + Math.cos(((fig.rightLegAngle + fig.rightKneeAngle) * Math.PI) / 180) * (legLength - thighLength);
+    
+    const armLength = 40;
+    const leftArmEndX = fig.x + Math.sin((fig.leftArmAngle * Math.PI) / 180) * armLength;
+    const leftArmEndY = torsoStartY + 10 + Math.cos((fig.leftArmAngle * Math.PI) / 180) * armLength;
+    
+    const rightArmEndX = fig.x + Math.sin((fig.rightArmAngle * Math.PI) / 180) * armLength;
+    const rightArmEndY = torsoStartY + 10 + Math.cos((fig.rightArmAngle * Math.PI) / 180) * armLength;
+    
+    return (
+      <g opacity={fig.opacity} transform={`scale(${fig.scale})`}>
+        <circle
+          cx={fig.x}
+          cy={headY + Math.sin((fig.headAngle * Math.PI) / 180) * 5}
+          r={headRadius}
+          fill="white"
+        />
+        
+        <line
+          x1={fig.x}
+          y1={torsoStartY}
+          x2={fig.x + Math.sin((fig.torsoAngle * Math.PI) / 180) * 10}
+          y2={torsoEndY}
+          stroke="white"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        
+        <line
+          x1={fig.x}
+          y1={torsoEndY}
+          x2={leftLegX}
+          y2={leftLegY}
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        <line
+          x1={leftLegX}
+          y1={leftLegY}
+          x2={leftFootX}
+          y2={leftFootY}
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        
+        <line
+          x1={fig.x}
+          y1={torsoEndY}
+          x2={rightLegX}
+          y2={rightLegY}
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        <line
+          x1={rightLegX}
+          y1={rightLegY}
+          x2={rightFootX}
+          y2={rightFootY}
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        
+        <line
+          x1={fig.x}
+          y1={torsoStartY + 10}
+          x2={leftArmEndX}
+          y2={leftArmEndY}
+          stroke="white"
+          strokeWidth="9"
+          strokeLinecap="round"
+        />
+        
+        <line
+          x1={fig.x}
+          y1={torsoStartY + 10}
+          x2={rightArmEndX}
+          y2={rightArmEndY}
+          stroke="white"
+          strokeWidth="9"
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  };
+  
+  const renderDoor = () => {
+    if (phase !== 'walking' && phase !== 'crashed' && phase !== 'idle') return null;
+    
+    const doorX = window.innerWidth - 250;
+    const doorY = window.innerHeight / 2 - 120;
+    const doorWidth = 90;
+    const doorHeight = 220;
+    
+    return (
+      <g transform={`translate(${doorShakeRef.current.x}, ${doorShakeRef.current.y})`}>
+        <defs>
+          <linearGradient id="doorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#666" />
+            <stop offset="50%" stopColor="#fff" />
+            <stop offset="100%" stopColor="#888" />
+          </linearGradient>
+          <filter id="doorShadow">
+            <feDropShadow dx="-4" dy="4" stdDeviation="3" floodOpacity="0.5" />
+          </filter>
+        </defs>
+        
+        <rect
+          x={doorX}
+          y={doorY}
+          width={doorWidth}
+          height={doorHeight}
+          fill="url(#doorGradient)"
+          stroke="#999"
+          strokeWidth="3"
+          rx="8"
+          filter="url(#doorShadow)"
+        />
+        
+        <rect
+          x={doorX + 10}
+          y={doorY + 15}
+          width={doorWidth - 20}
+          height={doorHeight / 2 - 25}
+          fill="none"
+          stroke="#ccc"
+          strokeWidth="2"
+          rx="4"
+        />
+        
+        <rect
+          x={doorX + 10}
+          y={doorY + doorHeight / 2 + 5}
+          width={doorWidth - 20}
+          height={doorHeight / 2 - 25}
+          fill="none"
+          stroke="#ccc"
+          strokeWidth="2"
+          rx="4"
+        />
+        
+        <circle
+          cx={doorX + doorWidth - 25}
+          cy={doorY + doorHeight / 2}
+          r={8}
+          fill="#FFD700"
+          stroke="#DAA520"
+          strokeWidth="2"
+        />
+        
+        <rect
+          x={doorX - 8}
+          y={doorY}
+          width="8"
+          height={doorHeight}
+          fill="#444"
+        />
+      </g>
+    );
+  };
+
+  return (
+    <div 
+      ref={containerRef}
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden cursor-pointer"
+      style={{ backgroundColor: '#E07856' }}
+      onClick={startNarrative}
+    >
+      <svg
+        ref={svgRef}
+        className="absolute inset-0 h-full w-full"
+      >
+        {phase === 'showing404' && (
+          <g>
+            <text
+              ref={textRef}
+              x="50%"
+              y="45%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="text-[180px] font-bold fill-white select-none"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              404
+            </text>
+            <text
+              x="50%"
+              y="55%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="text-[18px] fill-white/80 select-none"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              Lo sentimos, no pudimos encontrar la página que buscabas
+            </text>
+          </g>
+        )}
+        
+        {papersRef.current.map((p, i) => {
+          return (
+            <g key={i} transform={`translate(${p.x}, ${p.y}) rotate(${p.rotation})`}>
+              <defs>
+                <filter id={`paperShadow${i}`}>
+                  <feDropShadow dx="2" dy="3" stdDeviation="2" floodOpacity="0.3" />
+                </filter>
+              </defs>
+              <rect
+                x={-p.width / 2}
+                y={-p.height / 2}
+                width={p.width}
+                height={p.height}
+                fill="white"
+                stroke="#ddd"
+                strokeWidth="1"
+                rx="3"
+                filter={`url(#paperShadow${i})`}
+                opacity={p.opacity}
+              />
+              <line
+                x1={-p.width / 2 + 5}
+                y1={-p.height / 2 + 8}
+                x2={p.width / 2 - 5}
+                y2={-p.height / 2 + 8}
+                stroke="#ccc"
+                strokeWidth="1.5"
+              />
+              <line
+                x1={-p.width / 2 + 5}
+                y1={-p.height / 2 + 16}
+                x2={p.width / 2 - 10}
+                y2={-p.height / 2 + 16}
+                stroke="#ccc"
+                strokeWidth="1.5"
+              />
+            </g>
+          );
+        })}
+        
+        {renderStickFigure()}
+        {renderDoor()}
+      </svg>
+
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-6 pb-12">
+        <p className="text-center text-sm text-white/90">
+          {phase === 'showing404' && "Click para iniciar"}
+          {phase === 'exploding' && "Fragmentando..."}
+          {phase === 'forming' && "Formando persona..."}
+          {phase === 'walking' && "Caminando..."}
+          {phase === 'crashed' && "¡Auch!"}
+          {phase === 'idle' && "Esperando..."}
+        </p>
+
+        <div className="pointer-events-auto flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/dashboard"
+            className="group inline-flex items-center gap-2 rounded-2xl border-2 border-white bg-white px-8 py-3.5 text-sm font-bold text-[#E07856] transition-all duration-300 hover:scale-105 hover:bg-[#C86748] hover:text-white hover:border-[#C86748]"
+          >
+            <Home className="h-4 w-4" />
+            Volver al inicio
+          </Link>
+          
+          <Link
+            href="/library"
+            className="group inline-flex items-center gap-2 rounded-2xl border-2 border-white bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#E07856]"
+          >
+            <Search className="h-4 w-4" />
+            Ir a biblioteca
+          </Link>
+        </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            window.history.back();
+          }}
+          className="pointer-events-auto group mt-4 inline-flex items-center gap-2 text-sm font-medium text-white/50 transition-colors hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Volver atrás
+        </button>
+      </div>
+    </div>
+  );
+}

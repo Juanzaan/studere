@@ -1,0 +1,22 @@
+{
+  "name": "studere-backend",
+  "version": "0.2.0",
+  "description": "Azure Functions backend for Studere - Optimized",
+  "type": "commonjs",
+  "scripts": {
+    "start": "func start",
+    "lint": "eslint .",
+    "test": "echo 'Tests pending'"
+  },
+  "dependencies": {
+    "@azure/openai": "^1.0.0-beta.12",
+    "node-cache": "^5.1.2",
+    "axios-retry": "^4.0.0",
+    "joi": "^17.12.0",
+    "opossum": "^8.1.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}
