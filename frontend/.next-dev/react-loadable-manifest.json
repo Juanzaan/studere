@@ -5,65 +5,6 @@
       "static/chunks/_app-pages-browser_components_not-found-scene_tsx.js"
     ]
   },
-  "components\\flashcard-viewer.tsx -> @/components/md-renderer": {
-    "id": "components\\flashcard-viewer.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
-  },
-  "components\\quiz-viewer.tsx -> @/components/md-renderer": {
-    "id": "components\\quiz-viewer.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/flashcard-viewer": {
-    "id": "components\\session-detail.tsx -> @/components/flashcard-viewer",
-    "files": [
-      "static/chunks/_app-pages-browser_components_flashcard-viewer_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/md-renderer": {
-    "id": "components\\session-detail.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/mind-map-canvas": {
-    "id": "components\\session-detail.tsx -> @/components/mind-map-canvas",
-    "files": [
-      "static/css/_app-pages-browser_components_mind-map-canvas_tsx.css",
-      "static/chunks/_app-pages-browser_components_mind-map-canvas_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/quiz-viewer": {
-    "id": "components\\session-detail.tsx -> @/components/quiz-viewer",
-    "files": [
-      "static/chunks/_app-pages-browser_components_quiz-viewer_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/stude-chart-window": {
-    "id": "components\\session-detail.tsx -> @/components/stude-chart-window",
-    "files": [
-      "static/chunks/_app-pages-browser_components_stude-chart-window_tsx.js"
-    ]
-  },
-  "components\\session-detail.tsx -> @/components/stude-chat-popup": {
-    "id": "components\\session-detail.tsx -> @/components/stude-chat-popup",
-    "files": [
-      "static/chunks/_app-pages-browser_components_stude-chat-popup_tsx.js"
-    ]
-  },
-  "components\\stude-chat-popup.tsx -> @/components/md-renderer": {
-    "id": "components\\stude-chat-popup.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
-  },
   "lib\\api.ts -> ./api-server-side": {
     "id": "lib\\api.ts -> ./api-server-side",
     "files": [
@@ -77,19 +18,5 @@
   "node_modules\\@react-three\\drei\\web\\FaceLandmarker.js -> @mediapipe/tasks-vision": {
     "id": "node_modules\\@react-three\\drei\\web\\FaceLandmarker.js -> @mediapipe/tasks-vision",
     "files": []
-  },
-  "src\\domains\\sessions\\components\\ConceptsSidebar.tsx -> @/components/md-renderer": {
-    "id": "src\\domains\\sessions\\components\\ConceptsSidebar.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
-  },
-  "src\\domains\\sessions\\components\\TasksPanel.tsx -> @/components/md-renderer": {
-    "id": "src\\domains\\sessions\\components\\TasksPanel.tsx -> @/components/md-renderer",
-    "files": [
-      "static/css/_app-pages-browser_components_md-renderer_tsx.css",
-      "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
-    ]
   }
 }
