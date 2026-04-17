@@ -5,6 +5,7 @@ import {
   createBookmarkFromSegment,
   createComment,
   createInsights,
+  normalizeSession,
 } from '@/lib/session-utils';
 import { StudySession, TranscriptSegment } from '@/lib/types';
 
@@ -192,6 +193,115 @@ describe('session-utils.ts', () => {
       const insights = createInsights(mockSession);
       const readinessInsight = insights.find(i => i.id === 'readiness');
       expect(readinessInsight).toBeDefined();
+    });
+  });
+
+  describe('normalizeSession', () => {
+    it('should convert old array summary format to string', () => {
+      const oldFormatSession = {
+        ...mockSession,
+        summary: ['Paragraph 1', 'Paragraph 2', 'Paragraph 3'] as any,
+      };
+      const normalized = normalizeSession(oldFormatSession);
+      expect(typeof normalized.summary).toBe('string');
+      expect(normalized.summary).toBe('Paragraph 1\n\nParagraph 2\n\nParagraph 3');
+    });
+
+    it('should keep string summary as is', () => {
+      const normalized = normalizeSession(mockSession);
+      expect(normalized.summary).toBe(mockSession.summary);
+    });
+
+    it('should handle missing transcript with empty array', () => {
+      const sessionWithoutTranscript = { ...mockSession, transcript: undefined as any };
+      const normalized = normalizeSession(sessionWithoutTranscript);
+      expect(normalized.transcript).toEqual([]);
+    });
+
+    it('should normalize transcript segments with missing fields', () => {
+      const incompleteTranscript = [
+        { text: 'Segment without id or speaker' } as any,
+        { id: 'seg-2', text: 'Partial segment' } as any,
+      ];
+      const session = { ...mockSession, transcript: incompleteTranscript };
+      const normalized = normalizeSession(session);
+      
+      expect(normalized.transcript[0].id).toBe('seg-1');
+      expect(normalized.transcript[0].speaker).toBe('Profesor');
+      expect(normalized.transcript[0].timestamp).toBe('00:00');
+      expect(normalized.transcript[1].id).toBe('seg-2');
+      expect(normalized.transcript[1].speaker).toBe('Clase');
+    });
+
+    it('should create default actionItems if missing', () => {
+      const sessionWithoutActions = { ...mockSession, actionItems: [] };
+      const normalized = normalizeSession(sessionWithoutActions);
+      expect(normalized.actionItems).toHaveLength(3);
+      expect(normalized.actionItems[0].status).toBe('pending');
+    });
+
+    it('should preserve existing actionItems', () => {
+      const existingActions = [
+        { id: 'task-1', title: 'Custom task', status: 'completed' as const, owner: 'Me', dueLabel: 'Today' },
+      ];
+      const session = { ...mockSession, actionItems: existingActions };
+      const normalized = normalizeSession(session);
+      expect(normalized.actionItems).toHaveLength(1);
+      expect(normalized.actionItems[0].title).toBe('Custom task');
+    });
+
+    it('should create mindMap if missing', () => {
+      const sessionWithoutMindMap = { ...mockSession, mindMap: undefined as any };
+      const normalized = normalizeSession(sessionWithoutMindMap);
+      expect(normalized.mindMap).toBeDefined();
+      expect(normalized.mindMap.label).toBe(mockSession.title);
+    });
+
+    it('should create chatHistory if missing', () => {
+      const sessionWithoutChat = { ...mockSession, chatHistory: [] };
+      const normalized = normalizeSession(sessionWithoutChat);
+      expect(normalized.chatHistory).toHaveLength(1);
+      expect(normalized.chatHistory[0].role).toBe('assistant');
+      expect(normalized.chatHistory[0].content).toContain('Soy Stude');
+    });
+
+    it('should calculate wordCount from transcript if missing', () => {
+      const session = {
+        ...mockSession,
+        stats: undefined as any,
+        transcript: [
+          { id: 'seg-1', text: 'This has five words total', speaker: 'Test', timestamp: '00:00' },
+        ],
+      };
+      const normalized = normalizeSession(session);
+      expect(normalized.stats.wordCount).toBe(5);
+      expect(normalized.stats.segmentCount).toBe(1);
+    });
+
+    it('should handle empty or null keyConcepts', () => {
+      const session = { ...mockSession, keyConcepts: null as any };
+      const normalized = normalizeSession(session);
+      expect(normalized.keyConcepts).toEqual([]);
+    });
+
+    it('should set starred to false if undefined', () => {
+      const session = { ...mockSession, starred: undefined as any };
+      const normalized = normalizeSession(session);
+      expect(normalized.starred).toBe(false);
+    });
+
+    it('should calculate completionRate from actionItems', () => {
+      const session = {
+        ...mockSession,
+        studyMetrics: undefined as any,
+        actionItems: [
+          { id: '1', title: 'Task 1', status: 'completed' as const, owner: 'Me', dueLabel: 'Today' },
+          { id: '2', title: 'Task 2', status: 'completed' as const, owner: 'Me', dueLabel: 'Today' },
+          { id: '3', title: 'Task 3', status: 'pending' as const, owner: 'Me', dueLabel: 'Today' },
+        ],
+      };
+      const normalized = normalizeSession(session);
+      expect(normalized.studyMetrics.completionRate).toBe(67); // 2/3 ≈ 66.67, rounded
     });
   });
 });

@@ -7,6 +7,7 @@ import { BRAIN_PROMPT_TEMPLATES, buildBrainReply, createChatMessage } from "@/li
 import { sendStudeChat } from "@/lib/api";
 import { getSessions } from "@/lib/storage";
 import { ChatMessage, StudySession } from "@/lib/types";
+import { useToastContext } from "@/components/toast-provider";
 
 const Md = dynamic(() => import("@/components/md-renderer"), {
   ssr: false,
@@ -48,6 +49,7 @@ function detectChartRequest(message: string): string | null {
 }
 
 export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, onChartDetected, initialMessage }: StudeChatPopupProps) {
+  const toast = useToastContext();
   const [input, setInput] = useState("");
   const [minimized, setMinimized] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -169,6 +171,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
     setThinking(true);
 
     let reply: string;
+    let usedFallback = false;
     try {
       reply = await sendStudeChat({
         message,
@@ -181,10 +184,14 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
         },
         chatHistory: withUser.slice(-16).map((m) => ({ role: m.role, content: m.content })),
       });
-    } catch {
+    } catch (error) {
+      console.error("Chat API failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      toast.warning("Chat con IA no disponible", `${errorMessage}. Usando respuestas locales.`);
       // Fallback to local heuristics
       const allSessions = getSessions();
       reply = buildBrainReply(session, message, allSessions);
+      usedFallback = true;
     }
 
     setThinking(false);
@@ -200,7 +207,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || thinking) return;
     sendMessage(input.trim());
     setInput("");
   }
@@ -310,7 +317,8 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
             />
             <button
               type="submit"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white transition hover:opacity-90"
+              disabled={thinking || !input.trim()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Brain className="h-4 w-4" />
             </button>

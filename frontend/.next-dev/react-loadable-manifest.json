@@ -64,6 +64,12 @@
       "static/chunks/_app-pages-browser_components_md-renderer_tsx.js"
     ]
   },
+  "lib\\api.ts -> ./api-server-side": {
+    "id": "lib\\api.ts -> ./api-server-side",
+    "files": [
+      "static/chunks/_app-pages-browser_lib_api-server-side_ts.js"
+    ]
+  },
   "node_modules\\@react-three\\drei\\core\\VideoTexture.js -> hls.js": {
     "id": "node_modules\\@react-three\\drei\\core\\VideoTexture.js -> hls.js",
     "files": []

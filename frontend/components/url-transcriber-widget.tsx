@@ -8,6 +8,7 @@ import { createStudySession } from "@/lib/study-generator";
 import { upsertSession } from "@/lib/storage";
 
 export function UrlTranscriberWidget() {
+  const FEATURE_ENABLED = false;
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [course, setCourse] = useState("");
@@ -83,10 +84,14 @@ export function UrlTranscriberWidget() {
               value={url}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="https://youtube.com/watch?v=... o cualquier URL"
+              disabled={!FEATURE_ENABLED}
               className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
             />
           </div>
-          {analysis && (
+          {!FEATURE_ENABLED && (
+            <p className="text-xs text-slate-500 dark:text-slate-400">Esta función estará disponible pronto.</p>
+          )}
+          {analysis && FEATURE_ENABLED && (
             <div className="flex items-center gap-2">
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                 analysis.type === "youtube" ? "bg-red-50 text-red-700" :
@@ -113,11 +118,11 @@ export function UrlTranscriberWidget() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={!url.trim() || state === "processing"}
+            disabled={!FEATURE_ENABLED || !url.trim() || state === "processing"}
             className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Sparkles className="h-4 w-4" />
-            {state === "processing" ? "Procesando..." : "Transcribir y crear sesión"}
+            {!FEATURE_ENABLED ? "Próximamente" : state === "processing" ? "Procesando..." : "Transcribir y crear sesión"}
           </button>
 
           {state === "error" && (

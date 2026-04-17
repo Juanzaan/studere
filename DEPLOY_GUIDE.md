@@ -10,7 +10,63 @@
 
 ---
 
-## 🎯 PARTE A: Deploy Frontend a Vercel
+## �️ Arquitectura del Sistema
+
+### **Flujo de Audio Dual**
+
+Studere implementa **dos pipelines** de transcripción según el tamaño del archivo:
+
+#### **Pipeline Client-Side (archivos <24MB)**
+```
+Usuario → Frontend (chunking en browser)
+   ↓
+   Upload chunks a /api/transcribe-audio
+   ↓
+   Whisper (Azure OpenAI) × N chunks
+   ↓
+   Concatenar resultados → Frontend
+```
+
+**Ventajas:** Rápido, sin storage server-side  
+**Límite:** ~45-50 minutos de audio
+
+#### **Pipeline Server-Side (archivos >24MB)**
+```
+Usuario → Frontend (upload chunks)
+   ↓
+   /api/upload-audio-chunk (5MB chunks)
+   ↓
+   Storage temporal en Azure (.temp/audio-chunks/)
+   ↓
+   /api/process-audio:
+     - Concatenar chunks
+     - FFmpeg split (4 min segments)
+     - Whisper paralelo (5 segmentos a la vez)
+     - Reconstruir texto completo
+   ↓
+   Frontend recibe transcript
+```
+
+**Ventajas:** Maneja archivos grandes (hasta ~2 horas testeado)  
+**Consideración:** Requiere más execution time y storage
+
+### **Componentes Backend Críticos**
+
+| Endpoint | Función | Timeout | Memoria |
+|----------|---------|---------|---------|
+| `HealthCheck` | Monitoring | 10s | Mínima |
+| `GenerateStudySession` | AI content (GPT-4o-mini) | 5 min | ~500MB |
+| `TranscribeAudio` | Legacy transcription | 5 min | ~300MB |
+| `UploadAudioChunk` | Recibir chunks | 1 min | ~100MB |
+| **`ProcessAudio`** | **FFmpeg + Whisper pipeline** | **30 min** | **~1.5GB** |
+| `StudeChat` | AI chat | 1 min | ~200MB |
+| `EvaluateExercise` | Exercise grading | 1 min | ~200MB |
+
+**Nota:** `ProcessAudio` es el endpoint más pesado. Configurar timeout de 30 min en `host.json`.
+
+---
+
+## �🎯 PARTE A: Deploy Frontend a Vercel
 
 ### **Paso 1: Instalar Vercel CLI**
 
@@ -120,8 +176,14 @@ az functionapp config appsettings set \
     AZURE_OPENAI_KEY="TU-API-KEY" \
     AZURE_OPENAI_DEPLOYMENT="stude-gpt4omini" \
     AZURE_OPENAI_WHISPER_DEPLOYMENT="whisper" \
-    ALLOWED_ORIGIN="https://studere.vercel.app"
+    ALLOWED_ORIGIN="https://studere.vercel.app" \
+    WEBSITE_RUN_FROM_PACKAGE="1"
 ```
+
+**IMPORTANTE:** El backend usa FFmpeg para procesar audio grande. Azure Functions incluye FFmpeg en el runtime, pero verifica que:
+- Function timeout esté configurado a 30 minutos (ver `host.json`)
+- El plan de consumo permita suficiente memoria (~1.5GB recomendado)
+- El storage account tenga suficiente espacio para archivos temporales
 
 **O desde el Portal de Azure:**
 1. Ve a tu Function App
@@ -213,8 +275,10 @@ https://studere-backend.azurewebsites.net
 
 **Endpoints disponibles:**
 - `GET /api/HealthCheck`
-- `POST /api/generate-study-session`
-- `POST /api/transcribe-audio`
+- `POST /api/generate-study-session` (max ~200k caracteres de transcript)
+- `POST /api/transcribe-audio` (legacy, archivos <24MB)
+- **`POST /api/upload-audio-chunk`** (nuevo: upload chunked para archivos grandes)
+- **`POST /api/process-audio`** (nuevo: pipeline server-side con FFmpeg + Whisper)
 - `POST /api/stude-chat`
 - `POST /api/evaluate-exercise`
 
@@ -234,8 +298,13 @@ https://studere-backend.azurewebsites.net
   - Después: $0.20 por millón
 - **Con optimizaciones:** ~$10-20/month
 - **Sin optimizaciones:** ~$100-200/month
+- **Con audio server-side (ProcessAudio):** +$5-15/month por procesamiento FFmpeg
 
-**Total estimado:** $0-20/month 🎉
+**Total estimado:** $10-35/month 🎉
+
+**Nota:** Archivos de audio grandes (>40 min) consumen más execution time y storage. Considera:
+- Configurar un límite de tamaño en frontend (~45-50 min recomendado para MVP)
+- Plan Premium si necesitas procesar audios de 2-3 horas regularmente
 
 ---
 

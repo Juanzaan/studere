@@ -15,7 +15,7 @@ const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff
 
 const MAX_AUDIO_SIZE_MB = 25;
 const MAX_AUDIO_SIZE_BYTES = MAX_AUDIO_SIZE_MB * 1024 * 1024;
-const REQUEST_TIMEOUT_MS = 120000; // 2 minutes for audio transcription
+const REQUEST_TIMEOUT_MS = 300000; // 5 minutes for audio transcription (allows for longer files)
 
 module.exports = async function (context, req) {
   const requestId = getRequestId(req);
@@ -77,7 +77,21 @@ module.exports = async function (context, req) {
   }
 
   const audioSizeMB = (audioBuffer.length / 1024 / 1024).toFixed(2);
-  structuredLog(context, "info", "Transcribing audio", { fileName, sizeMB: audioSizeMB }, requestId);
+  const audioSizeKB = (audioBuffer.length / 1024).toFixed(2);
+  
+  structuredLog(context, "info", "Transcribing audio", { 
+    fileName, 
+    sizeMB: audioSizeMB,
+    sizeKB: audioSizeKB,
+    sizeBytes: audioBuffer.length 
+  }, requestId);
+
+  // Warn if approaching size limit
+  if (audioBuffer.length > 20 * 1024 * 1024) {
+    structuredLog(context, "warn", "Large audio file - approaching 25MB limit", { 
+      sizeMB: audioSizeMB 
+    }, requestId);
+  }
 
   // Call Azure OpenAI Whisper with retry and timeout
   try {

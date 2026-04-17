@@ -148,4 +148,46 @@ describe('storage.ts', () => {
       expect(typeof session?.summary).toBe('string');
     });
   });
+
+  describe('SSR and browser compatibility', () => {
+    it('should handle getSessions gracefully when localStorage not available', () => {
+      const originalLocalStorage = global.localStorage;
+      // @ts-ignore - Simulating SSR environment
+      delete global.localStorage;
+      
+      const sessions = getSessions();
+      expect(sessions).toEqual([]);
+      
+      global.localStorage = originalLocalStorage;
+    });
+
+    it('should handle saveSessions gracefully when localStorage not available', () => {
+      const originalLocalStorage = global.localStorage;
+      // @ts-ignore - Simulating SSR environment
+      delete global.localStorage;
+      
+      // Should not throw
+      expect(() => saveSessions([mockSession])).not.toThrow();
+      
+      global.localStorage = originalLocalStorage;
+    });
+
+    it('should handle large session data without errors', () => {
+      const largeTranscript = Array.from({ length: 200 }, (_, i) => ({
+        id: `seg-${i}`,
+        text: 'Lorem ipsum dolor sit amet '.repeat(50),
+        speaker: 'Speaker',
+        timestamp: `${String(i).padStart(2, '0')}:00`,
+      }));
+      
+      const largeSession = {
+        ...mockSession,
+        transcript: largeTranscript,
+      };
+      
+      expect(() => saveSessions([largeSession])).not.toThrow();
+      const retrieved = getSessions();
+      expect(retrieved[0].transcript).toHaveLength(200);
+    });
+  });
 });

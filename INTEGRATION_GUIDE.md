@@ -18,13 +18,15 @@
 
 ## 🎯 Endpoints Integrados
 
-| Frontend API | Backend Endpoint | Status |
-|--------------|------------------|--------|
-| `transcribeAudio()` | `POST /api/transcribe-audio` | ✅ Listo |
-| `generateStudySession()` | `POST /api/generate-study-session` | ✅ Listo |
-| `evaluateExercise()` | `POST /api/evaluate-exercise` | ✅ Listo |
-| `sendStudeChat()` | `POST /api/stude-chat` | ✅ Listo |
-| - | `GET /api/HealthCheck` | ✅ Listo |
+| Frontend API | Backend Endpoint | Status | Notas |
+|--------------|------------------|--------|-------|
+| `transcribeAudio()` | `POST /api/transcribe-audio` | ✅ Listo | Archivos <24MB, client-side |
+| `transcribeAudioServerSide()` | `POST /api/upload-audio-chunk` | ✅ Listo | Archivos >24MB, paso 1: upload |
+| `transcribeAudioServerSide()` | `POST /api/process-audio` | ✅ Listo | Archivos >24MB, paso 2: process |
+| `generateStudySession()` | `POST /api/generate-study-session` | ✅ Listo | Max ~200k chars transcript |
+| `evaluateExercise()` | `POST /api/evaluate-exercise` | ✅ Listo | - |
+| `sendStudeChat()` | `POST /api/stude-chat` | ✅ Listo | - |
+| - | `GET /api/HealthCheck` | ✅ Listo | Monitoring |
 
 ---
 
@@ -116,23 +118,74 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:7071
 
 ## 📊 Flujo de Datos Completo
 
+### **Flujo 1: Audio Pequeño (<24MB)**
 ```
-Usuario → Frontend (React/Next.js)
+Usuario → Frontend (chunking en browser)
    ↓
-   [localhost:3000]
+   POST /api/transcribe-audio (chunks secuenciales)
    ↓
-   API calls (fetch)
+Backend → Azure OpenAI Whisper
    ↓
-   [localhost:7071]
+   Concatenar transcripts
    ↓
-Backend (Azure Functions) → Azure OpenAI
-   ↓                              ↓
-   Cache (node-cache)              GPT-4o-mini / Whisper
-   ↓                              ↓
-   Respuesta optimizada ←←←←←←←←←←
+Frontend → POST /api/generate-study-session
    ↓
-Frontend actualiza UI
+Backend → Azure OpenAI GPT-4o-mini (+ cache)
+   ↓
+Frontend → Renderiza sesión en UI
 ```
+
+### **Flujo 2: Audio Grande (>24MB)**
+```
+Usuario → Frontend
+   ↓
+   POST /api/upload-audio-chunk × N (5MB chunks)
+   ↓
+Backend → Storage temporal (.temp/audio-chunks/sessionId/)
+   ↓
+   POST /api/process-audio
+   ↓
+Backend:
+   - Concatenar chunks
+   - FFmpeg split (4 min segments)
+   - Whisper paralelo (5 a la vez)
+   - Reconstruir transcript completo
+   ↓
+Frontend → POST /api/generate-study-session
+   ↓
+   (resto igual que Flujo 1)
+```
+
+---
+
+## ⚠️ Límites y Recomendaciones
+
+### **Audio Processing**
+
+| Tamaño de Audio | Pipeline | Tiempo Estimado | Recomendación |
+|----------------|----------|-----------------|---------------|
+| <24MB (~45 min) | Client-side | 1-3 minutos | ✅ Uso recomendado para MVP |
+| 24-100MB (~1.5 horas) | Server-side | 5-8 minutos | ⚠️ OK, pero más costoso |
+| >100MB (~2-3 horas) | Server-side | 15-30 minutos | 🔴 Considerar Plan Premium |
+
+**Consideraciones:**
+- **Timeout:** ProcessAudio tiene 30 min de timeout configurado (`host.json`)
+- **Memoria:** Audios grandes requieren ~1.5GB durante procesamiento
+- **Storage:** Chunks temporales se guardan en `.temp/` (limpieza manual opcional)
+- **Costos:** Audio server-side consume más execution time → +$5-15/month estimado
+
+### **GenerateStudySession**
+
+- **Max transcript length:** ~200,000 caracteres (~50,000 palabras)
+- **Recomendado:** ~5,000-10,000 palabras para mejor calidad
+- **Timeout:** 5 minutos
+- **Retry:** Configurado con backoff automático
+
+### **Para MVP (Fase Actual):**
+1. Limitar upload a ~45-50 minutos de audio en frontend
+2. Mostrar mensajes claros sobre límites
+3. Manejar errores de timeout gracefully
+4. Considerar audio largo como "feature Pro" para fase futura
 
 ---
 
@@ -141,9 +194,11 @@ Frontend actualiza UI
 - [x] Puerto backend corregido (7071)
 - [x] CORS habilitado en backend
 - [x] Environment variables configuradas
+- [x] FFmpeg disponible en backend (incluido en Azure Functions runtime)
 - [ ] Backend corriendo
 - [ ] Frontend corriendo
-- [ ] Test de transcripción
+- [ ] Test de transcripción (archivo pequeño <24MB)
+- [ ] Test de transcripción (archivo grande >24MB, server-side)
 - [ ] Test de generación de sesión
 - [ ] Test de chat
 - [ ] Test de evaluación de ejercicios

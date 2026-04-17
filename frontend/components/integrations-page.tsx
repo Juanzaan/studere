@@ -43,6 +43,7 @@ const INTEGRATIONS = [
 ];
 
 export function IntegrationsPage() {
+  const FEATURE_ENABLED = false;
   const [connecting, setConnecting] = useState<string | null>(null);
 
   function handleConnect(name: string) {
@@ -60,6 +61,11 @@ export function IntegrationsPage() {
       <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
         Tu estudio no es un silo: conecta Studere con calendario, archivos, automatizaciones y canales compartidos.
       </p>
+      {!FEATURE_ENABLED && (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+          Las integraciones están en desarrollo. Estarán disponibles próximamente.
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {INTEGRATIONS.map((integration) => {
@@ -73,11 +79,11 @@ export function IntegrationsPage() {
               <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{integration.description}</p>
               <button
-                onClick={() => handleConnect(integration.name)}
-                disabled={connecting === integration.name}
+                onClick={FEATURE_ENABLED ? () => handleConnect(integration.name) : undefined}
+                disabled={!FEATURE_ENABLED || connecting === integration.name}
                 className="mt-4 inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500 dark:hover:bg-violet-900/30 dark:hover:text-violet-400"
               >
-                {connecting === integration.name ? "Conectando..." : "Conectar"}
+                {!FEATURE_ENABLED ? "Próximamente" : connecting === integration.name ? "Conectando..." : "Conectar"}
               </button>
             </div>
           );

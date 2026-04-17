@@ -4,7 +4,8 @@
 // ---------------------------------------------------------------------------
 
 const TARGET_SAMPLE_RATE = 16000;
-const MAX_CHUNK_SECONDS = 480; // 8 minutes → ~14.6MB WAV → ~20MB base64 (safe under 25MB)
+const MAX_CHUNK_SECONDS = 240; // 4 minutes → ~7.3MB WAV → ~10MB base64 (safe under 25MB)
+const MAX_AUDIO_DURATION_SECONDS = 7200; // 2 hours max to prevent memory issues
 
 /** Decode an audio/video file into an AudioBuffer. */
 async function decodeFile(file: File): Promise<AudioBuffer> {
@@ -77,14 +78,34 @@ export async function chunkAudioFile(
   file: File,
   onProgress?: (message: string) => void,
 ): Promise<AudioChunk[]> {
+  console.log(`[Chunking] File: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+  
   // If file is small enough, no chunking needed
   if (file.size <= 24 * 1024 * 1024) {
+    console.log('[Chunking] File small enough, no chunking needed');
     return [{ file, index: 0, total: 1 }];
   }
 
+  console.log('[Chunking] File too large, will chunk');
   onProgress?.("Decodificando audio...");
-  const audioBuffer = await decodeFile(file);
+  
+  let audioBuffer: AudioBuffer;
+  try {
+    audioBuffer = await decodeFile(file);
+  } catch (error) {
+    console.error('[Chunking] Failed to decode audio:', error);
+    throw new Error(`No se pudo decodificar el audio. El archivo puede estar corrupto o en un formato no soportado. Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+  }
+  
   const durationSec = audioBuffer.duration;
+  console.log(`[Chunking] Decoded: ${durationSec.toFixed(1)}s duration (${(durationSec/60).toFixed(1)} min)`);
+  
+  // Check duration limit
+  if (durationSec > MAX_AUDIO_DURATION_SECONDS) {
+    const maxMinutes = Math.floor(MAX_AUDIO_DURATION_SECONDS / 60);
+    const actualMinutes = Math.floor(durationSec / 60);
+    throw new Error(`El audio es demasiado largo (${actualMinutes} min). Máximo permitido: ${maxMinutes} min (2 horas). Por favor, divide el audio en partes más pequeñas.`);
+  }
 
   onProgress?.(`Audio: ${Math.round(durationSec / 60)} minutos. Preparando segmentos...`);
   const monoSamples = await resampleToMono16k(audioBuffer);

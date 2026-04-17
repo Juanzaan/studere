@@ -10,6 +10,8 @@ import { generateStudySession, transcribeAudio } from "@/lib/api";
 import { upsertSession } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 import { createWelcomeChat, createMindMap, createInsights, createActionItems } from "@/lib/session-utils";
+import { validateAudioFile, getAudioCategoryEmoji, getProcessingDescription, getAudioSizeLabel } from "@/lib/audio-validation";
+import { useToastContext } from "@/components/toast-provider";
 
 gsap.registerPlugin(useGSAP);
 
@@ -63,6 +65,7 @@ type SessionComposerCardProps = {
 
 export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProps) {
   const router = useRouter();
+  const toast = useToastContext();
   const cardRef = useRef<HTMLDivElement>(null);
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState("");
@@ -73,6 +76,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   const [useAI, setUseAI] = useState(true);
   const [aiStatus, setAiStatus] = useState<"idle" | "transcribing" | "generating" | "success" | "fallback">("idle");
   const [progressMsg, setProgressMsg] = useState("");
+  const [audioValidation, setAudioValidation] = useState<ReturnType<typeof validateAudioFile> | null>(null);
 
   const modeConfig = useMemo(() => MODE_COPY[mode], [mode]);
   const ModeIcon = modeConfig.icon;
@@ -105,15 +109,34 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
 
       const isAudioVideo = file && (file.type.startsWith("audio/") || file.type.startsWith("video/"));
 
+      // Confirm if large file
+      if (audioValidation && audioValidation.requiresConfirmation) {
+        const confirmed = window.confirm(
+          `${audioValidation.message}\n\n` +
+          `Tiempo estimado: ${audioValidation.estimatedProcessingTime.min}-${audioValidation.estimatedProcessingTime.max} minutos.\n\n` +
+          `¿Deseas continuar?`
+        );
+        if (!confirmed) {
+          setIsCreating(false);
+          return;
+        }
+      }
+
       // Step 1: If audio/video file + AI enabled → transcribe first
       if (useAI && isAudioVideo && file) {
         setAiStatus("transcribing");
         try {
           const transcription = await transcribeAudio(file, undefined, (msg) => setProgressMsg(msg));
           rawText = transcription.text || rawText;
+          if (rawText.length < 10) {
+            toast.warning("Transcripción muy corta", "El audio no generó suficiente texto. Continuando con datos locales.");
+          }
         } catch (transcribeError) {
-          console.warn("Audio transcription failed:", transcribeError);
-          // Continue with whatever text we have
+          console.error("Audio transcription failed:", transcribeError);
+          const errorMessage = transcribeError instanceof Error ? transcribeError.message : "Error desconocido";
+          toast.error("Error al transcribir audio", errorMessage);
+          setIsCreating(false);
+          return;
         }
       }
 
@@ -155,21 +178,45 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
 
           setAiStatus("success");
         } catch (aiError) {
-          console.warn("AI generation failed, using local heuristics:", aiError);
+          console.error("AI generation failed:", aiError);
+          const errorMessage = aiError instanceof Error ? aiError.message : "Error desconocido";
+          toast.warning("Generación con IA falló", `${errorMessage}. Usando contenido local.`);
           setAiStatus("fallback");
         }
       }
 
       upsertSession(session);
+      toast.success("Sesión creada", `"${session.title}" está lista para estudiar.`);
       onCreated?.();
       router.push(`/sessions/${session.id}`);
-    } finally {
+    } catch (error) {
+      console.error("Session creation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      toast.error("Error al crear sesión", errorMessage);
       setIsCreating(false);
+    } finally {
+      if (aiStatus !== "idle") setIsCreating(false);
     }
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    setFile(event.target.files?.[0] ?? null);
+    const selectedFile = event.target.files?.[0] ?? null;
+    setFile(selectedFile);
+    
+    // Validate if it's an audio/video file
+    if (selectedFile && (selectedFile.type.startsWith("audio/") || selectedFile.type.startsWith("video/"))) {
+      const validation = validateAudioFile(selectedFile);
+      setAudioValidation(validation);
+      
+      // If invalid, show alert immediately
+      if (!validation.valid) {
+        alert(validation.message);
+        setFile(null);
+        setAudioValidation(null);
+      }
+    } else {
+      setAudioValidation(null);
+    }
   }
 
   return (
@@ -250,23 +297,66 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
           </label>
 
           {file && (
-            <div className="flex items-center justify-between rounded-2xl border border-violet-100 bg-white px-4 py-3 shadow-sm dark:border-violet-800 dark:bg-slate-800">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{file.type || "Tipo desconocido"}</p>
+            <>
+              <div className="flex items-center justify-between rounded-2xl border border-violet-100 bg-white px-4 py-3 shadow-sm dark:border-violet-800 dark:bg-slate-800">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{file.name}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{file.type || "Tipo desconocido"}</p>
+                </div>
+                <div className="ml-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      setAudioValidation(null);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                    aria-label="Quitar archivo"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <div className="ml-3 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                <button
-                  type="button"
-                  onClick={() => setFile(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                  aria-label="Quitar archivo"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+
+              {audioValidation && (
+                <div className={`rounded-xl border p-3 text-xs ${
+                  audioValidation.category === "small" 
+                    ? "border-emerald-100 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20"
+                    : audioValidation.category === "medium"
+                    ? "border-blue-100 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                    : "border-amber-100 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+                }`}>
+                  <p className={`font-semibold ${
+                    audioValidation.category === "small"
+                      ? "text-emerald-900 dark:text-emerald-100"
+                      : audioValidation.category === "medium"
+                      ? "text-blue-900 dark:text-blue-100"
+                      : "text-amber-900 dark:text-amber-100"
+                  }`}>
+                    {getAudioCategoryEmoji(audioValidation.category)} Archivo: {getAudioSizeLabel(audioValidation.sizeMB)} (~{audioValidation.estimatedMinutes} min)
+                  </p>
+                  <p className={`mt-1 ${
+                    audioValidation.category === "small"
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : audioValidation.category === "medium"
+                      ? "text-blue-700 dark:text-blue-300"
+                      : "text-amber-700 dark:text-amber-300"
+                  }`}>
+                    {getProcessingDescription(audioValidation.category)}
+                  </p>
+                  <p className={`mt-1 text-[11px] ${
+                    audioValidation.category === "small"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : audioValidation.category === "medium"
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-amber-600 dark:text-amber-400"
+                  }`}>
+                    Tiempo estimado: {audioValidation.estimatedProcessingTime.min}-{audioValidation.estimatedProcessingTime.max} minutos
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

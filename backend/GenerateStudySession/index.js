@@ -67,7 +67,7 @@ Edge cases:
 // ---------------------------------------------------------------------------
 const FALLBACK_SYSTEM = `You are Stude, an educational study assistant. A student shares class notes and you create a structured study package in JSON. Detect the language of the input and respond in that language. Output valid JSON only, following the schema provided.`;
 
-const MAX_TRANSCRIPT_LENGTH = 50000;
+const MAX_TRANSCRIPT_LENGTH = 200000; // Increased for long audio files (2+ hours)
 const REQUEST_TIMEOUT_MS = 90000; // 90 seconds
 
 // ---------------------------------------------------------------------------

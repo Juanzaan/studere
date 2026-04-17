@@ -8,9 +8,11 @@ import { createStudySession } from "@/lib/study-generator";
 import { transcribeAudio, generateStudySession } from "@/lib/api";
 import { upsertSession } from "@/lib/storage";
 import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
+import { useToastContext } from "@/components/toast-provider";
 
 export function AudioRecorderWidget() {
   const router = useRouter();
+  const toast = useToastContext();
   const [state, setState] = useState<"idle" | "recording" | "transcribing" | "generating" | "processing" | "error">("idle");
   const [elapsed, setElapsed] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
@@ -35,10 +37,12 @@ export function AudioRecorderWidget() {
         setElapsed((prev) => prev + 1);
       }, 1000);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "No se pudo acceder al micrófono";
       setState("error");
-      setErrorMsg(err instanceof Error ? err.message : "No se pudo acceder al micrófono");
+      setErrorMsg(errorMessage);
+      toast.error("Error de grabación", errorMessage);
     }
-  }, []);
+  }, [toast]);
 
   const stopRecording = useCallback(async () => {
     if (intervalRef.current) {
@@ -58,8 +62,16 @@ export function AudioRecorderWidget() {
         const audioFile = new File([result.blob], fileName, { type: result.mimeType });
         const transcription = await transcribeAudio(audioFile);
         rawText = transcription.text || "";
+        if (rawText.length < 10) {
+          toast.warning("Transcripción muy corta", "El audio no generó suficiente texto.");
+        }
       } catch (transcribeErr) {
-        console.warn("Whisper transcription failed:", transcribeErr);
+        console.error("Whisper transcription failed:", transcribeErr);
+        const errorMessage = transcribeErr instanceof Error ? transcribeErr.message : "Error desconocido";
+        toast.error("Error al transcribir audio", errorMessage);
+        setState("error");
+        setErrorMsg(errorMessage);
+        return;
       }
 
       // Step 2: Create local session with transcript
@@ -86,17 +98,22 @@ export function AudioRecorderWidget() {
           if (!session.mindMap?.children?.length) session.mindMap = createMindMap(session);
           session.chatHistory = createWelcomeChat(session);
         } catch (aiErr) {
-          console.warn("AI generation failed, using local heuristics:", aiErr);
+          console.error("AI generation failed:", aiErr);
+          const errorMessage = aiErr instanceof Error ? aiErr.message : "Error desconocido";
+          toast.warning("Generación con IA falló", `${errorMessage}. Usando contenido local.`);
         }
       }
 
       upsertSession(session);
+      toast.success("Grabación procesada", "Tu sesión está lista para estudiar.");
       router.push(`/sessions/${session.id}`);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error en la grabación";
       setState("error");
-      setErrorMsg(err instanceof Error ? err.message : "Error en la grabación");
+      setErrorMsg(errorMessage);
+      toast.error("Error procesando grabación", errorMessage);
     }
-  }, [router, course]);
+  }, [router, course, toast]);
 
   const cancel = useCallback(() => {
     if (intervalRef.current) {

@@ -64,8 +64,10 @@ function calculateMaxTokens(input, baseTokens = 2000) {
     return Math.min(baseTokens, 2000); // Short input -> less output needed
   } else if (estimatedInputTokens < 2000) {
     return Math.min(baseTokens + 1000, 4000);
+  } else if (estimatedInputTokens < 4000) {
+    return Math.min(baseTokens + 3000, 6000);
   } else {
-    return Math.min(baseTokens + 2000, 6000); // Long input -> more output
+    return Math.min(baseTokens + 4000, 8000); // Very long input -> more output
   }
 }
 

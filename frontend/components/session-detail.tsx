@@ -40,6 +40,7 @@ import { FLASHCARD_INTERVALS, QUIZ_ACCURACY_THRESHOLDS } from "@/lib/constants";
 import { compressImage } from "@/lib/image-compression";
 import { SessionHeader, ConceptsSidebar, FocusPanelSwitcher, FocusPanel } from "@/src/domains/sessions/components";
 import { Highlight } from "@/src/shared/components/Highlight";
+import { useToastContext } from "@/components/toast-provider";
 
 const Md = dynamic(() => import("@/components/md-renderer"), {
   ssr: false,
@@ -117,6 +118,7 @@ function completionRate(session: StudySession): number {
 
 export function SessionDetail({ session }: { session: StudySession }) {
   const router = useRouter();
+  const toast = useToastContext();
   const [current, setCurrent] = useState(session);
   const throttledPersist = useThrottledPersist(session.id, 500);
   const [conceptsOpen, setConceptsOpen] = useState(true);
@@ -222,12 +224,22 @@ export function SessionDetail({ session }: { session: StudySession }) {
           item.id === taskId ? { ...item, submission, feedback, status: feedback.grade === "correct" ? "completed" : item.status } : item
         ),
       });
+      if (feedback.grade === "correct") {
+        toast.success("¡Excelente!", "Tu respuesta es correcta.");
+      } else if (feedback.grade === "incorrect") {
+        toast.warning("Respuesta incorrecta", "Revisá el feedback de Stude.");
+      } else {
+        toast.info("Respuesta parcial", "Revisá el feedback para mejorar.");
+      }
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido";
+      console.error("Exercise evaluation error:", err);
+      toast.error("Error al evaluar ejercicio", errorMessage);
       persistWithDerived({
         ...withSubmission,
         actionItems: withSubmission.actionItems.map((item) =>
           item.id === taskId
-            ? { ...item, submission, feedback: { grade: "partial" as const, explanation: `Error al evaluar: ${(err as Error).message}. Intentá de nuevo más tarde.`, receivedAt: new Date().toISOString() } }
+            ? { ...item, submission, feedback: { grade: "partial" as const, explanation: `Error al evaluar: ${errorMessage}. Intentá de nuevo más tarde.`, receivedAt: new Date().toISOString() } }
             : item
         ),
       });
@@ -242,11 +254,15 @@ export function SessionDetail({ session }: { session: StudySession }) {
       submitExercise(taskId, "image", compressedDataUrl);
     } catch (error) {
       console.error("Error al comprimir imagen:", error);
+      toast.warning("Compresión fallida", "Usando imagen original.");
       // Fallback: usar imagen original si compresión falla
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result as string;
         submitExercise(taskId, "image", dataUrl);
+      };
+      reader.onerror = () => {
+        toast.error("Error al cargar imagen", "No se pudo procesar el archivo.");
       };
       reader.readAsDataURL(file);
     }

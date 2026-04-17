@@ -8,6 +8,7 @@ import { createStudySession } from "@/lib/study-generator";
 import { upsertSession } from "@/lib/storage";
 
 export function ScreenRecorderWidget() {
+  const FEATURE_ENABLED = false;
   const router = useRouter();
   const [state, setState] = useState<"idle" | "recording" | "processing" | "error">("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -157,13 +158,19 @@ export function ScreenRecorderWidget() {
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         {state === "idle" && (
-          <button
-            onClick={startRecording}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-          >
-            <ScreenShare className="h-4 w-4" />
-            Iniciar captura de pantalla
-          </button>
+          <>
+            <button
+              onClick={startRecording}
+              disabled={!FEATURE_ENABLED}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <ScreenShare className="h-4 w-4" />
+              {!FEATURE_ENABLED ? "Próximamente" : "Iniciar captura de pantalla"}
+            </button>
+            {!FEATURE_ENABLED && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">La transcripción de video estará disponible pronto.</p>
+            )}
+          </>
         )}
 
         {state === "recording" && (

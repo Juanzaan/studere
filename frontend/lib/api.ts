@@ -51,24 +51,37 @@ async function transcribeChunk(
   file: File,
   language?: string,
 ): Promise<TranscriptionResult> {
-  const base64 = await fileToBase64(file);
+  console.log(`[Transcribe] Chunk: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+  
+  try {
+    const base64 = await fileToBase64(file);
+    const base64SizeMB = (base64.length / 1024 / 1024).toFixed(2);
+    console.log(`[Transcribe] Base64 size: ${base64SizeMB}MB`);
 
-  const res = await fetch(`${BACKEND_URL}/api/transcribe-audio`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      audioBase64: base64,
-      fileName: file.name,
-      language: language || "auto",
-    }),
-  });
+    const res = await fetch(`${BACKEND_URL}/api/transcribe-audio`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        audioBase64: base64,
+        fileName: file.name,
+        language: language || "auto",
+      }),
+    });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Transcription failed (${res.status})`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      console.error('[Transcribe] Error response:', body);
+      const errorMsg = body?.error || 'Error desconocido del servidor';
+      throw new Error(`Error al transcribir audio: ${errorMsg}`);
+    }
+
+    const result = await res.json();
+    console.log(`[Transcribe] Success: ${result.text?.length || 0} characters`);
+    return result;
+  } catch (error) {
+    console.error('[Transcribe] Fetch error:', error);
+    throw error;
   }
-
-  return res.json();
 }
 
 export async function transcribeAudio(
@@ -76,6 +89,20 @@ export async function transcribeAudio(
   language?: string,
   onProgress?: (message: string) => void,
 ): Promise<TranscriptionResult> {
+  const DIRECT_UPLOAD_LIMIT = 24 * 1024 * 1024; // 24MB
+  
+  // Strategy selection: use server-side for files >24MB
+  if (file.size > DIRECT_UPLOAD_LIMIT) {
+    console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB > 24MB, using server-side processing`);
+    
+    // Import dynamically to avoid bundle bloat
+    const { transcribeAudioServerSide } = await import('./api-server-side');
+    return transcribeAudioServerSide(file, language, onProgress);
+  }
+  
+  // Client-side processing for smaller files
+  console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB <= 24MB, using client-side processing`);
+  
   onProgress?.("Preparando audio...");
   const chunks = await chunkAudioFile(file, onProgress);
 
@@ -135,7 +162,8 @@ export async function generateStudySession(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Backend returned ${res.status}`);
+    const errorMsg = body?.error || 'Error desconocido del servidor';
+    throw new Error(`Error al generar sesión de estudio: ${errorMsg}`);
   }
 
   const data = await res.json();
@@ -178,7 +206,8 @@ export async function evaluateExercise(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Evaluation failed (${res.status})`);
+    const errorMsg = body?.error || 'Error desconocido del servidor';
+    throw new Error(`Error al evaluar ejercicio: ${errorMsg}`);
   }
 
   const data = await res.json();
@@ -215,7 +244,8 @@ export async function sendStudeChat(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Chat failed (${res.status})`);
+    const errorMsg = body?.error || 'Error desconocido del servidor';
+    throw new Error(`Error en chat con Stude: ${errorMsg}`);
   }
 
   const data = await res.json();
