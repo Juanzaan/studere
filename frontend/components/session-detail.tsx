@@ -392,7 +392,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
           <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
 
           {/* ── Focus panel content ── */}
-          <div className="mt-4 max-h-[calc(100vh-290px)] overflow-y-auto pr-1">
+          <div className="mt-4">
             {focusPanel === "summary" && (
               <div className="space-y-4">
                 {current.sourceFileName && current.sourceFileName !== "Sin archivo" && (

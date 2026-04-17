@@ -47,7 +47,7 @@ export function FocusPanelSwitcher({ activePanel, onPanelChange }: FocusPanelSwi
           <button
             key={panel}
             onClick={() => onPanelChange(panel)}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${
               activePanel === panel
                 ? "bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
                 : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"

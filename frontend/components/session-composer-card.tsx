@@ -380,7 +380,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
           <button
             type="submit"
             disabled={isCreating || !title.trim()}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {aiStatus === "transcribing" || aiStatus === "generating" ? (
               <Loader2 className="h-4 w-4 animate-spin" />

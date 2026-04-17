@@ -34,7 +34,7 @@ export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: Con
   }
 
   return (
-    <aside className="rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+    <aside className="flex flex-col rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
       <div className="flex items-center justify-between px-4 py-3.5">
         <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
           <Layers className="h-4 w-4 text-violet-500" />
@@ -49,7 +49,7 @@ export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: Con
           <ChevronsLeft className="h-3.5 w-3.5" />
         </button>
       </div>
-      <div className="max-h-[calc(100vh-280px)] animate-fade-in overflow-y-auto border-t border-slate-100 px-4 pb-4 pt-3 dark:border-slate-800">
+      <div className="min-h-0 flex-1 animate-fade-in overflow-y-auto border-t border-slate-100 px-4 pb-4 pt-3 dark:border-slate-800">
         <div className="space-y-3">
           {concepts.map((concept) => (
             <div key={concept.term} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">

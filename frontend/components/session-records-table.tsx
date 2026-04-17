@@ -118,7 +118,7 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
               <div className="flex justify-end">
                 <button
                   onClick={() => onToggleStar?.(session.id)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
                     session.starred
                       ? "border-amber-200 bg-amber-50 text-amber-500 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                       : "border-slate-200 bg-white text-slate-300 hover:border-slate-300 hover:text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600 dark:hover:text-slate-400"

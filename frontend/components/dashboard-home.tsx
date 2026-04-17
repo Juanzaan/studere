@@ -177,7 +177,7 @@ export function DashboardHome() {
                 <button
                   key={action.mode}
                   onClick={() => setComposerMode(action.mode)}
-                  className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                  className={`rounded-2xl border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
                     active
                       ? "border-violet-200 bg-violet-50 shadow-sm ring-1 ring-violet-100 dark:border-violet-700 dark:bg-violet-900/30 dark:ring-violet-800"
                       : "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/50 hover:-translate-y-0.5 hover:shadow-card dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-700 dark:hover:bg-violet-900/20"
@@ -215,7 +215,7 @@ export function DashboardHome() {
                 <button
                   key={filter.key}
                   onClick={() => setRecordFilter(filter.key as RecordFilter)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 ${
                     recordFilter === filter.key
                       ? "bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
@@ -271,7 +271,7 @@ export function DashboardHome() {
           </p>
           <Link
             href={latestSession ? `/sessions/${latestSession.id}` : "/dashboard"}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm hover:bg-violet-50 transition dark:bg-slate-800 dark:text-violet-300 dark:hover:bg-slate-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:bg-slate-800 dark:text-violet-300 dark:hover:bg-slate-700"
           >
             Explorar Stude
             <ArrowRight className="h-4 w-4" />
@@ -304,10 +304,10 @@ export function DashboardHome() {
             <h4 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">Grabá tus clases del calendario</h4>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Conectá tu calendario para detectar clases, grupos de estudio y repasos.</p>
             <div className="mt-4 grid gap-2">
-              <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+              <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
                 Conectar Google Calendar
               </Link>
-              <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+              <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
                 Conectar Outlook
               </Link>
             </div>

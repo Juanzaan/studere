@@ -52,6 +52,16 @@ export function Sidebar() {
     return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, syncSessions);
   }, [pathname]);
 
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [open]);
+
   const recentSessions = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = q
@@ -65,7 +75,7 @@ export function Sidebar() {
     <>
       <button
         onClick={() => setOpen((value) => !value)}
-        className="fixed left-4 top-[76px] z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-md lg:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+        className="fixed left-4 top-[76px] z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-md transition hover:border-violet-300 hover:bg-violet-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 lg:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-600 dark:hover:bg-violet-900/30 dark:focus-visible:ring-violet-400"
         aria-label={open ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
         aria-expanded={open}
       >
@@ -82,7 +92,11 @@ export function Sidebar() {
         </button>
       )}
 
-      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] lg:hidden" />}
+      <div
+        onClick={() => setOpen(false)}
+        className={`fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] transition-opacity lg:hidden ${open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+        aria-hidden={!open}
+      />
 
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-slate-200 bg-[#fbfcff] transition-all duration-200 lg:sticky lg:top-0 lg:h-screen dark:border-slate-700 dark:bg-[#0f1117] ${
@@ -120,7 +134,7 @@ export function Sidebar() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Buscar..."
                 aria-label="Buscar sesiones en la biblioteca"
-                className="h-10 w-full rounded-2xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500"
+                className="h-10 w-full rounded-2xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus-visible:ring-violet-400"
               />
             </div>
           )}
@@ -136,7 +150,7 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center rounded-2xl text-sm font-medium transition-all duration-150 ${
+                className={`flex items-center rounded-2xl text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${
                   collapsed ? "justify-center px-0 py-2" : "gap-3 px-3 py-2.5"
                 } ${
                   isActive
@@ -169,7 +183,7 @@ export function Sidebar() {
                     key={session.id}
                     href={`/sessions/${session.id}`}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center justify-center rounded-2xl py-2 transition-all duration-150 ${
+                    className={`flex items-center justify-center rounded-2xl py-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${
                       isActive ? "bg-violet-50 text-violet-600 shadow-sm ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-400 dark:ring-violet-800" : "text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm dark:hover:bg-slate-800 dark:hover:text-slate-300"
                     }`}
                     title={session.title}
@@ -194,7 +208,7 @@ export function Sidebar() {
                     key={session.id}
                     href={`/sessions/${session.id}`}
                     onClick={() => setOpen(false)}
-                    className={`group flex items-start gap-3 rounded-2xl px-3 py-2.5 transition-all duration-150 ${
+                    className={`group flex items-start gap-3 rounded-2xl px-3 py-2.5 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${
                       isActive ? "bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-800" : "hover:bg-white hover:shadow-sm dark:hover:bg-slate-800"
                     }`}
                   >
