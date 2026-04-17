@@ -50,7 +50,7 @@ export function TranscriptPanel({
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 text-xs font-semibold text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+        className="flex w-full items-center justify-between px-4 py-3 text-xs font-semibold text-slate-500 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:text-slate-400 dark:hover:text-slate-200"
       >
         <span className="flex items-center gap-2">
           <SourceIcon className="h-3.5 w-3.5" />
@@ -90,14 +90,14 @@ export function TranscriptPanel({
                 <div className="mt-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
                   <button
                     onClick={() => navigator.clipboard?.writeText(segment.text)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:text-slate-700"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
                     aria-label="Copiar"
                   >
                     <Copy className="h-3 w-3" />
                   </button>
                   <button
                     onClick={() => onToggleBookmark(segment.id, segment.text.slice(0, 42))}
-                    className={`flex h-7 w-7 items-center justify-center rounded-full border ${
+                    className={`flex h-7 w-7 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
                       bookmarked
                         ? "border-amber-200 bg-amber-50 text-amber-500"
                         : "border-slate-200 bg-white text-slate-400 hover:text-slate-700"
@@ -108,21 +108,21 @@ export function TranscriptPanel({
                   </button>
                   <button
                     onClick={() => onAddComment(`Revisar: ${segment.text.slice(0, 90)}`, segment.id)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:text-slate-700"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
                     aria-label="Comentar"
                   >
                     <MessageSquarePlus className="h-3 w-3" />
                   </button>
                   <button
                     onClick={() => onAddFlashcard(segment.text)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:text-slate-700"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
                     aria-label="Flashcard"
                   >
                     <Sparkles className="h-3 w-3" />
                   </button>
                   <button
                     onClick={() => onOpenChat(`Explicame este fragmento: ${segment.text}`)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 hover:text-slate-700"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
                     aria-label="Stude"
                   >
                     <WandSparkles className="h-3 w-3" />

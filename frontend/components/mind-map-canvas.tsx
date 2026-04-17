@@ -34,13 +34,18 @@ function accentFor(accent?: string) {
 function MindMapNodeComponent({ data }: { data: { label: string; accent?: string; isRoot?: boolean } }) {
   const style = accentFor(data.accent);
 
+  const accent = data.accent || "violet";
+  const darkBg = { violet: "rgba(139,92,246,0.15)", blue: "rgba(14,165,233,0.15)", green: "rgba(16,185,129,0.15)", amber: "rgba(245,158,11,0.15)" }[accent];
+  const darkBorder = { violet: "rgba(139,92,246,0.4)", blue: "rgba(14,165,233,0.4)", green: "rgba(16,185,129,0.4)", amber: "rgba(245,158,11,0.4)" }[accent];
+  const darkText = { violet: "#c4b5fd", blue: "#7dd3fc", green: "#6ee7b7", amber: "#fcd34d" }[accent];
+
   return (
     <div
-      className={`rounded-2xl border px-4 py-2.5 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border} dark:bg-${data.accent || 'violet'}-900/30 dark:border-${data.accent || 'violet'}-700`}
-      style={{ maxWidth: 220, minWidth: data.isRoot ? 180 : 120 }}
+      className={`rounded-2xl border px-4 py-2.5 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border} dark:bg-transparent`}
+      style={{ maxWidth: 220, minWidth: data.isRoot ? 180 : 120, backgroundColor: darkBg, borderColor: darkBorder }}
     >
       <Handle type="target" position={Position.Top} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
-      <p className={`text-xs font-semibold leading-snug ${style.text} dark:text-${data.accent || 'violet'}-300 ${data.isRoot ? "text-sm" : ""}`}>
+      <p className={`text-xs font-semibold leading-snug ${style.text} ${data.isRoot ? "text-sm" : ""}`} style={{ color: darkText }}>
         {data.label}
       </p>
       <Handle type="source" position={Position.Bottom} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
@@ -170,7 +175,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
       {/* fullscreen toggle */}
       <button
         onClick={toggleFullscreen}
-        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
         aria-label={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
       >
         {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -179,7 +184,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
       {fullscreen && (
         <button
           onClick={toggleFullscreen}
-          className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           aria-label="Cerrar"
         >
           <X className="h-4 w-4" />

@@ -27,6 +27,7 @@ export function AudioRecorderWidget() {
   }, []);
 
   const startRecording = useCallback(async () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
     try {
       setErrorMsg("");
       setState("recording");
@@ -88,7 +89,7 @@ export function AudioRecorderWidget() {
         setState("generating");
         try {
           const ai = await generateStudySession({ transcript: rawText, language: "auto" });
-          if (ai.summary && ai.summary.length > 0) session.summary = ai.summary;
+          if (ai.summary?.trim()) session.summary = ai.summary;
           if (ai.keyConcepts.length > 0) session.keyConcepts = ai.keyConcepts;
           if (ai.flashcards.length > 0) session.flashcards = ai.flashcards;
           if (ai.quiz.length > 0) session.quiz = ai.quiz;
@@ -169,7 +170,7 @@ export function AudioRecorderWidget() {
         {state === "idle" && (
           <button
             onClick={startRecording}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-rose-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-rose-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
           >
             <Mic className="h-4 w-4" />
             Iniciar grabación
@@ -180,14 +181,14 @@ export function AudioRecorderWidget() {
           <>
             <button
               onClick={stopRecording}
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
             >
               <Square className="h-4 w-4" />
               Detener y crear sesión
             </button>
             <button
               onClick={cancel}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               <MicOff className="h-4 w-4" />
               Cancelar
@@ -198,7 +199,7 @@ export function AudioRecorderWidget() {
         {state === "error" && (
           <button
             onClick={() => { setState("idle"); setErrorMsg(""); }}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Reintentar
           </button>

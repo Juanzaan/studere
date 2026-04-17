@@ -48,7 +48,7 @@ export function TasksPanel({
           }`}
         >
           {/* Task header */}
-          <button onClick={() => onToggleTask(item.id)} className="flex w-full items-start gap-3 text-left">
+          <button onClick={() => onToggleTask(item.id)} className="flex w-full items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 rounded-xl">
             <div
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
                 item.status === "completed"
@@ -130,7 +130,7 @@ export function TasksPanel({
                 <button
                   onClick={() => onSubmitExercise(item.id)}
                   disabled={evaluatingTaskId === item.id}
-                  className="flex h-8 items-center gap-1.5 rounded-full bg-violet-600 px-4 text-xs font-semibold text-white transition hover:bg-violet-700 disabled:opacity-50"
+                  className="flex h-8 items-center gap-1.5 rounded-full bg-violet-600 px-4 text-xs font-semibold text-white transition hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 disabled:opacity-50"
                 >
                   {evaluatingTaskId === item.id ? (
                     <>
@@ -143,7 +143,7 @@ export function TasksPanel({
                 </button>
                 <button
                   onClick={() => onCaptureImage(item.id)}
-                  className="flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   <Camera className="h-3 w-3" />
                   Foto

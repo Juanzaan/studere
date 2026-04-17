@@ -26,7 +26,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
 
   const totalAnswered = answers.size;
   const correctCount = [...answers.entries()].filter(
-    ([qi, chosen]) => quiz[qi] && chosen === quiz[qi].correct
+    ([qi, chosen]) => chosen === quiz[qi]?.correct
   ).length;
   const allDone = totalAnswered === quiz.length && quiz.length > 0;
   const pct = allDone ? Math.round((correctCount / quiz.length) * 100) : 0;
@@ -75,7 +75,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
             {totalAnswered > 0 && <span className="ml-2 text-emerald-600 dark:text-emerald-400">{correctCount} correctas</span>}
           </p>
           {totalAnswered > 0 && (
-            <button onClick={reset} className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+            <button onClick={reset} className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:text-slate-400 dark:hover:text-slate-100">
               <RotateCcw className="h-3 w-3" /> Reiniciar
             </button>
           )}
@@ -145,7 +145,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
                       key={oi}
                       onClick={() => choose(qi, oi)}
                       disabled={answered}
-                      className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left text-sm transition ${optClass}`}
+                      className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${optClass}`}
                     >
                       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                         answered && isCorrectOption

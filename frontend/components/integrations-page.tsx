@@ -81,7 +81,7 @@ export function IntegrationsPage() {
               <button
                 onClick={FEATURE_ENABLED ? () => handleConnect(integration.name) : undefined}
                 disabled={!FEATURE_ENABLED || connecting === integration.name}
-                className="mt-4 inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500 dark:hover:bg-violet-900/30 dark:hover:text-violet-400"
+                className="mt-4 inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500 dark:hover:bg-violet-900/30 dark:hover:text-violet-400"
               >
                 {!FEATURE_ENABLED ? "Próximamente" : connecting === integration.name ? "Conectando..." : "Conectar"}
               </button>

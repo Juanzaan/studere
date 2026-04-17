@@ -59,7 +59,10 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Dragging
-  const [pos, setPos] = useState({ x: Math.max(40, window.innerWidth - DEFAULT_W - 40), y: 100 });
+  const [pos, setPos] = useState({ x: 40, y: 100 });
+  useEffect(() => {
+    setPos({ x: Math.max(40, window.innerWidth - DEFAULT_W - 40), y: 100 });
+  }, []);
   const [size, setSize] = useState({ w: DEFAULT_W, h: DEFAULT_H });
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number } | null>(null);
@@ -164,6 +167,13 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
     window.addEventListener("mouseup", onUp);
   }, [size]);
 
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   async function sendMessage(message: string) {
     const userMsg = createChatMessage(`user-${Date.now()}`, "user", message);
     const withUser = [...chatHistory, userMsg];
@@ -194,6 +204,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
       usedFallback = true;
     }
 
+    if (!isMountedRef.current) return;
     setThinking(false);
     const assistantMsg = createChatMessage(`assistant-${Date.now() + 1}`, "assistant", reply);
     onChatUpdate([...withUser, assistantMsg]);
@@ -239,14 +250,14 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
         <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100">Stude</span>
         <button
           onClick={() => setMinimized((v) => !v)}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           aria-label="Minimizar"
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 dark:hover:bg-red-900/30 dark:hover:text-red-400"
           aria-label="Cerrar"
         >
           <X className="h-3.5 w-3.5" />
@@ -270,7 +281,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
                 {msg.role === "assistant" && (
                   <button
                     onClick={() => navigator.clipboard?.writeText(msg.content)}
-                    className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 opacity-0 transition hover:text-slate-700 group-hover/msg:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:text-slate-200"
+                    className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 opacity-0 transition hover:text-slate-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 group-hover/msg:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:text-slate-200"
                     aria-label="Copiar"
                   >
                     <Copy className="h-3 w-3" />
@@ -293,7 +304,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
               <button
                 key={tpl.id}
                 onClick={() => sendMessage(tpl.prompt)}
-                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-violet-700 dark:hover:bg-violet-900/30 dark:hover:text-violet-300"
+                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-violet-700 dark:hover:bg-violet-900/30 dark:hover:text-violet-300"
               >
                 {tpl.label}
               </button>
@@ -302,7 +313,9 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
 
           {/* Input */}
           <form onSubmit={handleSubmit} className="flex items-end gap-2 border-t border-slate-100 p-3 dark:border-slate-800">
+            <label htmlFor="stude-chat-input" className="sr-only">Mensaje para Stude</label>
             <textarea
+              id="stude-chat-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -313,12 +326,12 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
               }}
               rows={2}
               placeholder="Preguntale a Stude..."
-              className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
+              className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
             />
             <button
               type="submit"
               disabled={thinking || !input.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Brain className="h-4 w-4" />
             </button>

@@ -136,7 +136,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
                 onConfidence(safeIndex, btn.value);
                 next();
               }}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${btn.color}`}
+              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${btn.color}`}
             >
               {btn.label}
             </button>
@@ -147,7 +147,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
       <div className="flex items-center gap-3">
         <button
           onClick={prev}
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           aria-label="Anterior"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -159,7 +159,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
             setCompleted(false);
             setMaxReached(0);
           }}
-          className="flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           aria-label="Reiniciar"
         >
           <RotateCcw className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
         </button>
         <button
           onClick={next}
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           aria-label="Siguiente"
         >
           <ArrowRight className="h-4 w-4" />
@@ -177,7 +177,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
       {onGenerateMore && (
         <button
           onClick={onGenerateMore}
-          className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+          className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
         >
           + Generar más flashcards
         </button>

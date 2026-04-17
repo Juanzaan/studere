@@ -2604,6 +2604,9 @@ button:active:not(:disabled) {
 .focus\:ring-offset-2:focus {
   --tw-ring-offset-width: 2px;
 }
+.focus-visible\:opacity-100:focus-visible {
+  opacity: 1;
+}
 .focus-visible\:outline-none:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
@@ -2628,6 +2631,10 @@ button:active:not(:disabled) {
 .focus-visible\:ring-amber-500:focus-visible {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(245 158 11 / var(--tw-ring-opacity, 1));
+}
+.focus-visible\:ring-red-500:focus-visible {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(239 68 68 / var(--tw-ring-opacity, 1));
 }
 .focus-visible\:ring-offset-2:focus-visible {
   --tw-ring-offset-width: 2px;
@@ -2836,6 +2843,9 @@ button:active:not(:disabled) {
 }
 .dark\:bg-white\/10:is(.dark *) {
   background-color: rgb(255 255 255 / 0.1);
+}
+.dark\:bg-transparent:is(.dark *) {
+  background-color: transparent;
 }
 .dark\:from-amber-500\/5:is(.dark *) {
   --tw-gradient-from: rgb(245 158 11 / 0.05) var(--tw-gradient-from-position);

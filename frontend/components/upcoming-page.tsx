@@ -49,10 +49,10 @@ export function UpcomingPage() {
         <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Conectá tu calendario</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Sincroniza Google Calendar u Outlook para detectar clases futuras y disparar el flujo de captura más rápido.</p>
         <div className="mt-4 space-y-2">
-          <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+          <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
             Conectar Google Calendar
           </Link>
-          <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+          <Link href="/integrations" className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
             Conectar Microsoft Outlook
           </Link>
         </div>
