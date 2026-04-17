@@ -9,7 +9,7 @@ import { createStudySession } from "@/lib/study-generator";
 import { generateStudySession, transcribeAudio } from "@/lib/api";
 import { upsertSession } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
-import { createWelcomeChat, createMindMap, createInsights, createActionItems } from "@/lib/session-utils";
+import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
 import { validateAudioFile, getAudioCategoryEmoji, getProcessingDescription, getAudioSizeLabel } from "@/lib/audio-validation";
 import { useToastContext } from "@/components/toast-provider";
 

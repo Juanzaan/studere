@@ -98,7 +98,7 @@ const StudeChartWindow = dynamic(
 const completionRateCache = new Map<string, number>();
 
 function completionRate(session: StudySession): number {
-  const cacheKey = `${session.actionItems.length}-${session.actionItems.filter(i => i.status === "completed").length}-${session.studyMetrics.reviewCount}-${session.studyMetrics.quizAccuracy}`;
+  const cacheKey = `${session.id}-${session.actionItems.length}-${session.actionItems.filter(i => i.status === "completed").length}-${session.studyMetrics.reviewCount}-${session.studyMetrics.quizAccuracy}`;
   
   if (completionRateCache.has(cacheKey)) {
     return completionRateCache.get(cacheKey)!;
