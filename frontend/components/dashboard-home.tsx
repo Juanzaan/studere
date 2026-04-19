@@ -23,10 +23,8 @@ import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage
 import { StudySession } from "@/lib/types";
 import { FREE_PLAN_MINUTES } from "@/lib/constants";
 import { AudioRecorderWidget } from "@/components/audio-recorder-widget";
-import { ScreenRecorderWidget } from "@/components/screen-recorder-widget";
 import { SessionComposerCard } from "@/components/session-composer-card";
 import { SessionRecordsTable } from "@/components/session-records-table";
-import { UrlTranscriberWidget } from "@/components/url-transcriber-widget";
 
 type ComposerMode = "upload" | "record" | "online" | "url" | "screen";
 type RecordFilter = "recent" | "starred" | "created";
@@ -40,8 +38,6 @@ const QUICK_ACTIONS: Array<{
   { mode: "record", label: "Grabar audio", icon: Mic, color: "text-sky-600 bg-sky-50 border-sky-100" },
   { mode: "upload", label: "Subir y transcribir", icon: Upload, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
   { mode: "online", label: "Clase en vivo", icon: Video, color: "text-rose-600 bg-rose-50 border-rose-100" },
-  { mode: "url", label: "Transcribir desde URL", icon: Link2, color: "text-orange-600 bg-orange-50 border-orange-100" },
-  { mode: "screen", label: "Grabar pantalla", icon: ScreenShare, color: "text-violet-600 bg-violet-50 border-violet-100" },
 ];
 
 function greetingByHour() {
@@ -194,8 +190,6 @@ export function DashboardHome() {
         </section>
 
         {composerMode === "record" && <AudioRecorderWidget />}
-        {composerMode === "screen" && <ScreenRecorderWidget />}
-        {composerMode === "url" && <UrlTranscriberWidget />}
         {(composerMode === "upload" || composerMode === "online") && (
           <SessionComposerCard mode={composerMode} onCreated={refreshSessions} />
         )}

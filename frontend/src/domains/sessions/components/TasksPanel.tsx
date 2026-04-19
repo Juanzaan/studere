@@ -89,19 +89,19 @@ export function TasksPanel({
             <div
               className={`ml-8 mt-3 rounded-2xl border p-3 ${
                 item.feedback.grade === "correct"
-                  ? "border-emerald-200 bg-emerald-50"
+                  ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/30"
                   : item.feedback.grade === "incorrect"
-                  ? "border-red-200 bg-red-50"
-                  : "border-amber-200 bg-amber-50"
+                  ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30"
+                  : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30"
               }`}
             >
               <p
                 className={`text-[11px] font-semibold uppercase tracking-wider ${
                   item.feedback.grade === "correct"
-                    ? "text-emerald-600"
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : item.feedback.grade === "incorrect"
-                    ? "text-red-600"
-                    : "text-amber-600"
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-amber-600 dark:text-amber-400"
                 }`}
               >
                 {item.feedback.grade === "correct"
@@ -110,7 +110,7 @@ export function TasksPanel({
                   ? "✗ Incorrecto"
                   : "~ Parcialmente correcto"}
               </p>
-              <div className="mt-1 text-xs leading-6 text-slate-600">
+              <div className="mt-1 text-xs leading-6 text-slate-600 dark:text-slate-400">
                 <Md>{item.feedback.explanation}</Md>
               </div>
             </div>

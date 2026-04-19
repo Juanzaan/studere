@@ -1,12 +1,9 @@
 import { QuizAttempt, FlashcardAttempt } from "@/lib/types";
+import { canUseStorage, safeSetItem } from "@/lib/local-storage-guard";
 
 const QUIZ_KEY = "studere.quiz-attempts.v1";
 const FLASHCARD_KEY = "studere.flashcard-attempts.v1";
 export const ANALYTICS_UPDATED_EVENT = "studere:analytics-updated";
-
-function canUseStorage() {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-}
 
 function emitAnalyticsUpdated() {
   if (!canUseStorage()) return;
@@ -29,8 +26,10 @@ export function saveQuizAttempt(attempt: QuizAttempt) {
   if (!canUseStorage()) return;
   const attempts = getQuizAttempts();
   attempts.push(attempt);
-  window.localStorage.setItem(QUIZ_KEY, JSON.stringify(attempts));
-  emitAnalyticsUpdated();
+  const success = safeSetItem(QUIZ_KEY, JSON.stringify(attempts));
+  if (success) {
+    emitAnalyticsUpdated();
+  }
 }
 
 export function getFlashcardAttempts(): FlashcardAttempt[] {
@@ -49,6 +48,8 @@ export function saveFlashcardAttempt(attempt: FlashcardAttempt) {
   if (!canUseStorage()) return;
   const attempts = getFlashcardAttempts();
   attempts.push(attempt);
-  window.localStorage.setItem(FLASHCARD_KEY, JSON.stringify(attempts));
-  emitAnalyticsUpdated();
+  const success = safeSetItem(FLASHCARD_KEY, JSON.stringify(attempts));
+  if (success) {
+    emitAnalyticsUpdated();
+  }
 }

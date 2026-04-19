@@ -89,11 +89,9 @@ function get(type, key) {
   const value = cache.get(cacheKey);
   
   if (value !== undefined) {
-    console.log(`🎯 Cache HIT: ${type} (${cacheKey})`);
     return value;
   }
   
-  console.log(`❌ Cache MISS: ${type} (${cacheKey})`);
   return null;
 }
 
@@ -113,8 +111,6 @@ function set(type, key, value, ttl) {
   } else {
     cache.set(cacheKey, value);
   }
-  
-  console.log(`💾 Cache SET: ${type} (${cacheKey})`);
 }
 
 /**
@@ -126,7 +122,6 @@ function del(type, key) {
   const cacheKey = generateKey(type, key);
   const cache = getCacheInstance(type);
   cache.del(cacheKey);
-  console.log(`🗑️  Cache DELETE: ${type} (${cacheKey})`);
 }
 
 /**
@@ -137,7 +132,6 @@ function clearAll() {
   generationCache.flushAll();
   chatCache.flushAll();
   evaluationCache.flushAll();
-  console.log("🧹 All caches cleared");
 }
 
 /**

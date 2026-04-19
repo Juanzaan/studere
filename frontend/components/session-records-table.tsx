@@ -14,7 +14,7 @@ function detectKind(session: StudySession) {
     return {
       label: "Video",
       icon: Film,
-      badge: "bg-rose-50 text-rose-600 border-rose-100",
+      badge: "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800",
     };
   }
 
@@ -22,14 +22,14 @@ function detectKind(session: StudySession) {
     return {
       label: "Audio",
       icon: FileAudio2,
-      badge: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      badge: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
     };
   }
 
   return {
     label: "Texto",
     icon: FileText,
-    badge: "bg-sky-50 text-sky-600 border-sky-100",
+      badge: "bg-sky-50 text-sky-600 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800",
   };
 }
 
@@ -102,7 +102,7 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
                     <div className="flex items-center gap-2">
                       <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{session.title}</p>
                       {session.starred && (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                           Destacada
                         </span>
                       )}

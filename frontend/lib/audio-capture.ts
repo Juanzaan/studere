@@ -57,7 +57,15 @@ export function stopAudioCapture(): Promise<AudioCaptureResult> {
       resolve({ blob, durationSeconds, mimeType });
     };
 
-    mediaRecorder.stop();
+    try {
+      mediaRecorder.stop();
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'InvalidStateError') {
+        // Already stopped, ignore
+      } else {
+        throw e;
+      }
+    }
   });
 }
 

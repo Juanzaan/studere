@@ -20,10 +20,10 @@ import { MindMapNode } from "@/lib/types";
 
 /* ─── colour palette keyed by accent ─── */
 const ACCENT_STYLES: Record<string, { bg: string; border: string; text: string; ring: string }> = {
-  violet: { bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-800", ring: "#8b5cf6" },
-  blue:   { bg: "bg-sky-50",    border: "border-sky-200",    text: "text-sky-800",    ring: "#0ea5e9" },
-  green:  { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", ring: "#10b981" },
-  amber:  { bg: "bg-amber-50",  border: "border-amber-200",  text: "text-amber-800",  ring: "#f59e0b" },
+  violet: { bg: "bg-violet-100", border: "border-violet-300", text: "text-violet-900", ring: "#7c3aed" },
+  blue:   { bg: "bg-sky-100",    border: "border-sky-300",    text: "text-sky-900",    ring: "#0284c7" },
+  green:  { bg: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-900", ring: "#059669" },
+  amber:  { bg: "bg-amber-100",  border: "border-amber-300",  text: "text-amber-900",  ring: "#d97706" },
 };
 
 function accentFor(accent?: string) {
@@ -35,9 +35,9 @@ function MindMapNodeComponent({ data }: { data: { label: string; accent?: string
   const style = accentFor(data.accent);
 
   const accent = data.accent || "violet";
-  const darkBg = { violet: "rgba(139,92,246,0.15)", blue: "rgba(14,165,233,0.15)", green: "rgba(16,185,129,0.15)", amber: "rgba(245,158,11,0.15)" }[accent];
-  const darkBorder = { violet: "rgba(139,92,246,0.4)", blue: "rgba(14,165,233,0.4)", green: "rgba(16,185,129,0.4)", amber: "rgba(245,158,11,0.4)" }[accent];
-  const darkText = { violet: "#c4b5fd", blue: "#7dd3fc", green: "#6ee7b7", amber: "#fcd34d" }[accent];
+  const darkBg = { violet: "rgba(139,92,246,0.15)", blue: "rgba(14,165,233,0.15)", green: "rgba(16,185,129,0.15)", amber: "rgba(245,158,11,0.15)" }[accent] ?? "rgba(139,92,246,0.15)";
+  const darkBorder = { violet: "rgba(139,92,246,0.4)", blue: "rgba(14,165,233,0.4)", green: "rgba(16,185,129,0.4)", amber: "rgba(245,158,11,0.4)" }[accent] ?? "rgba(139,92,246,0.4)";
+  const darkText = { violet: "#c4b5fd", blue: "#7dd3fc", green: "#6ee7b7", amber: "#fcd34d" }[accent] ?? "#c4b5fd";
 
   return (
     <div
@@ -148,7 +148,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
   }, [fullscreen]);
 
   const canvas = (
-    <div className={fullscreen ? "fixed inset-0 z-50 bg-white dark:bg-slate-950" : "relative h-[400px] w-full rounded-[24px] border border-slate-200 bg-white overflow-hidden dark:border-slate-700 dark:bg-slate-900"}>
+    <div className={fullscreen ? "fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950" : "relative h-[400px] w-full rounded-[24px] border border-slate-200 bg-slate-50 overflow-hidden dark:border-slate-700 dark:bg-slate-900"}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -162,7 +162,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(148,163,184,0.15)" />
-        <Controls showInteractive={false} className="!rounded-xl !border-slate-200 !shadow-sm dark:!border-slate-700 dark:!bg-slate-800" />
+        <Controls showInteractive={false} className="!rounded-xl !border-slate-200 !shadow-sm dark:!border-slate-700 [&>button]:bg-white [&>button]:border-slate-200 [&>button]:text-slate-700 [&>button]:hover:bg-slate-50 [&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-slate-500/60 dark:[&>button]:bg-slate-900 dark:[&>button]:border-slate-700 dark:[&>button]:text-slate-100 dark:[&>button]:hover:bg-slate-800" />
         {fullscreen && (
           <MiniMap
             nodeColor={(n) => accentFor(n.data?.accent as string).ring}

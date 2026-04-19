@@ -32,7 +32,13 @@ export function flashcardsToCsv(session: StudySession) {
 
 export function triggerDownload(fileName: string, content: string, type: string) {
   const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
+  let url: string;
+  try {
+    url = URL.createObjectURL(blob);
+  } catch {
+    console.error('[Export] Failed to create object URL (Safari private mode?)');
+    return;
+  }
   const link = document.createElement("a");
   link.href = url;
   link.download = fileName;

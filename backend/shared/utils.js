@@ -4,6 +4,7 @@
  */
 
 const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
 
 // ---------------------------------------------------------------------------
 // CORS Headers
@@ -150,6 +151,17 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
   throw lastError;
 }
 
+/**
+ * Build SHA-256 cache key from input parts
+ * @param {...any} parts - Parts to hash
+ * @returns {string} - SHA-256 hex hash
+ */
+function buildCacheKey(...parts) {
+  return crypto.createHash('sha256')
+    .update(JSON.stringify(parts))
+    .digest('hex');
+}
+
 module.exports = {
   jsonResponse,
   getRequestId,
@@ -157,5 +169,6 @@ module.exports = {
   structuredLog,
   withTimeout,
   retryWithBackoff,
+  buildCacheKey,
   CORS_HEADERS,
 };

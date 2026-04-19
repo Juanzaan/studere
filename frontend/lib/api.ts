@@ -1,6 +1,6 @@
 import type { Concept, Flashcard, QuizItem, ActionItem, MindMapNode, SessionInsight, ExerciseFeedback } from "@/lib/types";
 import { chunkAudioFile } from "@/lib/audio-chunker";
-import { BACKEND_URL } from "@/lib/constants";
+import { BACKEND_URL, AUDIO_LIMITS } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Audio transcription (Whisper) — handles large files via chunking
@@ -75,7 +75,12 @@ async function transcribeChunk(
       throw new Error(`Error al transcribir audio: ${errorMsg}`);
     }
 
-    const result = await res.json();
+    let result;
+    try {
+      result = await res.json();
+    } catch {
+      throw new Error('Invalid response from server — expected JSON');
+    }
     console.log(`[Transcribe] Success: ${result.text?.length || 0} characters`);
     return result;
   } catch (error) {
@@ -89,7 +94,7 @@ export async function transcribeAudio(
   language?: string,
   onProgress?: (message: string) => void,
 ): Promise<TranscriptionResult> {
-  const DIRECT_UPLOAD_LIMIT = 24 * 1024 * 1024; // 24MB
+  const DIRECT_UPLOAD_LIMIT = AUDIO_LIMITS.CLIENT_SIDE_MAX_MB * 1024 * 1024;
   
   // Strategy selection: use server-side for files >24MB
   if (file.size > DIRECT_UPLOAD_LIMIT) {
@@ -166,7 +171,12 @@ export async function generateStudySession(
     throw new Error(`Error al generar sesión de estudio: ${errorMsg}`);
   }
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error('Invalid response from server — expected JSON');
+  }
   const output = data.output;
 
   if (!output || typeof output === "string") {
@@ -210,7 +220,12 @@ export async function evaluateExercise(
     throw new Error(`Error al evaluar ejercicio: ${errorMsg}`);
   }
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error('Invalid response from server — expected JSON');
+  }
   return {
     grade: data.grade || "partial",
     explanation: data.explanation || "Sin explicación disponible.",
@@ -248,6 +263,11 @@ export async function sendStudeChat(
     throw new Error(`Error en chat con Stude: ${errorMsg}`);
   }
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error('Invalid response from server — expected JSON');
+  }
   return data.reply || "No pude generar una respuesta.";
 }

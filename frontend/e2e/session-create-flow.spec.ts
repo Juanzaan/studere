@@ -146,31 +146,34 @@ test.describe('Session Creation Flow (E2E)', () => {
         course: 'Testing',
         createdAt: new Date().toISOString(),
         starred: false,
-        sourceKind: 'text',
-        templateId: 'class-summary',
+        sourceFileName: 'test.txt',
+        sourceFileType: 'text/plain',
+        sourceKind: 'text' as const,
+        templateId: 'class-summary' as const,
         summary: 'This session tests persistence across reloads.',
         keyConcepts: [{ term: 'Persistence', description: 'Data that survives page reloads' }],
         flashcards: [],
         quiz: [],
         transcript: [{ id: 'seg-1', text: 'Test transcript', speaker: 'Test', timestamp: '00:00' }],
+        actionItems: [],
+        mindMap: { id: 'root', label: 'Persistence' },
+        bookmarks: [],
+        comments: [],
+        insights: [],
+        chatHistory: [],
         stats: { wordCount: 10, segmentCount: 1, estimatedDurationMinutes: 1 },
         studyMetrics: { completionRate: 0, quizAccuracy: 0, reviewCount: 0 },
       };
-
-      const zustandStore = {
-        state: { sessions: [mockSession] },
-        version: 0,
-      };
       
-      localStorage.setItem('studere-store', JSON.stringify(zustandStore));
+      localStorage.setItem('studere.sessions.v1', JSON.stringify([mockSession]));
     });
 
     // Reload page
     await page.reload();
     await page.waitForTimeout(1000);
 
-    // Verify session is still there
-    const persistedSession = await page.getByText(/Persistence Test Session/i).isVisible({ timeout: 2000 });
+    // Verify session is still there (use first() to avoid strict mode violation)
+    const persistedSession = await page.getByText(/Persistence Test Session/i).first().isVisible({ timeout: 2000 });
     expect(persistedSession).toBe(true);
   });
 });

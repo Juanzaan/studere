@@ -12,7 +12,7 @@
 
 const { getClient, getDeployment } = require("../shared/openai-client");
 const cache = require("../shared/cache");
-const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff } = require("../shared/utils");
+const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
 
 const SYSTEM_PROMPT = `You are Stude, the AI study tutor inside the Studere platform. You help university and high-school students review, understand, and master the material from their study sessions.
 
@@ -55,10 +55,7 @@ module.exports = async function (context, req) {
   }
 
   // --- Check cache for common questions ---
-  const cacheKey = {
-    message: message.toLowerCase().trim(),
-    sessionTitle: sessionContext?.title,
-  };
+  const cacheKey = buildCacheKey('chat', message.toLowerCase().trim(), sessionContext?.title);
   const cached = cache.get("chat", cacheKey);
   if (cached) {
     structuredLog(context, "info", "Cache hit - returning cached chat response", {}, requestId);

@@ -85,8 +85,8 @@ export function Sidebar() {
       {collapsed && !open && (
         <button
           onClick={() => setCollapsed(false)}
-          className="fixed left-[62px] top-[50%] z-30 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-md transition-all hover:bg-violet-50 hover:text-violet-600 lg:flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-violet-900/40 dark:hover:text-violet-400"
           aria-label="Expandir menú"
+          className="fixed left-[62px] top-[50%] z-30 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-md transition-all hover:bg-violet-50 hover:text-violet-600 lg:flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-violet-900/40 dark:hover:text-violet-400"
         >
           <ChevronsLeft className="h-3.5 w-3.5 rotate-180" />
         </button>
@@ -167,7 +167,7 @@ export function Sidebar() {
         </nav>
 
         {!collapsed && recentSessions.length > 0 && (
-          <div className="px-3 pt-5">
+          <div className="sticky top-0 z-10 bg-[#fbfcff] px-3 pt-5 dark:bg-[#0f1117]">
             <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Recientes</p>
           </div>
         )}

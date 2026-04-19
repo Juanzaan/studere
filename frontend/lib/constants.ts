@@ -52,4 +52,7 @@ export const PROCESSING_TIME_ESTIMATES = {
 } as const;
 
 // Backend URL - Force correct port
-export const BACKEND_URL = "http://localhost:7071";
+export const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:7071";

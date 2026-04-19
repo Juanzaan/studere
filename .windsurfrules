@@ -1,0 +1,551 @@
+# Studere - AI-Powered Study Assistant
+
+## 1. PROJECT OVERVIEW
+
+**Studere** is an educational platform that transforms class recordings and notes into interactive study materials using AI. Students can:
+- Upload audio/video recordings or paste text/URLs
+- Get automatic transcription (Azure OpenAI Whisper)
+- Generate comprehensive study packages: summaries, flashcards, quizzes, mind maps, action items
+- Chat with an AI tutor (Stude) for contextual help
+- Practice with exercises and get AI-powered feedback
+- Export materials to PDF/Markdown/CSV
+
+**Target users:** University and high-school students reviewing post-class content.
+
+**Current state:** Production-ready MVP with optimizations completed. Dual audio processing pipeline (client-side for <24MB files, server-side with FFmpeg for larger files up to 2+ hours).
+
+---
+
+## 2. TECH STACK
+
+### Frontend
+- **Framework:** Next.js 14.2.5 (App Router)
+- **Language:** TypeScript 5.5.4 (strict mode)
+- **UI:** React 18.3.1
+- **Styling:** TailwindCSS 3.4.7 (custom design system with dark mode)
+- **State Management:** Zustand 5.0.12 (with persist middleware)
+- **Storage:** LocalStorage + IndexedDB (via lib/storage.ts)
+- **Animations:** GSAP 3.14.2, React Three Fiber 8.15.19
+- **Visualizations:** 
+  - React Flow (@xyflow/react 12.10.1) for mind maps
+  - Recharts 3.8.0 for analytics charts
+  - KaTeX 0.16.42 for math rendering
+  - React Markdown 10.1.0 with rehype/remark plugins
+- **Icons:** Lucide React 0.408.0
+- **Testing:** 
+  - Vitest 4.1.2 (unit/integration)
+  - Playwright 1.58.2 (E2E)
+  - MSW 2.12.14 (API mocking)
+  - React Testing Library 16.3.2
+
+### Backend
+- **Runtime:** Node.js 18 LTS (CommonJS)
+- **Platform:** Azure Functions v4 (Consumption Plan)
+- **AI Services:** 
+  - Azure OpenAI (@azure/openai 1.0.0-beta.12)
+  - GPT-4o-mini deployment: `stude-gpt4omini`
+  - Whisper deployment: `whisper`
+- **Caching:** node-cache 5.1.2 (in-memory with TTL)
+- **Resilience:** opossum 8.1.3 (circuit breaker), axios-retry 4.0.0
+- **Validation:** joi 17.12.0
+- **Audio Processing:** fluent-ffmpeg 2.1.2, @ffmpeg-installer/ffmpeg 1.1.0
+- **Utilities:** uuid 9.0.1
+
+### Infrastructure
+- **Frontend Deploy:** Vercel (auto-deploy from main branch)
+- **Backend Deploy:** Azure Functions (East US region)
+- **Storage:** Azure Blob Storage (for audio chunks temp storage)
+- **Monitoring:** Application Insights (configured in host.json)
+
+---
+
+## 3. PROJECT STRUCTURE
+
+### Frontend (`/frontend`)
+```
+frontend/
+├── app/
+│   ├── (app)/                    # Route group with sidebar layout
+│   │   ├── dashboard/            # Main dashboard page
+│   │   ├── library/              # All sessions library
+│   │   ├── starred/              # Starred sessions
+│   │   ├── upcoming/             # Upcoming tasks
+│   │   ├── analytics/            # Study analytics
+│   │   ├── integrations/         # External integrations
+│   │   ├── sessions/[id]/        # Session detail page
+│   │   └── layout.tsx            # Sidebar + topbar layout
+│   ├── layout.tsx                # Root layout (Inter font, theme script)
+│   ├── page.tsx                  # Landing/home page
+│   ├── not-found.tsx             # 404 page
+│   └── globals.css               # Global styles + Tailwind
+├── components/                   # ~30 React components
+│   ├── session-detail.tsx        # Main session viewer (348 lines)
+│   ├── session-detail-helpers.tsx # Dynamic imports + helpers
+│   ├── session-panels/           # Extracted from session-detail.tsx
+│   │   ├── SummaryPanel.tsx      # Transcript + search + segment actions
+│   │   ├── InsightsPanel.tsx     # Insights/concepts display
+│   │   ├── NotesPanel.tsx        # Notes and bookmarks
+│   │   └── index.ts              # Barrel export
+│   ├── session-composer-card.tsx # Create new session UI
+│   ├── audio-recorder-widget.tsx # Audio recording interface
+│   ├── mind-map-canvas.tsx       # React Flow mind map editor
+│   ├── quiz-viewer.tsx           # Interactive quiz UI
+│   ├── flashcard-viewer.tsx      # Spaced repetition flashcards
+│   ├── stude-chat-popup.tsx      # AI chat interface
+│   ├── md-renderer.tsx           # Markdown + KaTeX renderer
+│   └── ...                       # Other UI components
+├── lib/                          # Core utilities and API
+│   ├── api.ts                    # Backend API client
+│   ├── api-server-side.ts        # Server-side audio processing (>24MB)
+│   ├── audio-chunker.ts          # Client-side audio splitting
+│   ├── audio-capture.ts          # MediaRecorder wrapper (audio only)
+│   ├── brain-reply.ts            # buildBrainReply + all buildXxx helpers
+│   ├── session-normalizer.ts     # normalizeSession + normalizeTranscriptSegment
+│   ├── session-utils.ts          # Session creators (createMindMap, etc.)
+│   ├── study-generator.ts        # AI generation orchestration
+│   ├── local-storage-guard.ts    # Shared canUseStorage() guard
+│   ├── storage.ts                # LocalStorage persistence layer
+│   ├── analytics-storage.ts      # Analytics localStorage layer
+│   ├── exporters.ts              # PDF/Markdown/CSV export
+│   ├── constants.ts              # App constants (limits, thresholds)
+│   └── types.ts                  # TypeScript type definitions
+├── src/
+│   ├── domains/                  # Domain-driven design modules
+│   │   ├── recordings/           # Audio/screen recording hooks
+│   │   └── sessions/             # Session-specific components
+│   ├── shared/                   # Shared utilities
+│   │   ├── components/           # Reusable UI components
+│   │   └── hooks/                # Custom React hooks
+│   ├── store/                    # Zustand state management
+│   │   ├── index.ts              # Store setup with persist
+│   │   └── slices/               # State slices (sessions, ui)
+│   └── tests/                    # Test suites
+│       ├── unit/                 # Vitest unit tests
+│       ├── integration/          # Integration tests
+│       └── mocks/                # MSW handlers
+├── e2e/                          # Playwright E2E tests
+│   ├── session-create-flow.spec.ts
+│   ├── session-detail.spec.ts
+│   └── library.spec.ts
+├── next.config.mjs               # Next.js configuration
+├── tailwind.config.ts            # Tailwind + design tokens
+├── tsconfig.json                 # TypeScript config (strict)
+└── package.json                  # Dependencies
+```
+
+### Backend (`/backend`)
+```
+backend/
+├── GenerateStudySession/         # AI study package generation (GPT-4o-mini)
+│   ├── index.js                  # Main handler (309 lines, optimized)
+│   └── function.json             # Azure Functions config
+├── TranscribeAudio/              # Legacy transcription endpoint (<24MB)
+│   ├── index.js                  # Whisper transcription
+│   └── function.json
+├── ProcessAudio/                 # Server-side audio processing (>24MB)
+│   ├── index.js                  # FFmpeg chunking + parallel Whisper
+│   └── function.json
+├── UploadAudioChunk/             # Chunk upload endpoint
+│   ├── index.js                  # Receives 5MB chunks
+│   └── function.json
+├── StudeChat/                    # AI chat endpoint
+│   ├── index.js                  # Contextual chat with GPT-4o-mini
+│   └── function.json
+├── EvaluateExercise/             # Exercise grading
+│   ├── index.js                  # AI-powered feedback
+│   └── function.json
+├── HealthCheck/                  # Monitoring endpoint
+│   ├── index.js                  # Health status + cache stats
+│   └── function.json
+├── shared/                       # Shared backend modules
+│   ├── openai-client.js          # Singleton OpenAI client
+│   ├── cache.js                  # node-cache wrapper
+│   ├── utils.js                  # Retry, timeout, logging, jsonResponse
+│   ├── study-session-config.js   # OUTPUT_SCHEMA, prompts, normalizeOutput
+│   ├── audio-pipeline.js         # FFmpeg + Whisper pipeline functions
+│   └── blob-storage.js           # Azure Blob Storage client (chunks + session metadata)
+├── host.json                     # Azure Functions runtime config (30min timeout)
+├── local.settings.json           # Local env vars (gitignored)
+└── package.json                  # Dependencies
+```
+
+### Documentation (`/`)
+- `AI_PROMPT_STUDERE.md` - AI agent instructions (Spanish)
+- `ARCHITECTURE_FIXES.md` - Known issues and refactor plan
+- `DEPLOY_GUIDE.md` - Production deployment guide
+- `ENV_VARIABLES.md` - Environment variables reference
+- `SESSION_SUMMARY.md` - Project status and metrics
+- `AUDIO_CHUNKING_FIX.md` - Audio processing architecture
+
+---
+
+## 4. ARCHITECTURE PATTERNS
+
+### Frontend-Backend Communication
+- **Protocol:** REST API over HTTPS
+- **Format:** JSON request/response
+- **Base URL:** Configured via `NEXT_PUBLIC_BACKEND_URL` env var
+- **CORS:** Backend validates `ALLOWED_ORIGIN` header
+- **Error Handling:** Consistent error format `{ error: string }`
+- **Caching:** Backend uses node-cache (TTL: 1-24 hours depending on operation)
+
+### Audio Processing Pipeline (Dual Strategy)
+
+**Client-Side (<24MB files):**
+1. Frontend: `audio-chunker.ts` decodes audio with Web Audio API
+2. Resamples to 16kHz mono, splits into 4-minute WAV chunks
+3. Uploads each chunk to `/api/transcribe-audio` (base64)
+4. Backend: Whisper transcription per chunk
+5. Frontend: Concatenates results
+
+**Server-Side (>24MB files):**
+1. Frontend: Splits file into 5MB binary chunks (no decoding)
+2. Uploads to `/api/upload-audio-chunk` (stored in `.temp/audio-chunks/`)
+3. Calls `/api/process-audio` with session ID
+4. Backend: 
+   - Concatenates chunks
+   - FFmpeg splits into 4-minute segments
+   - Parallel Whisper transcription (5 concurrent)
+   - Returns full transcript
+5. Frontend: Receives complete text
+
+**Limits:**
+- Client-side: <24MB (~45-50 min audio)
+- Server-side: <200MB (~2-3 hours audio, tested up to 2 hours)
+- Whisper per-chunk: <25MB
+
+### State Management
+- **Global State:** localStorage via lib/storage.ts (single source of truth)
+  - No Zustand store. src/store/ was removed.
+  - Components read via getSessions() and write via upsertSession/patchSession
+  - Emit SESSIONS_UPDATED_EVENT after storage changes
+  - Zustand is documented as a future migration when auth/sync is added
+- **Storage:** LocalStorage only (lib/storage.ts)
+  - IndexedDB migration is planned for large binary data but not implemented
+  - Do not add IndexedDB without updating this section
+
+### Database Layer
+- **No traditional database** - uses browser storage
+- **LocalStorage:** Primary storage for sessions (key: `studere.sessions.v1`)
+- **IndexedDB:** Planned for large binary data (not yet implemented)
+- **Backend:** Stateless (no persistence), uses in-memory cache only
+
+### Authentication
+- **None implemented** - MVP is single-user local-first app
+- All data stored client-side
+- Backend has no user authentication (relies on CORS for basic security)
+
+### AI Integration
+- **Provider:** Azure OpenAI Service
+- **Models:**
+  - GPT-4o-mini: Study generation, chat, exercise evaluation
+  - Whisper: Audio transcription
+- **Prompt Engineering:** 
+  - System prompts in backend (e.g., `GenerateStudySession/index.js:35-63`)
+  - Structured JSON output with schema validation
+  - Fallback prompts for content filter issues
+- **Optimization:**
+  - Singleton client pattern (`shared/openai-client.js`)
+  - Response caching (2-24 hour TTL)
+  - Dynamic token limits based on input length
+  - Retry with exponential backoff
+  - 90s timeout for generation, 5min for transcription
+
+---
+
+## 5. CODING CONVENTIONS
+
+### Naming Conventions
+- **Files:** kebab-case (e.g., `session-detail.tsx`, `audio-chunker.ts`)
+- **Components:** PascalCase (e.g., `SessionDetail`, `AudioRecorderWidget`)
+- **Functions/Variables:** camelCase (e.g., `transcribeAudio`, `maxTokens`)
+- **Constants:** UPPER_SNAKE_CASE (e.g., `MAX_AUDIO_SIZE_MB`, `BACKEND_URL`)
+- **Types/Interfaces:** PascalCase (e.g., `StudySession`, `TranscriptionResult`)
+- **CSS Classes:** Tailwind utility classes (no custom CSS classes)
+
+### File Structure Patterns
+- **Frontend Components:** 
+  - One component per file
+  - Co-located with domain logic when specific (e.g., `src/domains/sessions/components/`)
+  - Shared components in `components/` root
+- **Backend Functions:**
+  - One Azure Function per folder
+  - `index.js` = handler
+  - `function.json` = Azure config
+  - Shared code in `shared/` folder
+- **Tests:**
+  - Unit tests: `src/tests/unit/[module].test.ts`
+  - Integration tests: `src/tests/integration/[feature].test.ts`
+  - E2E tests: `e2e/[flow].spec.ts`
+  - Test files mirror source structure
+
+### TypeScript Conventions
+- **Strict mode enabled** (`tsconfig.json`)
+- **No `any` types** - use `unknown` or proper types
+- **Export types explicitly** from `lib/types.ts`
+- **Props interfaces:** Inline for small components, exported for reusable ones
+- **Path aliases:** `@/` maps to frontend root
+
+### React Patterns
+- **Functional components only** (no class components)
+- **Hooks:**
+  - Custom hooks in `src/shared/hooks/` or domain-specific folders
+  - Prefix with `use` (e.g., `useAudioRecording`, `useDebounce`)
+- **Dynamic imports:** Use `next/dynamic` for heavy components (e.g., `md-renderer.tsx`)
+- **Client components:** Mark with `"use client"` directive when needed
+- **Server components:** Default in App Router (no directive needed)
+
+### Styling Patterns
+- **Tailwind-first:** Use utility classes, avoid custom CSS
+- **Design tokens:** Defined in `tailwind.config.ts`
+  - Colors: `accent`, `accentSoft`, `background`, `panel`, `line`
+  - Shadows: `card`, `card-hover`, `card-lift`, `glow`
+  - Animations: `fade-in`, `fade-in-scale`, `slide-in-left/right`
+- **Dark mode:** `class` strategy (toggle via `dark:` prefix)
+- **Responsive:** Mobile-first (use `sm:`, `md:`, `lg:` breakpoints)
+
+### Backend Patterns
+- **CommonJS modules** (`require`/`module.exports`)
+- **Async/await** for all async operations (no callbacks)
+- **Error handling:** Try-catch with structured logging
+- **Logging:** Use `structuredLog()` from `shared/utils.js`
+- **Response format:** Use `jsonResponse()` helper for consistent CORS headers
+- **Request IDs:** Track with `getRequestId()` for debugging
+
+---
+
+## 6. KEY RULES FOR AI
+
+### ALWAYS DO:
+1. **Read before editing** - Use read_file to understand context before making changes
+2. **Preserve existing patterns** - Match the coding style of surrounding code
+3. **Use existing utilities** - Check `lib/`, `shared/`, and `src/shared/` before creating new helpers
+4. **Test critical paths** - Add/update tests for audio processing, AI generation, and storage
+5. **Update types** - Modify `lib/types.ts` when changing data structures
+6. **Handle SSR** - Check `typeof window !== "undefined"` before using browser APIs
+7. **Validate inputs** - Use joi validation in backend, TypeScript types in frontend
+8. **Log errors** - Use `structuredLog()` in backend, `console.error()` in frontend
+9. **Cache AI responses** - Use `cache.get()/set()` for expensive OpenAI calls
+10. **Respect limits** - Audio: 200MB max, Transcript: 200k chars, Whisper chunk: 25MB
+
+### NEVER DO:
+1. **Don't change DB schema** - There is no DB; storage is localStorage-based
+2. **Don't break API contracts** - Frontend expects specific response shapes from backend
+3. **Don't add dependencies without asking** - Both package.json files are optimized
+4. **Don't remove error handling** - All API calls must have try-catch
+5. **Don't disable TypeScript strict mode** - Keep `strict: true` in tsconfig.json
+6. **Don't hardcode API keys** - Use environment variables only
+7. **Don't modify `host.json` timeout** - 30min is required for ProcessAudio
+8. **Don't change cache TTL without reason** - Tuned for cost optimization
+9. **Don't add console.log in production** - Use structured logging or remove before commit
+10. **Don't break dark mode** - Always test both light/dark themes
+11. **Don't repeat logic (DRY)** - Before writing a new function or utility, search the codebase. Duplicate logic is treated as a bug.
+12. **Don't use module-level mutable singletons** - No module-level `let` for state (mediaRecorder, chunks, Maps). Use React state, refs, or proper service instances.
+13. **Don't leave fetches without timeout** - Any fetch expected to take more than 10 seconds must have an AbortController with a timeout.
+14. **Don't write localStorage without quota handling** - All setItem calls must catch QuotaExceededError. Use canUseStorage() from lib/local-storage-guard.ts before writing.
+15. **Don't add new backend functions without using jsonResponse()** - All responses including OPTIONS must go through the shared helper.
+
+### SPECIFIC RULES:
+
+**Audio Processing:**
+- Files <24MB: Use client-side chunking (`audio-chunker.ts`)
+- Files >24MB: Use server-side processing (`ProcessAudio` function)
+- Always show progress feedback to user
+- Handle Web Audio API errors gracefully (Safari compatibility issues)
+
+**AI Generation:**
+- Always use caching for identical requests
+- Implement fallback prompts for content filter issues
+- Normalize AI output with `normalizeOutput()` function
+- Validate JSON responses before returning to frontend
+
+**State Management:**
+- Use Zustand store for global state
+- Persist only sessions slice (not UI state)
+- Normalize sessions with `normalizeSession()` before saving
+- Emit `SESSIONS_UPDATED_EVENT` after storage changes
+
+**Component Architecture:**
+- Keep components under 300 lines (refactor if larger)
+- Use dynamic imports for heavy dependencies (markdown, 3D, charts)
+- Implement loading states for async operations
+- Use React.memo for expensive renders (but measure first)
+
+**New file placement:**
+- New UI utility hooks → frontend/src/shared/hooks/
+- New domain hooks → frontend/src/domains/[domain]/hooks/
+- New panel-level components → frontend/components/session-panels/
+- New lib utilities → frontend/lib/ (check brain-reply, session-normalizer before creating new files — helpers may already exist)
+- New backend shared logic → backend/shared/ (not inline in function handlers)
+- Function handlers must stay thin: CORS + validation + orchestration only
+
+**Testing:**
+- Unit tests for utilities and pure functions
+- Integration tests for API interactions (use MSW)
+- E2E tests for critical user flows (Playwright)
+- Mock Azure OpenAI in tests (don't hit real API)
+
+---
+
+## 7. CURRENT STATE
+
+### ✅ Working Features
+- Audio/video transcription (dual pipeline: client + server-side)
+- AI study session generation (summary, concepts, flashcards, quiz, mind map, action items)
+- Interactive quiz with multiple choice
+- Flashcard viewer with spaced repetition
+- Mind map editor (React Flow)
+- Contextual AI chat (Stude)
+- Exercise evaluation with AI feedback
+- Export to PDF/Markdown/CSV
+- Dark mode toggle
+- Session library with search/filter
+- Analytics dashboard
+- LocalStorage persistence
+
+### Known Issues
+
+✅ RESOLVED:
+- session-detail.tsx refactored: 684 → 348 lines, panels extracted
+- ProcessAudio disk leak fixed (fs.rm uncommented)
+- processAudio missing timeout fixed (AbortController, 35min)
+- canUseStorage() duplication removed (lib/local-storage-guard.ts)
+- Magic number DIRECT_UPLOAD_LIMIT replaced with AUDIO_LIMITS constant
+- Dead Zustand store removed
+- URL transcriber (stub/fake) removed
+- Screen recorder (disabled feature) removed
+- UploadAudioChunk migrated to Azure Blob Storage (audiochunks account). Session metadata and chunks stored in Azure. Cold starts no longer affect uploads. Temp processing still uses /tmp/ for FFmpeg (cleared by Azure Functions automatically).
+- SHA-256 cache keys in TranscribeAudio, StudeChat, GenerateStudySession via buildCacheKey() in shared/utils.js
+- localStorage quota handling via safeSetItem() in local-storage-guard.ts. storage.ts warns on failure, analytics-storage.ts fails silently.
+- E2E test coverage increased from ~40% to ~90% (35→39 passing tests). Added 4 new spec files: audio-transcription-flow, ai-generation-flow, quiz-flow, flashcard-flow. All 39 tests passing on Chromium.
+- All error handling gaps closed: res.json() wrapped in all API functions, MediaRecorder.stop() InvalidStateError handled, URL.createObjectURL Safari private mode handled, blob-storage JSON.parse corruption handled, GenerateStudySession undefined parsed recovery added.
+- Backend shared logging cleaned: removed redundant console.log from cache.js, blob-storage.js, audio-pipeline.js. Calling functions use structuredLog.
+
+🔴 P0 — Critical:
+(None)
+
+🟡 P1 — High priority:
+1. localStorage saves block main thread on large session libraries (JSON.stringify of 50MB+). Needs async approach or size guard.
+
+🟠 P2 — Medium priority:
+3. Mind map drag & drop edge cases (node collision, routing).
+4. GSAP animations duplicated across components — centralize in custom hooks.
+
+📋 Technical Debt (ordered by priority):
+1. Add error boundaries for async operations
+2. Implement request cancellation UI for long operations
+3. Loading skeletons for perceived performance
+
+🚧 Planned (long-term, not in scope for MVP):
+- Authentication (single-user MVP by design)
+- Cloud sync / collaborative editing
+- Live class integration (Zoom/Meet) — screen-recorder removed until ready
+- URL transcription — removed until Whisper/Deepgram integration is ready
+- Zustand migration — on hold until auth/sync features are added
+- Mobile app / offline mode
+
+### 📊 Performance Metrics (from SESSION_SUMMARY.md)
+- Bundle size: 890 KB (26% reduction from 1.2 MB)
+- First Contentful Paint: 1.4s (34% improvement)
+- Cumulative Layout Shift: 0.04 (73% improvement)
+- Backend latency: 2s average (75% reduction from 8s)
+- Error rate: 0.5% (83% reduction from 3%)
+
+### 📊 Test Coverage
+- E2E specs: 7 files, 39 tests, 100% passing (Chromium)
+- Browsers configured: Chromium (installed), Firefox, Mobile Safari pending
+- Coverage: ~90% of critical user flows (audio upload, AI generation, quiz, flashcards, library, session detail, session creation)
+
+### 🎯 Production Readiness
+- **Status:** ✅ Ready for production deploy
+- **Deployment:** 
+  - Frontend: Vercel (auto-deploy from main)
+  - Backend: Azure Functions (manual deploy via CLI or VS Code)
+- **Monitoring:** Application Insights enabled in host.json
+- **Cost estimate:** $10-35/month (Vercel free tier + Azure consumption plan)
+- **Last tested:** April 2026 (integration tests passing)
+
+---
+
+## 8. SESSION CONTEXT
+
+When starting a new conversation, always:
+1. **Ask what the user wants to work on** before making any changes
+2. **State which files you plan to touch** before editing them
+3. **Confirm if the change affects more than 3 files** - large refactors need explicit approval
+4. **Reference specific section numbers** from this file when explaining decisions (e.g., "Following section 5 naming conventions...")
+5. **Check existing utilities first** - Review sections 3 (project structure) and 5 (conventions) before creating new code
+6. **Respect the architecture** - Section 4 defines critical patterns (dual audio pipeline, state management, AI integration)
+7. **Follow the rules** - Section 6 contains ALWAYS/NEVER rules that must be respected
+
+### Communication Guidelines
+- **Be explicit:** "I'm going to modify `lib/api.ts` and `components/session-detail.tsx`" before editing
+- **Ask for context:** If the task is ambiguous, ask clarifying questions before proceeding
+- **Explain trade-offs:** When multiple approaches exist, explain pros/cons referencing this file
+- **Acknowledge constraints:** If a request conflicts with section 6 rules, explain why and propose alternatives
+
+### Before Making Changes
+1. Read the relevant files first (section 6, rule #1)
+2. Check if existing utilities can be reused (section 6, rule #3)
+3. Verify the change doesn't break API contracts (section 6, rule #2)
+4. Consider impact on tests (section 6, rule #4)
+5. Ensure TypeScript types are updated if needed (section 6, rule #5)
+
+---
+
+## 9. TOKEN EFFICIENCY
+
+### Context loading
+- Read only the files directly relevant to the task. Do not read the entire 
+  codebase unless explicitly asked for an audit.
+- When editing a component, read that file + its direct imports only.
+- Do not re-read files already read earlier in the same conversation.
+
+### Responses
+- Skip preamble. Do not explain what you are about to do — just do it.
+- Do not summarize changes after making them unless asked.
+- Do not repeat back the user's request before answering.
+- If showing code, show only the changed block + enough context to locate it 
+  (not the entire file).
+
+### Planning before acting
+- For tasks touching more than 2 files: write a 3-line plan and wait for 
+  confirmation before executing.
+- For tasks touching 1-2 files: execute directly.
+- Never run full-project searches (grep, glob **/*) unless the task requires it.
+
+### Cascading changes
+- When a refactor requires updating imports in multiple files, batch all 
+  import-only changes in a single step — do not open a conversation turn per file.
+
+---
+
+## 9. TOKEN EFFICIENCY
+
+### Context loading
+- Read only files directly relevant to the task.
+- When editing a component, read that file + its direct imports only.
+- Do not re-read files already read in the same conversation.
+- Never run full-project searches unless the task explicitly requires it.
+
+### Responses
+- Skip preamble. Do not explain what you are about to do — just do it.
+- Do not summarize changes after making them unless asked.
+- Do not repeat the user's request before answering.
+- When showing code, show only the changed block + enough context to locate it — not the entire file.
+
+### Planning before acting
+- Tasks touching more than 2 files: write a 3-line plan, wait for confirmation before executing.
+- Tasks touching 1-2 files: execute directly.
+- Batch all import-only changes in a single step.
+
+### Model guidance
+- Bug fixes and targeted edits: use the fastest available model.
+- Audits, architecture decisions, complex refactors: use the most capable model available.
+- Do not use a large model for a task a small model can do.
+
+---
+
+**Last Updated:** April 19, 2026  
+**Project Version:** Frontend 0.1.0, Backend 0.2.0  
+**Maintainer:** Studere Team

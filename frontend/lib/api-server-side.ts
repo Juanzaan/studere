@@ -130,38 +130,46 @@ async function processAudio(
   console.log(`[ServerSide] Processing session ${sessionId}`);
   console.log(`[ServerSide] URL: ${url}`);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId,
-      language: language || 'auto'
-    })
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 35 * 60 * 1000);
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const errorMsg = error.error || 'Error desconocido del servidor';
-    throw new Error(`Error al procesar audio en el servidor: ${errorMsg}`);
-  }
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        language: language || 'auto'
+      }),
+      signal: controller.signal
+    });
 
-  const result = await response.json();
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      const errorMsg = error.error || 'Error desconocido del servidor';
+      throw new Error(`Error al procesar audio en el servidor: ${errorMsg}`);
+    }
+
+    const result = await response.json();
   
-  onProgress?.({
-    phase: 'complete',
-    progress: 100,
-    message: `Transcripción completa (${result.segments} segmentos)`
-  });
+    onProgress?.({
+      phase: 'complete',
+      progress: 100,
+      message: `Transcripción completa (${result.segments} segmentos)`
+    });
 
-  console.log(`[ServerSide] Processing complete:`, {
-    segments: result.segments,
-    textLength: result.text.length
-  });
+    console.log(`[ServerSide] Processing complete:`, {
+      segments: result.segments,
+      textLength: result.text.length
+    });
 
-  return {
-    text: result.text,
-    language: result.language
-  };
+    return {
+      text: result.text,
+      language: result.language
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /**

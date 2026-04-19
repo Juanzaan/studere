@@ -47,6 +47,7 @@ NEXT_PUBLIC_BACKEND_URL=https://studere-backend.azurewebsites.net
 | `AZURE_OPENAI_KEY` | API Key de Azure OpenAI | **SÍ** | `abc123...xyz` |
 | `AZURE_OPENAI_DEPLOYMENT` | Deployment name para GPT-4o-mini | No | `stude-gpt4omini` |
 | `AZURE_OPENAI_WHISPER_DEPLOYMENT` | Deployment name para Whisper | No | `whisper` |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage para audio chunks | **SÍ** | `DefaultEndpointsProtocol=https;...` |
 | `ALLOWED_ORIGIN` | CORS - Origen permitido | No | `*` (local) / `https://studere.vercel.app` (prod) |
 | `AzureWebJobsStorage` | Storage account (Azure Functions) | **SÍ** | `DefaultEndpointsProtocol=https;...` |
 | `FUNCTIONS_WORKER_RUNTIME` | Runtime de Azure Functions | No | `node` |
@@ -71,6 +72,7 @@ NEXT_PUBLIC_BACKEND_URL=https://studere-backend.azurewebsites.net
     "AZURE_OPENAI_KEY": "TU-API-KEY-AQUÍ",
     "AZURE_OPENAI_DEPLOYMENT": "stude-gpt4omini",
     "AZURE_OPENAI_WHISPER_DEPLOYMENT": "whisper",
+    "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
     "ALLOWED_ORIGIN": "*"
   }
 }
@@ -91,6 +93,7 @@ NEXT_PUBLIC_BACKEND_URL=https://studere-backend.azurewebsites.net
    AZURE_OPENAI_KEY = [TU-API-KEY]
    AZURE_OPENAI_DEPLOYMENT = stude-gpt4omini
    AZURE_OPENAI_WHISPER_DEPLOYMENT = whisper
+   AZURE_STORAGE_CONNECTION_STRING = [TU-STORAGE-CONNECTION-STRING]
    ALLOWED_ORIGIN = https://studere.vercel.app
    WEBSITE_RUN_FROM_PACKAGE = 1
    ```
@@ -105,6 +108,7 @@ az functionapp config appsettings set \
     AZURE_OPENAI_KEY="TU-API-KEY" \
     AZURE_OPENAI_DEPLOYMENT="stude-gpt4omini" \
     AZURE_OPENAI_WHISPER_DEPLOYMENT="whisper" \
+    AZURE_STORAGE_CONNECTION_STRING="TU-STORAGE-CONNECTION-STRING" \
     ALLOWED_ORIGIN="https://studere.vercel.app" \
     WEBSITE_RUN_FROM_PACKAGE="1"
 ```
@@ -130,12 +134,17 @@ az functionapp config appsettings set \
      - GPT-4o-mini: `stude-gpt4omini`
      - Whisper: `whisper`
 
-### **Azure Storage (AzureWebJobsStorage)**
+### **Azure Storage (AzureWebJobsStorage y AZURE_STORAGE_CONNECTION_STRING)**
 
 1. Ir a: `https://portal.azure.com`
 2. Navegar a: **Storage accounts** → `studerestorage` (o el nombre que usaste)
 3. En el menú lateral: **Access keys**
 4. Copiar la **Connection string** completa
+5. Usar la misma connection string para ambas variables:
+   - `AzureWebJobsStorage`: Requerido por Azure Functions runtime
+   - `AZURE_STORAGE_CONNECTION_STRING`: Usado por blob-storage.js para audio chunks
+
+**Nota:** Para desarrollo local, usar `"UseDevelopmentStorage=true"` requiere Azurite (emulador de Azure Storage).
 
 ---
 

@@ -34,31 +34,31 @@ export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: Con
   }
 
   return (
-    <aside className="flex flex-col rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-      <div className="flex items-center justify-between px-4 py-3.5">
-        <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-          <Layers className="h-4 w-4 text-violet-500" />
-          Conceptos Clave
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">{concepts.length}</span>
+    <aside className="flex flex-col rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-4 py-3.5">
+        <span className="flex flex-1 items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-0 truncate">
+          <Layers className="h-4 w-4 shrink-0 text-violet-500" />
+          <span className="truncate">Conceptos Clave</span>
+          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">{concepts.length}</span>
         </span>
         <button
           onClick={onToggle}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-300"
           aria-label="Cerrar conceptos"
         >
           <ChevronsLeft className="h-3.5 w-3.5" />
         </button>
       </div>
       <div className="min-h-0 flex-1 animate-fade-in overflow-y-auto border-t border-slate-100 px-4 pb-4 pt-3 dark:border-slate-800">
-        <div className="space-y-3">
+        <div className="space-y-4">
           {concepts.map((concept) => (
             <div key={concept.term} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {searchQuery ? <Highlight text={concept.term} query={searchQuery} /> : concept.term}
               </p>
-              <div className="mt-2">
+              <div className="mt-1">
                 {searchQuery ? (
-                  <p className="text-sm leading-7 text-slate-500 dark:text-slate-400">
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     <Highlight text={concept.description} query={searchQuery} />
                   </p>
                 ) : (

@@ -331,6 +331,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
             <button
               type="submit"
               disabled={thinking || !input.trim()}
+              aria-label="Enviar mensaje"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Brain className="h-4 w-4" />

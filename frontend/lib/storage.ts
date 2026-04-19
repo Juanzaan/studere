@@ -1,12 +1,9 @@
 import { StudySession } from "@/lib/types";
 import { normalizeSession } from "@/lib/session-utils";
+import { canUseStorage, safeSetItem } from "@/lib/local-storage-guard";
 
 const STORAGE_KEY = "studere.sessions.v1";
 export const SESSIONS_UPDATED_EVENT = "studere:sessions-updated";
-
-function canUseStorage() {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-}
 
 function emitSessionsUpdated() {
   if (!canUseStorage()) {
@@ -40,7 +37,11 @@ export function saveSessions(sessions: StudySession[]) {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions.map((session) => normalizeSession(session))));
+  const success = safeSetItem(STORAGE_KEY, JSON.stringify(sessions.map((session) => normalizeSession(session))));
+  if (!success) {
+    console.warn('[Storage] Session data could not be saved — storage full');
+    return;
+  }
   emitSessionsUpdated();
 }
 

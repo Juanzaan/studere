@@ -11,7 +11,7 @@
 
 const { getClient, getWhisperDeployment } = require("../shared/openai-client");
 const cache = require("../shared/cache");
-const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff } = require("../shared/utils");
+const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
 
 const MAX_AUDIO_SIZE_MB = 25;
 const MAX_AUDIO_SIZE_BYTES = MAX_AUDIO_SIZE_MB * 1024 * 1024;
@@ -48,8 +48,8 @@ module.exports = async function (context, req) {
     return;
   }
 
-  // --- Check cache first (using hash of audio data) ---
-  const cacheKey = { audioHash: audioBase64.substring(0, 100), language }; // Use first 100 chars as signature
+  // --- Check cache first (using SHA-256 hash of audio data) ---
+  const cacheKey = buildCacheKey('transcription', audioBase64, language);
   const cached = cache.get("transcription", cacheKey);
   if (cached) {
     structuredLog(context, "info", "Cache hit - returning cached transcription", {}, requestId);

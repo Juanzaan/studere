@@ -68,7 +68,7 @@ export function SessionHeader({
           {!confirmDelete ? (
             <button
               onClick={onDeleteClick}
-              className="flex h-10 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 text-xs font-semibold text-red-700 transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              className="flex h-10 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 text-xs font-semibold text-red-700 transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900/50"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Eliminar
@@ -77,7 +77,7 @@ export function SessionHeader({
             <div className="flex items-center gap-2">
               <button
                 onClick={onDeleteConfirm}
-                className="flex h-10 items-center gap-2 rounded-full bg-red-600 px-4 text-xs font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                className="flex h-10 items-center gap-2 rounded-full bg-red-600 px-4 text-xs font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-600"
               >
                 Confirmar
               </button>

@@ -9,11 +9,24 @@ import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
 
 const COLORS = ["#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899"];
 
+function useDarkMode() {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    setIsDark(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDark;
+}
+
 export function AnalyticsDashboard() {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [flashcardAttempts, setFlashcardAttempts] = useState<FlashcardAttempt[]>([]);
   const [mounted, setMounted] = useState(false);
+  const isDark = useDarkMode();
 
   useEffect(() => {
     function syncAnalytics() {
@@ -166,8 +179,13 @@ export function AnalyticsDashboard() {
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
                   <YAxis stroke="#94a3b8" fontSize={12} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
-                    labelStyle={{ color: "#0f172a" }}
+                    contentStyle={{
+                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                      border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                      borderRadius: "12px",
+                    }}
+                    labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                    itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                   />
                   <Area type="monotone" dataKey="sesiones" stroke="#8b5cf6" fill="#ede9fe" strokeWidth={2} />
                   <Area type="monotone" dataKey="repasos" stroke="#06b6d4" fill="#cffafe" strokeWidth={2} />
@@ -199,7 +217,13 @@ export function AnalyticsDashboard() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
+                    contentStyle={{
+                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                      border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                      borderRadius: "12px",
+                    }}
+                    labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                    itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     formatter={(value, name) => [`${value} sesión(es)`, name]}
                   />
                   <Legend
@@ -227,8 +251,13 @@ export function AnalyticsDashboard() {
                     <XAxis dataKey="intento" stroke="#94a3b8" fontSize={12} />
                     <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 100]} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
-                      labelStyle={{ color: "#0f172a" }}
+                      contentStyle={{
+                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        borderRadius: "12px",
+                      }}
+                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
                     <Area type="monotone" dataKey="porcentaje" stroke="#10b981" fill="#d1fae5" strokeWidth={2} />
                   </AreaChart>
@@ -251,8 +280,13 @@ export function AnalyticsDashboard() {
                     <XAxis type="number" stroke="#94a3b8" fontSize={12} />
                     <YAxis dataKey="term" type="category" stroke="#94a3b8" fontSize={12} width={100} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
-                      labelStyle={{ color: "#0f172a" }}
+                      contentStyle={{
+                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        borderRadius: "12px",
+                      }}
+                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
                     <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} />
                   </BarChart>
@@ -277,8 +311,13 @@ export function AnalyticsDashboard() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
-                      labelStyle={{ color: "#0f172a" }}
+                      contentStyle={{
+                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        borderRadius: "12px",
+                      }}
+                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
                   </PieChart>
                 </ResponsiveContainer>

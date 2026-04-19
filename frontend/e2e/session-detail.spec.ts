@@ -42,27 +42,23 @@ const mockSession = {
 
 test.describe('Session Detail Page', () => {
   test.beforeEach(async ({ page }) => {
-    // Setup localStorage with Zustand store format
-    await page.goto('http://localhost:3000/dashboard');
+    // Setup localStorage with session
+    await page.goto('http://localhost:3000/library');
     
     await page.evaluate((session) => {
-      const zustandStore = {
-        state: { sessions: [session] },
-        version: 0,
-      };
-      localStorage.setItem('studere-store', JSON.stringify(zustandStore));
+      localStorage.setItem('studere.sessions.v1', JSON.stringify([session]));
     }, mockSession);
     
-    // Reload to trigger Zustand hydration
+    // Reload to load session
     await page.reload();
     
-    // Wait for hydration to complete
+    // Wait for session to load
     await page.waitForTimeout(1000);
     
-    // Navigate to session detail
-    const firstSession = page.locator('[data-testid="session-card"]').first();
-    if (await firstSession.isVisible()) {
-      await firstSession.click();
+    // Navigate to session detail by clicking the session link
+    const firstSessionLink = page.locator('a[href^="/sessions/"]').first();
+    if (await firstSessionLink.isVisible()) {
+      await firstSessionLink.click();
       await page.waitForTimeout(800);
     }
   });
