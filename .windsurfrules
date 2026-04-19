@@ -420,6 +420,8 @@ backend/
 - E2E test coverage increased from ~40% to ~90% (35→39 passing tests). Added 4 new spec files: audio-transcription-flow, ai-generation-flow, quiz-flow, flashcard-flow. All 39 tests passing on Chromium.
 - All error handling gaps closed: res.json() wrapped in all API functions, MediaRecorder.stop() InvalidStateError handled, URL.createObjectURL Safari private mode handled, blob-storage JSON.parse corruption handled, GenerateStudySession undefined parsed recovery added.
 - Backend shared logging cleaned: removed redundant console.log from cache.js, blob-storage.js, audio-pipeline.js. Calling functions use structuredLog.
+- Granular error boundaries added via PanelErrorBoundary in error-boundary.tsx. Wraps SummaryPanel, TasksPanel, InsightsPanel, NotesPanel, StudeChatPopup in session-detail.tsx, and AnalyticsDashboard in analytics page. Panel crashes no longer take down the full session view.
+- AnalyticsDashboard localStorage reads wrapped in try-catch. Corrupted or unavailable storage returns empty state gracefully.
 
 🔴 P0 — Critical:
 (None)
@@ -432,9 +434,8 @@ backend/
 4. GSAP animations duplicated across components — centralize in custom hooks.
 
 📋 Technical Debt (ordered by priority):
-1. Add error boundaries for async operations
-2. Implement request cancellation UI for long operations
-3. Loading skeletons for perceived performance
+1. Implement request cancellation UI for long operations
+2. Loading skeletons for perceived performance
 
 🚧 Planned (long-term, not in scope for MVP):
 - Authentication (single-user MVP by design)
