@@ -30,10 +30,21 @@ export function AnalyticsDashboard() {
 
   useEffect(() => {
     function syncAnalytics() {
-      setSessions(getSessions());
-      setQuizAttempts(getQuizAttempts());
-      setFlashcardAttempts(getFlashcardAttempts());
-      setMounted(true);
+      try {
+        const sessions = getSessions();
+        const quizAttempts = getQuizAttempts();
+        const flashcardAttempts = getFlashcardAttempts();
+        setSessions(sessions);
+        setQuizAttempts(quizAttempts);
+        setFlashcardAttempts(flashcardAttempts);
+        setMounted(true);
+      } catch (e) {
+        console.error('[Analytics] Failed to load analytics data:', e);
+        setSessions([]);
+        setQuizAttempts([]);
+        setFlashcardAttempts([]);
+        setMounted(true);
+      }
     }
 
     syncAnalytics();

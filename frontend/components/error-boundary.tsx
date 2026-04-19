@@ -88,3 +88,44 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+interface PanelProps {
+  children: ReactNode;
+  panelName: string;
+}
+
+interface PanelState {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class PanelErrorBoundary extends Component<PanelProps, PanelState> {
+  state: PanelState = { hasError: false };
+
+  static getDerivedStateFromError(error: Error): PanelState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error(`[${this.props.panelName}] Panel error:`, error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {this.props.panelName} encontró un error inesperado.
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="text-xs text-red-500 underline hover:text-red-700"
+          >
+            Reintentar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}

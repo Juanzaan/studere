@@ -15,6 +15,7 @@ import { compressImage } from "@/lib/image-compression";
 import { SessionHeader, ConceptsSidebar, FocusPanelSwitcher, FocusPanel, TasksPanel } from "@/src/domains/sessions/components";
 
 import { useToastContext } from "@/components/toast-provider";
+import { PanelErrorBoundary } from "@/components/error-boundary";
 import { SummaryPanel, InsightsPanel, NotesPanel } from "@/components/session-panels";
 import {
   FlashcardViewer,
@@ -286,13 +287,15 @@ export function SessionDetail({ session }: { session: StudySession }) {
           {/* ── Focus panel content ── */}
           <div className="mt-4">
             {focusPanel === "summary" && (
-              <SummaryPanel
-                session={current}
-                onToggleBookmark={toggleBookmark}
-                onAddComment={addComment}
-                onAddFlashcard={addFlashcardFromSegment}
-                onOpenChat={handleOpenChatWith}
-              />
+              <PanelErrorBoundary panelName="Resumen">
+                <SummaryPanel
+                  session={current}
+                  onToggleBookmark={toggleBookmark}
+                  onAddComment={addComment}
+                  onAddFlashcard={addFlashcardFromSegment}
+                  onOpenChat={handleOpenChatWith}
+                />
+              </PanelErrorBoundary>
             )}
 
             {focusPanel === "flashcards" && (
@@ -314,35 +317,45 @@ export function SessionDetail({ session }: { session: StudySession }) {
             )}
 
             {focusPanel === "tasks" && (
-              <TasksPanel
-                tasks={current.actionItems}
-                exerciseInput={exerciseInput}
-                evaluatingTaskId={evaluatingTask}
-                onToggleTask={toggleTask}
-                onExerciseInputChange={(taskId: string, value: string) => setExerciseInput({ ...exerciseInput, [taskId]: value })}
-                onSubmitExercise={(taskId: string) => {
-                  const text = exerciseInput[taskId]?.trim();
-                  if (text) {
-                    submitExercise(taskId, "text", text);
-                    setExerciseInput({ ...exerciseInput, [taskId]: "" });
-                  }
-                }}
-                onCaptureImage={(taskId: string) => {
-                  const input = document.createElement("input");
-                  input.type = "file";
-                  input.accept = "image/*";
-                  input.onchange = (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) handleImageUpload(taskId, file);
-                  };
-                  input.click();
-                }}
-              />
+              <PanelErrorBoundary panelName="Tareas">
+                <TasksPanel
+                  tasks={current.actionItems}
+                  exerciseInput={exerciseInput}
+                  evaluatingTaskId={evaluatingTask}
+                  onToggleTask={toggleTask}
+                  onExerciseInputChange={(taskId: string, value: string) => setExerciseInput({ ...exerciseInput, [taskId]: value })}
+                  onSubmitExercise={(taskId: string) => {
+                    const text = exerciseInput[taskId]?.trim();
+                    if (text) {
+                      submitExercise(taskId, "text", text);
+                      setExerciseInput({ ...exerciseInput, [taskId]: "" });
+                    }
+                  }}
+                  onCaptureImage={(taskId: string) => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) handleImageUpload(taskId, file);
+                    };
+                    input.click();
+                  }}
+                />
+              </PanelErrorBoundary>
             )}
 
-            {focusPanel === "insights" && <InsightsPanel session={current} />}
+            {focusPanel === "insights" && (
+              <PanelErrorBoundary panelName="Conceptos">
+                <InsightsPanel session={current} />
+              </PanelErrorBoundary>
+            )}
 
-            {focusPanel === "notes" && <NotesPanel session={current} onAddComment={addComment} />}
+            {focusPanel === "notes" && (
+              <PanelErrorBoundary panelName="Notas">
+                <NotesPanel session={current} onAddComment={addComment} />
+              </PanelErrorBoundary>
+            )}
           </div>
         </section>
 
@@ -361,14 +374,16 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
       {/* Stude chat popup */}
       {showChat && (
-        <StudeChatPopup
-          session={current}
-          chatHistory={current.chatHistory}
-          onChatUpdate={handleChatUpdate}
-          initialMessage={pendingChatMessage}
-          onClose={() => { setShowChat(false); setPendingChatMessage(undefined); }}
-          onChartDetected={(data) => setChartData(data)}
-        />
+        <PanelErrorBoundary panelName="Chat">
+          <StudeChatPopup
+            session={current}
+            chatHistory={current.chatHistory}
+            onChatUpdate={handleChatUpdate}
+            initialMessage={pendingChatMessage}
+            onClose={() => { setShowChat(false); setPendingChatMessage(undefined); }}
+            onChartDetected={(data) => setChartData(data)}
+          />
+        </PanelErrorBoundary>
       )}
 
       {/* Stude chart window */}
