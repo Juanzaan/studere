@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+import { usePulseLoop } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -21,10 +22,8 @@ export function LoadingSkeleton({
 }: LoadingSkeletonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pulse animation
   useGSAP(() => {
     if (!animated) return;
-
     const elements = containerRef.current?.querySelectorAll('.skeleton-pulse');
     if (elements) {
       gsap.to(elements, {

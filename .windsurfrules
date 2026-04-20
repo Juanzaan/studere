@@ -344,6 +344,7 @@ backend/
 13. **Don't leave fetches without timeout** - Any fetch expected to take more than 10 seconds must have an AbortController with a timeout.
 14. **Don't write localStorage without quota handling** - All setItem calls must catch QuotaExceededError. Use canUseStorage() from lib/local-storage-guard.ts before writing.
 15. **Don't add new backend functions without using jsonResponse()** - All responses including OPTIONS must go through the shared helper.
+16. **Don't write inline GSAP animations for common patterns** - Use hooks from src/shared/hooks/useAnimations.ts (useFadeInStagger, useScaleBounce, usePulseLoop, useSlideIn). Only write custom GSAP for truly unique animations (SVG paths, complex timelines).
 
 ### SPECIFIC RULES:
 
@@ -422,6 +423,7 @@ backend/
 - Backend shared logging cleaned: removed redundant console.log from cache.js, blob-storage.js, audio-pipeline.js. Calling functions use structuredLog.
 - Granular error boundaries added via PanelErrorBoundary in error-boundary.tsx. Wraps SummaryPanel, TasksPanel, InsightsPanel, NotesPanel, StudeChatPopup in session-detail.tsx, and AnalyticsDashboard in analytics page. Panel crashes no longer take down the full session view.
 - AnalyticsDashboard localStorage reads wrapped in try-catch. Corrupted or unavailable storage returns empty state gracefully.
+- GSAP animations centralized in src/shared/hooks/useAnimations.ts. 4 reusable hooks: useFadeInStagger, useScaleBounce, usePulseLoop, useSlideIn. 128 lines of duplicated animation code replaced with 8 hook calls across 6 components. Unique animations (SVG strokes, progress bar, particles) kept in place.
 
 🔴 P0 — Critical:
 (None)
@@ -431,7 +433,6 @@ backend/
 
 🟠 P2 — Medium priority:
 3. Mind map drag & drop edge cases (node collision, routing).
-4. GSAP animations duplicated across components — centralize in custom hooks.
 
 📋 Technical Debt (ordered by priority):
 1. Implement request cancellation UI for long operations

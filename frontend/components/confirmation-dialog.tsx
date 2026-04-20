@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { AlertTriangle, X } from "lucide-react";
+import { useScaleBounce } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -31,31 +32,15 @@ export function ConfirmationDialog({
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  useScaleBounce(dialogRef, { fromScale: 0.8, duration: 0.3 });
+
   useGSAP(() => {
     if (!isOpen) return;
 
-    const tl = gsap.timeline();
-
     // Overlay fade in
-    tl.fromTo(overlayRef.current,
+    gsap.fromTo(overlayRef.current,
       { opacity: 0 },
       { opacity: 1, duration: 0.2, ease: "power2.out" }
-    )
-    // Dialog scale in
-    .fromTo(dialogRef.current,
-      {
-        scale: 0.8,
-        opacity: 0,
-        y: 20
-      },
-      {
-        scale: 1,
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        ease: "back.out(1.7)"
-      },
-      "-=0.1"
     );
 
   }, { dependencies: [isOpen], scope: overlayRef });

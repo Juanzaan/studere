@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { CheckCircle2, AlertCircle, Info, X, AlertTriangle } from "lucide-react";
+import { useSlideIn } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -22,25 +23,10 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
   const toastRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
 
-  // Entrance and exit animations
-  useGSAP(() => {
-    const tl = gsap.timeline();
+  useSlideIn(toastRef, 'right', { distance: 400, duration: 0.5 });
 
-    // Slide in from right with bounce
-    tl.fromTo(toastRef.current,
-      {
-        x: 400,
-        opacity: 0,
-        scale: 0.8
-      },
-      {
-        x: 0,
-        opacity: 1,
-        scale: 1,
-        duration: 0.5,
-        ease: "back.out(1.7)"
-      }
-    );
+  // Progress bar and auto-close
+  useGSAP(() => {
 
     // Progress bar animation
     if (progressRef.current) {

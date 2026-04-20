@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { FileAudio2, FileText, Film, Sparkles, Star } from "lucide-react";
 import { StudySession } from "@/lib/types";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -43,27 +44,7 @@ type SessionRecordsTableProps = {
 export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions, emptyTitle, emptyDescription, onToggleStar }: SessionRecordsTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // Animate session cards on mount/update
-  useGSAP(() => {
-    if (sessions.length > 0) {
-      const rows = tableRef.current?.querySelectorAll('[data-session-row]');
-      if (rows) {
-        gsap.fromTo(rows,
-          {
-            autoAlpha: 0,
-            y: 10
-          },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.4,
-            stagger: 0.05,
-            ease: "power2.out"
-          }
-        );
-      }
-    }
-  }, { dependencies: [sessions.length], scope: tableRef });
+  useFadeInStagger(tableRef, '[data-session-row]', { y: 10, stagger: 0.05, duration: 0.4 });
 
   if (sessions.length === 0) {
     return (

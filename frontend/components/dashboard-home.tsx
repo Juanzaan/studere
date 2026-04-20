@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import {
   ArrowRight,
   CheckCircle2,
@@ -60,45 +61,8 @@ export function DashboardHome() {
   const [composerMode, setComposerMode] = useState<ComposerMode>("upload");
   const [recordFilter, setRecordFilter] = useState<RecordFilter>("recent");
 
-  // GSAP animations with cleanup
-  useGSAP(() => {
-    const ctx = gsap.context(() => {
-      // Hero section fade in
-      gsap.fromTo(heroRef.current, 
-        {
-          autoAlpha: 0,
-          y: 20
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power2.out"
-        }
-      );
-
-      // Quick actions stagger animation
-      const quickActionButtons = quickActionsRef.current?.querySelectorAll('button');
-      if (quickActionButtons) {
-        gsap.fromTo(quickActionButtons,
-          {
-            autoAlpha: 0,
-            y: 15
-          },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.5,
-            stagger: 0.08,
-            ease: "power2.out",
-            delay: 0.3
-          }
-        );
-      }
-    }, containerRef);
-
-    return () => ctx.revert(); // Cleanup on unmount
-  }, { scope: containerRef });
+  useFadeInStagger(heroRef, '.anim-item', { y: 20, duration: 0.8 });
+  useFadeInStagger(quickActionsRef, 'button', { y: 15, stagger: 0.08, duration: 0.5, delay: 0.3 });
 
   useEffect(() => {
     function syncDashboard() {
@@ -155,15 +119,15 @@ export function DashboardHome() {
     <div ref={containerRef} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="space-y-4">
         <section ref={heroRef} className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:from-violet-950/30 dark:via-slate-900 dark:to-fuchsia-950/20 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-          <div className="flex items-center gap-2.5">
+          <div className="anim-item flex items-center gap-2.5">
             <StudereLogo className="h-9 w-9" />
             <h1 className="bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-700 bg-clip-text text-3xl font-bold text-transparent dark:from-violet-400 dark:via-fuchsia-400 dark:to-violet-400">
               Studere
             </h1>
           </div>
-          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Tu copiloto para convertir clases en aprendizaje activo. Transcribe, resume y crea flashcards al instante.</p>
+          <p className="anim-item mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Tu copiloto para convertir clases en aprendizaje activo. Transcribe, resume y crea flashcards al instante.</p>
 
-          <h2 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Inicio rápido</h2>
+          <h2 className="anim-item mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Inicio rápido</h2>
           <div ref={quickActionsRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {QUICK_ACTIONS.map((action) => {
               const Icon = action.icon;

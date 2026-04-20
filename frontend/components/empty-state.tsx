@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { LucideIcon } from "lucide-react";
+import { useFadeInStagger, useScaleBounce } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -29,6 +30,9 @@ export function EmptyState({
   const iconRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<HTMLDivElement>(null);
 
+  useFadeInStagger(containerRef, '.anim-text', { y: 10, stagger: 0.1, duration: 0.5 });
+  useScaleBounce(iconRef, { fromScale: 0, duration: 0.8 });
+
   useGSAP(() => {
     if (!animated) return;
 
@@ -49,35 +53,6 @@ export function EmptyState({
         stagger: 0.1,
         ease: "back.out(1.7)"
       }
-    )
-    // Icon bounce in
-    .fromTo(iconRef.current,
-      {
-        scale: 0,
-        rotation: -180
-      },
-      {
-        scale: 1,
-        rotation: 0,
-        duration: 0.8,
-        ease: "back.out(1.7)"
-      },
-      "-=0.4"
-    )
-    // Text fade in
-    .fromTo(containerRef.current?.querySelectorAll('.fade-in-text') || [],
-      {
-        opacity: 0,
-        y: 10
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out"
-      },
-      "-=0.3"
     );
 
     // Floating animation loop for particles
@@ -127,10 +102,10 @@ export function EmptyState({
       </div>
 
       {/* Text */}
-      <h3 className="fade-in-text relative z-10 mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+      <h3 className="anim-text relative z-10 mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
         {title}
       </h3>
-      <p className="fade-in-text relative z-10 mb-6 max-w-md text-sm text-slate-600 dark:text-slate-400">
+      <p className="anim-text relative z-10 mb-6 max-w-md text-sm text-slate-600 dark:text-slate-400">
         {description}
       </p>
 
@@ -138,7 +113,7 @@ export function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="fade-in-text relative z-10 rounded-2xl bg-gradient-to-r from-violet-600 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30 dark:from-violet-500 dark:to-violet-400"
+          className="anim-text relative z-10 rounded-2xl bg-gradient-to-r from-violet-600 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30 dark:from-violet-500 dark:to-violet-400"
         >
           {action.label}
         </button>

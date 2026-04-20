@@ -4,6 +4,7 @@ import { memo, ChangeEvent, FormEvent, useMemo, useState, useEffect, useRef } fr
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+import { useScaleBounce } from "@/src/shared/hooks/useAnimations";
 import { CheckCircle2, FileUp, Link2, Loader2, Mic, Plus, ScreenShare, Sparkles, Upload, Video, X } from "lucide-react";
 import { createStudySession } from "@/lib/study-generator";
 import { generateStudySession, transcribeAudio } from "@/lib/api";
@@ -81,21 +82,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   const modeConfig = useMemo(() => MODE_COPY[mode], [mode]);
   const ModeIcon = modeConfig.icon;
 
-  // Card entrance animation
-  useGSAP(() => {
-    gsap.fromTo(cardRef.current,
-      {
-        scale: 0.95,
-        autoAlpha: 0
-      },
-      {
-        scale: 1,
-        autoAlpha: 1,
-        duration: 0.4,
-        ease: "power2.out"
-      }
-    );
-  }, { scope: cardRef });
+  useScaleBounce(cardRef, { fromScale: 0.95, duration: 0.4 });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
