@@ -345,12 +345,14 @@ backend/
 14. **Don't write localStorage without quota handling** - All setItem calls must catch QuotaExceededError. Use canUseStorage() from lib/local-storage-guard.ts before writing.
 15. **Don't add new backend functions without using jsonResponse()** - All responses including OPTIONS must go through the shared helper.
 16. **Don't write inline GSAP animations for common patterns** - Use hooks from src/shared/hooks/useAnimations.ts (useFadeInStagger, useScaleBounce, usePulseLoop, useSlideIn). Only write custom GSAP for truly unique animations (SVG paths, complex timelines).
+17. **Don't use decodeAudioData() for routing decisions** - File size and estimated duration must be checked BEFORE any audio decoding. All files >10MB or estimated >30min must use the server-side pipeline.
 
 ### SPECIFIC RULES:
 
 **Audio Processing:**
-- Files <24MB: Use client-side chunking (`audio-chunker.ts`)
-- Files >24MB: Use server-side processing (`ProcessAudio` function)
+- Files ≤10MB AND estimated ≤30min: Use client-side chunking (`audio-chunker.ts`)
+- Files >10MB OR estimated >30min: Use server-side processing (`ProcessAudio` function)
+- AUDIO_LIMITS constants: CLIENT_SIDE_MAX_MB: 10, MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN: 30
 - Always show progress feedback to user
 - Handle Web Audio API errors gracefully (Safari compatibility issues)
 
@@ -424,6 +426,7 @@ backend/
 - Granular error boundaries added via PanelErrorBoundary in error-boundary.tsx. Wraps SummaryPanel, TasksPanel, InsightsPanel, NotesPanel, StudeChatPopup in session-detail.tsx, and AnalyticsDashboard in analytics page. Panel crashes no longer take down the full session view.
 - AnalyticsDashboard localStorage reads wrapped in try-catch. Corrupted or unavailable storage returns empty state gracefully.
 - GSAP animations centralized in src/shared/hooks/useAnimations.ts. 4 reusable hooks: useFadeInStagger, useScaleBounce, usePulseLoop, useSlideIn. 128 lines of duplicated animation code replaced with 8 hook calls across 6 components. Unique animations (SVG strokes, progress bar, particles) kept in place.
+- Audio routing crash fixed. Client-side threshold reduced from 24MB to 10MB. Added estimated duration check (>30min → server-side). Files are now routed to server-side pipeline (FFmpeg) before any decodeAudioData() call that could crash the browser.
 
 🔴 P0 — Critical:
 (None)
@@ -492,6 +495,51 @@ When starting a new conversation, always:
 3. Verify the change doesn't break API contracts (section 6, rule #2)
 4. Consider impact on tests (section 6, rule #4)
 5. Ensure TypeScript types are updated if needed (section 6, rule #5)
+
+### DESIGN SYSTEM (read before touching any UI file)
+
+**Colors (CSS variables to define in globals.css):**
+- `--color-bg`: #0e1117 (dark) / #f7f5f0 (light)
+- `--color-surface`: #151b27 (dark) / #ffffff (light)
+- `--color-surface-2`: #1c2235 (dark) / #f0eeea (light)
+- `--color-border`: rgba(255,255,255,0.07) (dark) / rgba(0,0,0,0.08) (light)
+- `--color-text`: #e2e8f0 (dark) / #1e1b2e (light)
+- `--color-muted`: #8892a4 (dark) / #6b7280 (light)
+- `--color-blue`: #4f7cff — primary accent (focus/concentration)
+- `--color-blue-soft`: rgba(79,124,255,0.1)
+- `--color-blue-border`: rgba(79,124,255,0.25)
+- `--color-teal`: #2dd4aa — success/progress
+- `--color-teal-soft`: rgba(45,212,170,0.1)
+- `--color-violet`: #a78bfa — secondary accent
+- `--color-violet-soft`: rgba(167,139,250,0.1)
+- `--color-amber`: #fbbf24 — streaks/warnings
+- `--color-red`: #f87171 — errors/delete
+
+**Typography scale (never use other sizes):**
+- 10px — labels, badges, timestamps
+- 11px — secondary text, table cells
+- 12px — body, nav items
+- 13px — primary body text
+- 14px — card titles, section headers
+- 16px — page titles
+- 22px — hero headings
+
+**Spacing:** 4, 8, 10, 12, 14, 16, 20, 24px only
+
+**Border radius:**
+- 6px (buttons/badges)
+- 8px (inputs/items)
+- 10px (cards)
+- 12px (panels)
+- 20px (pills)
+
+**Rules:**
+- NEVER use `bg-white` without `dark:` variant
+- NEVER use hardcoded colors — always CSS variables
+- NEVER use `transition-all` — use specific properties
+- ALWAYS use the design system colors above
+- Keep components under 300 lines
+- No inline styles except for dynamic values
 
 ---
 

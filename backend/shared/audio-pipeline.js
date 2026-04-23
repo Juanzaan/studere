@@ -11,12 +11,77 @@ const { structuredLog, withTimeout, retryWithBackoff } = require("./utils");
 const { getClient, getWhisperDeployment } = require("./openai-client");
 const { downloadChunk, listChunks, deleteSession } = require('./blob-storage');
 
-// Configure FFmpeg path
-try {
-  const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-  ffmpeg.setFfmpegPath(ffmpegPath);
-} catch (error) {
-  // FFmpeg installer not available, using system FFmpeg
+// FFmpeg is downloaded from Azure Blob Storage on first use and cached in %TEMP%.
+// This bypasses func CLI binary exclusions and Azure Files execution restrictions.
+const os = require('os');
+const isWin = process.platform === 'win32';
+const FFMPEG_BINARY = isWin ? 'ffmpeg.exe' : 'ffmpeg';
+const FFMPEG_TEMP_PATH = path.join(os.tmpdir(), FFMPEG_BINARY);
+
+let _ffmpegReady = false;
+let _ffmpegSetupPromise = null;
+
+async function ensureFfmpeg() {
+  if (_ffmpegReady) return;
+  if (_ffmpegSetupPromise) return _ffmpegSetupPromise;
+
+  _ffmpegSetupPromise = (async () => {
+    // 1. Explicit env var (set in Azure App Settings)
+    if (process.env.FFMPEG_PATH && fsSync.existsSync(process.env.FFMPEG_PATH)) {
+      ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+      console.log('[FFmpeg] Using FFMPEG_PATH env:', process.env.FFMPEG_PATH);
+      _ffmpegReady = true;
+      return;
+    }
+
+    // 2. Already in %TEMP% from a previous invocation this process
+    if (fsSync.existsSync(FFMPEG_TEMP_PATH)) {
+      ffmpeg.setFfmpegPath(FFMPEG_TEMP_PATH);
+      console.log('[FFmpeg] Using cached temp binary:', FFMPEG_TEMP_PATH);
+      _ffmpegReady = true;
+      return;
+    }
+
+    // 3. Download from Azure Blob Storage (most reliable on Azure Functions)
+    try {
+      const { BlobServiceClient } = require('@azure/storage-blob');
+      const connStr = process.env.AZURE_STORAGE_CONNECTION_STRING;
+      if (!connStr) throw new Error('AZURE_STORAGE_CONNECTION_STRING not set');
+      const blobClient = BlobServiceClient.fromConnectionString(connStr)
+        .getContainerClient('binaries')
+        .getBlobClient(FFMPEG_BINARY);
+      console.log('[FFmpeg] Downloading from Azure Blob Storage...');
+      await blobClient.downloadToFile(FFMPEG_TEMP_PATH);
+      if (!isWin) fsSync.chmodSync(FFMPEG_TEMP_PATH, 0o755);
+      ffmpeg.setFfmpegPath(FFMPEG_TEMP_PATH);
+      console.log('[FFmpeg] Downloaded and configured:', FFMPEG_TEMP_PATH);
+      _ffmpegReady = true;
+      return;
+    } catch (blobErr) {
+      console.warn('[FFmpeg] Blob download failed:', blobErr.message);
+    }
+
+    // 4. Last resort: try local node_modules path
+    const localPath = path.resolve(__dirname, '..', 'node_modules', '@ffmpeg-installer', `${os.platform()}-${os.arch()}`, FFMPEG_BINARY);
+    if (fsSync.existsSync(localPath)) {
+      try {
+        fsSync.copyFileSync(localPath, FFMPEG_TEMP_PATH);
+        if (!isWin) fsSync.chmodSync(FFMPEG_TEMP_PATH, 0o755);
+        ffmpeg.setFfmpegPath(FFMPEG_TEMP_PATH);
+        console.log('[FFmpeg] Copied from local node_modules:', FFMPEG_TEMP_PATH);
+        _ffmpegReady = true;
+        return;
+      } catch (_) {
+        ffmpeg.setFfmpegPath(localPath);
+        _ffmpegReady = true;
+        return;
+      }
+    }
+
+    throw new Error('FFmpeg binary could not be configured. Check Azure Blob Storage or FFMPEG_PATH setting.');
+  })();
+
+  return _ffmpegSetupPromise;
 }
 
 const SEGMENT_DURATION_SECONDS = 240; // 4 minutos por segmento
@@ -40,6 +105,9 @@ async function concatenateChunks(sessionId, totalChunks) {
  * Split audio buffer into segments using FFmpeg
  */
 async function splitAudioWithFFmpeg(audioBuffer, outputDir) {
+  // Ensure FFmpeg binary is available and configured
+  await ensureFfmpeg();
+
   // Write buffer to temp file for FFmpeg
   const inputPath = path.join(outputDir, 'input_audio.bin');
   await fs.writeFile(inputPath, audioBuffer);

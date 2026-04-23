@@ -63,53 +63,49 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
   const config = {
     success: {
       icon: CheckCircle2,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      border: "border-emerald-200 dark:border-emerald-800",
-      progress: "bg-emerald-500"
+      iconColor: "text-c-teal",
+      leftBorder: "border-l-2 border-c-teal",
+      progress: "bg-c-teal",
     },
     error: {
       icon: AlertCircle,
-      color: "text-red-600 dark:text-red-400",
-      bg: "bg-red-50 dark:bg-red-950/30",
-      border: "border-red-200 dark:border-red-800",
-      progress: "bg-red-500"
+      iconColor: "text-c-red",
+      leftBorder: "border-l-2 border-c-red",
+      progress: "bg-c-red",
     },
     warning: {
       icon: AlertTriangle,
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-50 dark:bg-amber-950/30",
-      border: "border-amber-200 dark:border-amber-800",
-      progress: "bg-amber-500"
+      iconColor: "text-c-amber",
+      leftBorder: "border-l-2 border-c-amber",
+      progress: "bg-c-amber",
     },
     info: {
       icon: Info,
-      color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-50 dark:bg-blue-950/30",
-      border: "border-blue-200 dark:border-blue-800",
-      progress: "bg-blue-500"
-    }
+      iconColor: "text-c-blue",
+      leftBorder: "border-l-2 border-c-blue",
+      progress: "bg-c-blue",
+    },
   };
 
-  const { icon: Icon, color, bg, border, progress } = config[type];
+  const { icon: Icon, iconColor, leftBorder, progress } = config[type];
 
   return (
     <div
       ref={toastRef}
-      className={`pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border shadow-lg ${bg} ${border}`}
+      className={`pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-panel border border-c-border bg-c-surface shadow-card ${leftBorder}`}
     >
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${color}`}>
-            <Icon className="h-5 w-5" />
+      <div className="p-[12px]">
+        <div className="flex items-start gap-[10px]">
+          <div className={`flex h-[28px] w-[28px] shrink-0 items-center justify-center ${iconColor}`}>
+            <Icon className="h-[16px] w-[16px]" />
           </div>
-          
-          <div className="flex-1 pt-0.5">
-            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+
+          <div className="flex-1">
+            <h4 className="text-[12px] font-medium text-c-text">
               {title}
             </h4>
             {message && (
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-[2px] text-[11px] text-c-muted">
                 {message}
               </p>
             )}
@@ -117,15 +113,15 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
 
           <button
             onClick={handleClose}
-            className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="shrink-0 rounded-btn p-[3px] text-c-muted transition-colors hover:text-c-text"
           >
-            <X className="h-4 w-4" />
+            <X className="h-[13px] w-[13px]" />
           </button>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 w-full bg-slate-200/50 dark:bg-slate-800/50">
+      <div className="h-[2px] w-full bg-c-surface-2">
         <div
           ref={progressRef}
           className={`h-full ${progress}`}

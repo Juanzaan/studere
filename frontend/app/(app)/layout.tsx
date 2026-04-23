@@ -10,11 +10,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <ErrorBoundary>
       <ToastProvider>
         <SkipLinks />
-        <div className="flex min-h-screen bg-transparent">
+        <div className="flex min-h-screen bg-c-bg">
           <Sidebar />
           <div className="min-w-0 flex-1">
             <AppTopbar />
-            <main id="main-content" className="min-w-0 animate-fade-in px-3 pb-3 pt-3 sm:px-4 lg:px-5">{children}</main>
+            <main id="main-content" className="min-w-0 animate-fade-in px-4 pb-4 pt-3">{children}</main>
           </div>
         </div>
       </ToastProvider>

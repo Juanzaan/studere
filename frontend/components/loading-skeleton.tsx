@@ -44,40 +44,40 @@ export function LoadingSkeleton({
       {items.map((i) => (
         <div key={i}>
           {variant === "card" && (
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+            <div className="rounded-card border border-c-border bg-c-surface p-6">
               <div className="space-y-4">
-                <div className="skeleton-pulse h-4 w-24 rounded-full bg-slate-200 dark:bg-slate-700" />
-                <div className="skeleton-pulse h-8 w-full rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="skeleton-pulse h-4 w-24 rounded-full bg-c-surface-2" />
+                <div className="skeleton-pulse h-8 w-full rounded-card bg-c-surface-2" />
                 <div className="flex gap-2">
-                  <div className="skeleton-pulse h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-700" />
-                  <div className="skeleton-pulse h-6 w-20 rounded-full bg-slate-200 dark:bg-slate-700" />
+                  <div className="skeleton-pulse h-6 w-16 rounded-full bg-c-surface-2" />
+                  <div className="skeleton-pulse h-6 w-20 rounded-full bg-c-surface-2" />
                 </div>
               </div>
             </div>
           )}
 
           {variant === "list" && (
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-              <div className="skeleton-pulse h-12 w-12 rounded-xl bg-slate-200 dark:bg-slate-700" />
+            <div className="flex items-center gap-4 rounded-card border border-c-border bg-c-surface p-4">
+              <div className="skeleton-pulse h-12 w-12 rounded-card bg-c-surface-2" />
               <div className="flex-1 space-y-2">
-                <div className="skeleton-pulse h-4 w-3/4 rounded-full bg-slate-200 dark:bg-slate-700" />
-                <div className="skeleton-pulse h-3 w-1/2 rounded-full bg-slate-200 dark:bg-slate-700" />
+                <div className="skeleton-pulse h-4 w-3/4 rounded-full bg-c-surface-2" />
+                <div className="skeleton-pulse h-3 w-1/2 rounded-full bg-c-surface-2" />
               </div>
             </div>
           )}
 
           {variant === "hero" && (
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+            <div className="rounded-card border border-c-border bg-c-surface p-6">
               <div className="space-y-6">
-                <div className="skeleton-pulse h-6 w-32 rounded-full bg-slate-200 dark:bg-slate-700" />
-                <div className="skeleton-pulse h-12 w-3/4 rounded-xl bg-slate-200 dark:bg-slate-700" />
+                <div className="skeleton-pulse h-6 w-32 rounded-full bg-c-surface-2" />
+                <div className="skeleton-pulse h-12 w-3/4 rounded-card bg-c-surface-2" />
                 <div className="space-y-2">
-                  <div className="skeleton-pulse h-4 w-full rounded-lg bg-slate-200 dark:bg-slate-700" />
-                  <div className="skeleton-pulse h-4 w-5/6 rounded-lg bg-slate-200 dark:bg-slate-700" />
+                  <div className="skeleton-pulse h-4 w-full rounded-card bg-c-surface-2" />
+                  <div className="skeleton-pulse h-4 w-5/6 rounded-card bg-c-surface-2" />
                 </div>
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                   {[...Array(5)].map((_, idx) => (
-                    <div key={idx} className="skeleton-pulse h-24 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                    <div key={idx} className="skeleton-pulse h-24 rounded-card bg-c-surface-2" />
                   ))}
                 </div>
               </div>
@@ -86,14 +86,14 @@ export function LoadingSkeleton({
 
           {variant === "text" && (
             <div className="space-y-2">
-              <div className="skeleton-pulse h-4 w-full rounded-lg bg-slate-200 dark:bg-slate-700" />
-              <div className="skeleton-pulse h-4 w-5/6 rounded-lg bg-slate-200 dark:bg-slate-700" />
-              <div className="skeleton-pulse h-4 w-4/6 rounded-lg bg-slate-200 dark:bg-slate-700" />
+              <div className="skeleton-pulse h-4 w-full rounded-card bg-c-surface-2" />
+              <div className="skeleton-pulse h-4 w-5/6 rounded-card bg-c-surface-2" />
+              <div className="skeleton-pulse h-4 w-4/6 rounded-card bg-c-surface-2" />
             </div>
           )}
 
           {variant === "circle" && (
-            <div className="skeleton-pulse h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
+            <div className="skeleton-pulse h-12 w-12 rounded-full bg-c-surface-2" />
           )}
         </div>
       ))}
@@ -118,10 +118,10 @@ export function DashboardSkeleton() {
 
 export function LibrarySkeleton() {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+    <div className="rounded-panel border border-c-border bg-c-surface p-6">
       <div className="mb-6 space-y-4">
         <LoadingSkeleton variant="text" />
-        <div className="skeleton-pulse h-10 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+        <div className="skeleton-pulse h-10 w-full rounded-card bg-c-surface-2" />
       </div>
       <LoadingSkeleton variant="list" count={5} className="space-y-3" />
     </div>
@@ -131,13 +131,13 @@ export function LibrarySkeleton() {
 export function SessionDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="skeleton-pulse h-8 w-3/4 rounded-xl bg-slate-200 dark:bg-slate-700" />
+      <div className="skeleton-pulse h-8 w-3/4 rounded-card bg-c-surface-2" />
       <div className="grid gap-4 md:grid-cols-2">
         <LoadingSkeleton variant="card" />
         <LoadingSkeleton variant="card" />
       </div>
       <LoadingSkeleton variant="text" count={1} className="space-y-2" />
-      <div className="skeleton-pulse h-64 w-full rounded-[24px] bg-slate-200 dark:bg-slate-700" />
+      <div className="skeleton-pulse h-64 w-full rounded-panel bg-c-surface-2" />
     </div>
   );
 }

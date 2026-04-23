@@ -8,7 +8,7 @@ import { saveQuizAttempt } from "@/lib/analytics-storage";
 
 const Md = dynamic(() => import("@/components/md-renderer"), {
   ssr: false,
-  loading: () => <span className="text-xs text-slate-400">…</span>,
+  loading: () => <span className="text-[11px] text-c-muted">…</span>,
 });
 
 const OPTION_LETTERS = ["A", "B", "C", "D"] as const;
@@ -46,7 +46,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
 
   if (quiz.length === 0) {
     return (
-      <div className="rounded-[24px] border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+      <div className="rounded-panel border border-dashed border-c-border bg-c-surface p-8 text-center text-[12px] text-c-muted">
         No hay preguntas para esta sesión.
       </div>
     );
@@ -68,21 +68,21 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
   return (
     <div className="space-y-4">
       {/* ── Progress bar ── */}
-      <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+      <div className="rounded-panel border border-c-border bg-c-surface px-4 py-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] font-medium text-c-muted">
             {totalAnswered} / {quiz.length} respondidas
-            {totalAnswered > 0 && <span className="ml-2 text-emerald-600 dark:text-emerald-400">{correctCount} correctas</span>}
+            {totalAnswered > 0 && <span className="ml-2 text-c-teal">{correctCount} correctas</span>}
           </p>
           {totalAnswered > 0 && (
-            <button onClick={reset} className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:text-slate-400 dark:hover:text-slate-100">
+            <button onClick={reset} className="flex items-center gap-1.5 text-[11px] text-c-muted transition hover:text-c-text focus-visible:outline-none">
               <RotateCcw className="h-3 w-3" /> Reiniciar
             </button>
           )}
         </div>
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-c-surface-2">
           <div
-            className="h-full rounded-full bg-violet-500 transition-all duration-500"
+            className="h-full rounded-full bg-c-blue transition-all duration-500"
             style={{ width: `${(totalAnswered / quiz.length) * 100}%` }}
           />
         </div>
@@ -90,11 +90,11 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
 
       {/* ── Score summary when done ── */}
       {allDone && (
-        <div className={`flex items-center gap-3 rounded-[24px] border p-4 ${pct >= 70 ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/30" : pct >= 40 ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30" : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30"}`}>
-          <Trophy className={`h-5 w-5 ${pct >= 70 ? "text-emerald-500 dark:text-emerald-400" : pct >= 40 ? "text-amber-500 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`} />
+        <div className={`flex items-center gap-3 rounded-panel border p-4 ${pct >= 70 ? "border-c-teal-border bg-c-teal-soft" : pct >= 40 ? "border-c-amber/20 bg-c-amber-soft" : "border-c-red-border bg-c-red-soft"}`}>
+          <Trophy className={`h-5 w-5 ${pct >= 70 ? "text-c-teal" : pct >= 40 ? "text-c-amber" : "text-c-red"}`} />
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{pct}% — {correctCount} de {quiz.length} correctas</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-[13px] font-semibold text-c-text"><span className="text-c-blue">{pct}%</span> — {correctCount} de {quiz.length} correctas</p>
+            <p className="text-[11px] text-c-muted">
               {pct >= 90 ? "¡Excelente! Dominás el tema." : pct >= 70 ? "¡Muy bien! Repasá los errores." : pct >= 40 ? "Bien, pero hay conceptos para repasar." : "Necesitás repasar este tema antes del examen."}
             </p>
           </div>
@@ -110,15 +110,9 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
         return (
           <div
             key={qi}
-            className={`rounded-[22px] border p-5 transition ${
-              answered
-                ? isCorrect
-                  ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-900/20"
-                  : "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20"
-                : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
-            }`}
+            className="rounded-panel border border-c-border bg-c-surface p-4"
           >
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+            <p className="text-[13px] font-medium leading-relaxed text-c-text">
               {qi + 1}. {item.question}
             </p>
 
@@ -128,15 +122,15 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
                 {item.options.map((opt, oi) => {
                   const isChosen = chosen === oi;
                   const isCorrectOption = oi === item.correct;
-                  let optClass = "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/40 cursor-pointer dark:border-slate-700 dark:bg-slate-900 dark:hover:border-violet-500 dark:hover:bg-violet-900/30";
+                  let optClass = "border-c-border bg-c-surface-2 hover:border-c-blue-border hover:text-c-text cursor-pointer";
 
                   if (answered) {
                     if (isCorrectOption) {
-                      optClass = "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/30";
+                      optClass = "border-c-teal bg-c-teal-soft text-c-text";
                     } else if (isChosen && !isCorrectOption) {
-                      optClass = "border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30";
+                      optClass = "border-c-red bg-c-red-soft text-c-text";
                     } else {
-                      optClass = "border-slate-100 bg-slate-50 opacity-60 dark:border-slate-800 dark:bg-slate-800";
+                      optClass = "border-c-border bg-c-surface opacity-60";
                     }
                   }
 
@@ -145,18 +139,18 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
                       key={oi}
                       onClick={() => choose(qi, oi)}
                       disabled={answered}
-                      className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 ${optClass}`}
+                      className={`flex w-full items-center gap-3 rounded-card border p-3 text-left text-[12px] transition focus-visible:outline-none ${optClass}`}
                     >
-                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-btn text-[11px] font-bold ${
                         answered && isCorrectOption
-                          ? "bg-emerald-500 text-white dark:bg-emerald-600"
+                          ? "bg-c-teal text-white"
                           : answered && isChosen && !isCorrectOption
-                          ? "bg-red-500 text-white dark:bg-red-600"
-                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                          ? "bg-c-red text-white"
+                          : "border border-c-border bg-c-surface text-c-muted"
                       }`}>
                         {answered && isCorrectOption ? <CheckCircle2 className="h-3.5 w-3.5" /> : answered && isChosen ? <XCircle className="h-3.5 w-3.5" /> : OPTION_LETTERS[oi]}
                       </span>
-                      <span className="leading-6 text-slate-700 dark:text-slate-300">{opt}</span>
+                      <span className="text-[12px] text-c-muted">{opt}</span>
                     </button>
                   );
                 })}
@@ -170,8 +164,8 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
 
             {/* ── Explanation after answer ── */}
             {answered && item.explanation && (
-              <div className="mt-3 rounded-xl border border-slate-100 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Explicación</p>
+              <div className="mt-3 rounded-card border border-c-border bg-c-surface-2 p-3">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-c-muted">Explicación</p>
                 <Md>{item.explanation}</Md>
               </div>
             )}

@@ -95,10 +95,18 @@ export async function transcribeAudio(
   onProgress?: (message: string) => void,
 ): Promise<TranscriptionResult> {
   const DIRECT_UPLOAD_LIMIT = AUDIO_LIMITS.CLIENT_SIDE_MAX_MB * 1024 * 1024;
+  const MAX_CLIENT_DURATION_BYTES = 
+    AUDIO_LIMITS.MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN * 
+    AUDIO_LIMITS.MB_PER_MINUTE_ESTIMATE * 1024 * 1024;
   
-  // Strategy selection: use server-side for files >24MB
-  if (file.size > DIRECT_UPLOAD_LIMIT) {
-    console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB > 24MB, using server-side processing`);
+  // Route to server-side if file is too large OR likely too long
+  const useServerSide = file.size > DIRECT_UPLOAD_LIMIT || 
+                        file.size > MAX_CLIENT_DURATION_BYTES;
+  
+  if (useServerSide) {
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    const estimatedMin = Math.round(file.size / (1024 * 1024) / AUDIO_LIMITS.MB_PER_MINUTE_ESTIMATE);
+    console.log(`[Transcribe] File size ${sizeMB}MB (est. ${estimatedMin}min), using server-side processing`);
     
     // Import dynamically to avoid bundle bloat
     const { transcribeAudioServerSide } = await import('./api-server-side');
@@ -106,7 +114,7 @@ export async function transcribeAudio(
   }
   
   // Client-side processing for smaller files
-  console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB <= 24MB, using client-side processing`);
+  console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB, using client-side processing`);
   
   onProgress?.("Preparando audio...");
   const chunks = await chunkAudioFile(file, onProgress);

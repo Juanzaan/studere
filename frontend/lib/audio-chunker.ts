@@ -3,6 +3,8 @@
 // Decodes audio, resamples to 16kHz mono, splits into WAV chunks.
 // ---------------------------------------------------------------------------
 
+import { AUDIO_LIMITS } from './constants';
+
 const TARGET_SAMPLE_RATE = 16000;
 const MAX_CHUNK_SECONDS = 240; // 4 minutes → ~7.3MB WAV → ~10MB base64 (safe under 25MB)
 const MAX_AUDIO_DURATION_SECONDS = 7200; // 2 hours max to prevent memory issues
@@ -80,8 +82,18 @@ export async function chunkAudioFile(
 ): Promise<AudioChunk[]> {
   console.log(`[Chunking] File: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
   
+  // Estimate duration based on file size
+  const estimatedMinutes = file.size / (1024 * 1024) / AUDIO_LIMITS.MB_PER_MINUTE_ESTIMATE;
+  
+  if (estimatedMinutes > AUDIO_LIMITS.MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN) {
+    throw new Error(
+      `El archivo parece tener más de ${AUDIO_LIMITS.MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN} minutos de audio. ` +
+      `Será procesado por el servidor automáticamente.`
+    );
+  }
+  
   // If file is small enough, no chunking needed
-  if (file.size <= 24 * 1024 * 1024) {
+  if (file.size <= 10 * 1024 * 1024) {
     console.log('[Chunking] File small enough, no chunking needed');
     return [{ file, index: 0, total: 1 }];
   }

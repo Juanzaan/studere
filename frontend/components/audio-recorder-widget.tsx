@@ -127,13 +127,17 @@ export function AudioRecorderWidget() {
   }, []);
 
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+    <div className="rounded-panel border border-c-border bg-c-surface p-4">
       <div className="flex items-center gap-3">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${state === "recording" ? "animate-pulse bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : "bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400"}`}>
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+          state === "recording"
+            ? "animate-pulse bg-c-red text-white"
+            : "border border-c-blue-border bg-c-blue-soft text-c-blue"
+        }`}>
           {state === "recording" ? <Mic className="h-5 w-5" /> : state === "transcribing" || state === "generating" || state === "processing" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className="h-5 w-5" />}
         </div>
         <div aria-live="polite" aria-atomic="true">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="text-[13px] font-semibold text-c-text">
             {state === "idle" && "Grabar audio"}
             {state === "recording" && "Grabando..."}
             {state === "transcribing" && "Transcribiendo audio..."}
@@ -141,8 +145,8 @@ export function AudioRecorderWidget() {
             {state === "processing" && "Procesando audio..."}
             {state === "error" && "Error de grabación"}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {state === "idle" && "Capturá audio desde tu micrófono. Ideal para clases en vivo y notas de estudio."}
+          <p className={state === "recording" ? "text-[20px] font-semibold text-c-text tabular-nums" : state === "error" ? "text-[11px] text-c-red" : "text-[11px] text-c-muted"}>
+            {state === "idle" && "Captúrá audio desde tu micrófono. Ideal para clases en vivo y notas de estudio."}
             {state === "recording" && formatTime(elapsed)}
             {state === "transcribing" && "Whisper está procesando el audio..."}
             {state === "generating" && "Stude IA está creando tu material de estudio..."}
@@ -155,12 +159,12 @@ export function AudioRecorderWidget() {
       {state === "idle" && (
         <div className="mt-4">
           <label className="block max-w-sm space-y-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Materia / curso (opcional)</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Materia / curso (opcional)</span>
             <input
               value={course}
               onChange={(e) => setCourse(e.target.value)}
               placeholder="Ej. Historia económica"
-              className="h-10 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
             />
           </label>
         </div>
@@ -170,7 +174,7 @@ export function AudioRecorderWidget() {
         {state === "idle" && (
           <button
             onClick={startRecording}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-rose-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center gap-2 rounded-full bg-c-red px-4 text-[12px] font-medium text-white transition hover:opacity-90 focus-visible:outline-none"
           >
             <Mic className="h-4 w-4" />
             Iniciar grabación
@@ -181,14 +185,14 @@ export function AudioRecorderWidget() {
           <>
             <button
               onClick={stopRecording}
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-c-blue px-4 text-[12px] font-medium text-white transition hover:opacity-90 focus-visible:outline-none"
             >
               <Square className="h-4 w-4" />
               Detener y crear sesión
             </button>
             <button
               onClick={cancel}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="inline-flex h-9 items-center gap-2 rounded-btn border border-c-border px-4 text-[12px] text-c-muted transition hover:bg-c-surface-2 focus-visible:outline-none"
             >
               <MicOff className="h-4 w-4" />
               Cancelar
@@ -199,7 +203,7 @@ export function AudioRecorderWidget() {
         {state === "error" && (
           <button
             onClick={() => { setState("idle"); setErrorMsg(""); }}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="inline-flex h-9 items-center gap-2 rounded-btn border border-c-border px-4 text-[12px] text-c-muted transition hover:bg-c-surface-2 focus-visible:outline-none"
           >
             Reintentar
           </button>

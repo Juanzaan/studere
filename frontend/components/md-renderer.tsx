@@ -2,7 +2,7 @@
 
 import { type ComponentPropsWithoutRef } from "react";
 import "katex/dist/katex.min.css";
-import "highlight.js/styles/github.css";
+import "highlight.js/styles/github-dark.css";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -26,12 +26,39 @@ function extractText(node: React.ReactNode): string {
   return "";
 }
 
-const CALLOUT_COLORS = {
-  emerald: { border: "border-emerald-200", bg: "bg-emerald-50", text: "text-emerald-700", icon: "text-emerald-500" },
-  amber:   { border: "border-amber-200",   bg: "bg-amber-50",   text: "text-amber-700",   icon: "text-amber-500" },
-  blue:    { border: "border-blue-200",     bg: "bg-blue-50",    text: "text-blue-700",     icon: "text-blue-500" },
-  violet:  { border: "border-violet-200",   bg: "bg-violet-50",  text: "text-violet-700",   icon: "text-violet-500" },
-  red:     { border: "border-red-200",      bg: "bg-red-50",     text: "text-red-700",      icon: "text-red-500" },
+const CALLOUT_COLORS: Record<string, {
+  border: string; bg: string; text: string; icon: string;
+}> = {
+  emerald: {
+    border: "border-emerald-200 dark:border-emerald-800",
+    bg: "bg-emerald-50 dark:bg-emerald-900/30",
+    text: "text-emerald-700 dark:text-emerald-300",
+    icon: "text-emerald-500 dark:text-emerald-400"
+  },
+  amber: {
+    border: "border-amber-200 dark:border-amber-800",
+    bg: "bg-amber-50 dark:bg-amber-900/30",
+    text: "text-amber-700 dark:text-amber-300",
+    icon: "text-amber-500 dark:text-amber-400"
+  },
+  blue: {
+    border: "border-blue-200 dark:border-blue-800",
+    bg: "bg-blue-50 dark:bg-blue-900/30",
+    text: "text-blue-700 dark:text-blue-300",
+    icon: "text-blue-500 dark:text-blue-400"
+  },
+  violet: {
+    border: "border-violet-200 dark:border-violet-800",
+    bg: "bg-violet-50 dark:bg-violet-900/30",
+    text: "text-violet-700 dark:text-violet-300",
+    icon: "text-violet-500 dark:text-violet-400"
+  },
+  red: {
+    border: "border-red-200 dark:border-red-800",
+    bg: "bg-red-50 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-300",
+    icon: "text-red-500 dark:text-red-400"
+  },
 };
 
 function Callout({
@@ -45,11 +72,11 @@ function Callout({
   label: string;
   children: React.ReactNode;
 }) {
-  const c = CALLOUT_COLORS[color];
+  const c = CALLOUT_COLORS[color] ?? CALLOUT_COLORS.violet;
   return (
-    <div className={`my-4 flex gap-3 rounded-2xl border ${c.border} ${c.bg} p-4 dark:border-${color}-800 dark:bg-${color}-900/30`}>
-      <div className={`mt-0.5 shrink-0 ${c.icon} dark:text-${color}-400`}>{icon}</div>
-      <div className={`text-sm leading-7 ${c.text} dark:text-${color}-300 [&>p]:mb-0 [&>p]:text-inherit`}>
+    <div className={`my-4 flex gap-3 rounded-2xl border ${c.border} ${c.bg} p-4`}>
+      <div className={`mt-0.5 shrink-0 ${c.icon}`}>{icon}</div>
+      <div className={`text-sm leading-7 ${c.text} [&>p]:mb-0 [&>p]:text-inherit`}>
         <span className="font-bold">{label}:</span> {children}
       </div>
     </div>

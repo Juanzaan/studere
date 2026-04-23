@@ -31,14 +31,16 @@ export const AUDIO_CHUNK_SIZE_MB = 25;
 
 // Límites de tamaño de audio
 export const AUDIO_LIMITS = {
-  /** Archivos <24MB: procesamiento client-side rápido */
-  CLIENT_SIDE_MAX_MB: 24,
+  /** Archivos <10MB: procesamiento client-side rápido */
+  CLIENT_SIDE_MAX_MB: 10,
   /** Tamaño recomendado para mejor experiencia (~45-50 min de audio) */
   RECOMMENDED_MAX_MB: 50,
   /** Límite absoluto (>200MB rechazado) */
   ABSOLUTE_MAX_MB: 200,
   /** Estimación: ~1MB por minuto de audio promedio */
   MB_PER_MINUTE_ESTIMATE: 1,
+  /** Si la duración estimada > 30min, usar servidor */
+  MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN: 30,
 } as const;
 
 // Estimaciones de tiempo de procesamiento

@@ -207,59 +207,59 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   }
 
   return (
-    <section ref={cardRef} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+    <section ref={cardRef} className="rounded-panel border border-c-border bg-c-surface p-5">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400">
-          <ModeIcon className="h-5 w-5" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-c-blue-border bg-c-blue-soft text-c-blue">
+          <ModeIcon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="inline-flex items-center rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-300">
+          <div className="inline-flex items-center rounded-btn border border-c-blue-border bg-c-blue-soft px-3 py-1 text-[11px] font-medium text-c-blue">
             {modeConfig.label}
           </div>
-          <h2 className="mt-3 text-xl font-semibold text-slate-900 dark:text-slate-100">Crear nueva sesión de estudio</h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">{modeConfig.hint}</p>
+          <h2 className="mt-2 text-[15px] font-semibold text-c-text">Crear nueva sesión de estudio</h2>
+          <p className="mt-1 max-w-2xl text-[12px] text-c-muted">{modeConfig.hint}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="grid gap-4 lg:grid-cols-2">
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Título de la sesión</span>
+          <label className="space-y-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Título de la sesión</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ej. Marketing digital — clase 3"
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
             />
           </label>
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Materia / curso</span>
+          <label className="space-y-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Materia / curso</span>
             <input
               value={course}
               onChange={(event) => setCourse(event.target.value)}
               placeholder="Ej. Historia económica"
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
             />
           </label>
         </div>
 
         {(mode === "url" || mode === "online") && (
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">URL de origen</span>
+          <label className="space-y-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">URL de origen</span>
             <input
               value={sourceUrl}
               onChange={(event) => setSourceUrl(event.target.value)}
               placeholder="https://..."
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800"
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
             />
           </label>
         )}
 
         <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Archivo base</span>
+          <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Archivo base</span>
           <label
-            className={`block cursor-pointer overflow-hidden rounded-[24px] border border-dashed p-5 transition ${
-              file ? "border-violet-200 bg-violet-50/70 dark:border-violet-700 dark:bg-violet-900/20" : "border-slate-200 bg-slate-50 hover:border-violet-200 hover:bg-violet-50/40 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-700"
+            className={`block cursor-pointer overflow-hidden rounded-input border border-dashed p-5 transition ${
+              file ? "border-c-blue-border bg-c-blue-soft" : "border-c-border bg-c-surface-2 hover:border-c-blue-border"
             }`}
           >
             <input
@@ -269,14 +269,16 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
               className="sr-only"
             />
             <div className="flex items-start gap-3">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${file ? "bg-white text-violet-600 dark:bg-slate-700 dark:text-violet-400" : "bg-white text-slate-500 dark:bg-slate-700 dark:text-slate-400"}`}>
-                <FileUp className="h-5 w-5" />
+              <div className={`flex h-9 w-9 items-center justify-center rounded-btn border ${
+                file ? "border-c-blue-border bg-c-surface text-c-blue" : "border-c-border bg-c-surface text-c-muted"
+              }`}>
+                <FileUp className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <p className="text-[12px] font-medium text-c-text">
                   {file ? "Archivo listo" : "Arrastrá un archivo o hacé click para subir"}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-[11px] text-c-muted">
                   Audio, video, `.txt` o `.md`. Se transcribe multimedia y se usa texto directo cuando es posible.
                 </p>
               </div>
@@ -285,20 +287,20 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
 
           {file && (
             <>
-              <div className="flex items-center justify-between rounded-2xl border border-violet-100 bg-white px-4 py-3 shadow-sm dark:border-violet-800 dark:bg-slate-800">
+              <div className="flex items-center justify-between rounded-card border border-c-teal-border bg-c-teal-soft px-4 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{file.name}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">{file.type || "Tipo desconocido"}</p>
+                  <p className="truncate text-[11px] font-medium text-c-teal">{file.name}</p>
+                  <p className="text-[11px] text-c-teal opacity-70">{file.type || "Tipo desconocido"}</p>
                 </div>
                 <div className="ml-3 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 text-c-teal" />
                   <button
                     type="button"
                     onClick={() => {
                       setFile(null);
                       setAudioValidation(null);
                     }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                    className="flex h-7 w-7 items-center justify-center rounded-btn border border-c-border text-c-muted transition hover:bg-c-surface-2 hover:text-c-text"
                     aria-label="Quitar archivo"
                   >
                     <X className="h-4 w-4" />
@@ -307,38 +309,32 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
               </div>
 
               {audioValidation && (
-                <div className={`rounded-xl border p-3 text-xs ${
+                <div className={`rounded-card border p-3 text-[11px] ${
                   audioValidation.category === "small" 
-                    ? "border-emerald-100 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20"
+                    ? "border-c-teal-border bg-c-teal-soft"
                     : audioValidation.category === "medium"
-                    ? "border-blue-100 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
-                    : "border-amber-100 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+                    ? "border-c-blue-border bg-c-blue-soft"
+                    : "border-c-amber/20 bg-c-amber-soft"
                 }`}>
                   <p className={`font-semibold ${
-                    audioValidation.category === "small"
-                      ? "text-emerald-900 dark:text-emerald-100"
-                      : audioValidation.category === "medium"
-                      ? "text-blue-900 dark:text-blue-100"
-                      : "text-amber-900 dark:text-amber-100"
+                    audioValidation.category === "small" ? "text-c-teal"
+                      : audioValidation.category === "medium" ? "text-c-blue"
+                      : "text-c-amber"
                   }`}>
                     {getAudioCategoryEmoji(audioValidation.category)} Archivo: {getAudioSizeLabel(audioValidation.sizeMB)} (~{audioValidation.estimatedMinutes} min)
                   </p>
                   <p className={`mt-1 ${
-                    audioValidation.category === "small"
-                      ? "text-emerald-700 dark:text-emerald-300"
-                      : audioValidation.category === "medium"
-                      ? "text-blue-700 dark:text-blue-300"
-                      : "text-amber-700 dark:text-amber-300"
-                  }`}>
+                    audioValidation.category === "small" ? "text-c-teal"
+                      : audioValidation.category === "medium" ? "text-c-blue"
+                      : "text-c-amber"
+                  } opacity-80`}>
                     {getProcessingDescription(audioValidation.category)}
                   </p>
-                  <p className={`mt-1 text-[11px] ${
-                    audioValidation.category === "small"
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : audioValidation.category === "medium"
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-amber-600 dark:text-amber-400"
-                  }`}>
+                  <p className={`mt-1 ${
+                    audioValidation.category === "small" ? "text-c-teal"
+                      : audioValidation.category === "medium" ? "text-c-blue"
+                      : "text-c-amber"
+                  } opacity-70`}>
                     Tiempo estimado: {audioValidation.estimatedProcessingTime.min}-{audioValidation.estimatedProcessingTime.max} minutos
                   </p>
                 </div>
@@ -348,18 +344,18 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
         </div>
 
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Notas o transcripción</span>
+          <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Notas o transcripción</span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             rows={6}
             placeholder="Pegá apuntes, un transcript o contexto para que Studere genere resumen, conceptos, flashcards, quiz y plan de repaso."
-            className={`w-full rounded-3xl border bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:bg-white dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-violet-500 dark:focus:bg-slate-800 ${
-              useAI && !notes.trim() && !file ? "border-amber-300 dark:border-amber-600" : "border-slate-200 dark:border-slate-700"
+            className={`w-full rounded-input border bg-c-surface-2 px-4 py-3 text-[12px] leading-relaxed text-c-text outline-none placeholder:text-c-muted focus:outline-none ${
+              useAI && !notes.trim() && !file ? "border-c-amber/20" : "border-c-border"
             }`}
           />
           {useAI && !notes.trim() && !file && (
-            <p className="text-xs text-amber-600">Subí un audio/video o pegá apuntes para que la IA genere contenido de calidad.</p>
+            <p className="text-[11px] text-c-amber">Subí un audio/video o pegá apuntes para que la IA genere contenido de calidad.</p>
           )}
         </label>
 
@@ -367,7 +363,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
           <button
             type="submit"
             disabled={isCreating || !title.trim()}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-9 items-center gap-2 rounded-btn bg-c-blue px-4 text-[12px] font-medium text-white transition hover:opacity-90 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
             {aiStatus === "transcribing" || aiStatus === "generating" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -387,13 +383,13 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
                 onChange={(e) => setUseAI(e.target.checked)}
                 className="sr-only"
               />
-              <div className={`h-5 w-9 rounded-full transition ${useAI ? "bg-violet-500" : "bg-slate-300"}`} />
+              <div className={`h-5 w-9 rounded-full transition ${useAI ? "bg-c-blue" : "bg-c-surface-2 border border-c-border"}`} />
               <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition ${useAI ? "translate-x-4" : "translate-x-0"}`} />
             </div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Con IA</span>
+            <span className="text-[11px] font-medium text-c-muted">Con IA</span>
           </label>
 
-          <p className="text-xs text-slate-400 dark:text-slate-500">
+          <p className="text-[11px] text-c-muted">
             {modeConfig.templateId === "class-summary" ? "Resumen de clase" : modeConfig.templateId === "exam-review" ? "Repaso de examen" : "Notas de reunión"}
           </p>
         </div>

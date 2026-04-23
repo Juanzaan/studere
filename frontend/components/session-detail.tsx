@@ -271,7 +271,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
         onDeleteCancel={() => setConfirmDelete(false)}
       />
 
-      <div className={`grid gap-4 transition-all duration-300 lg:h-[calc(100vh-100px)] lg:overflow-hidden ${conceptsOpen ? "lg:grid-cols-[300px_minmax(0,1fr)]" : "lg:grid-cols-[44px_minmax(0,1fr)]"}`}>
+      <div className={`grid gap-3 transition-all duration-300 lg:h-[calc(100vh-100px)] lg:overflow-hidden ${conceptsOpen ? "lg:grid-cols-[192px_minmax(0,1fr)]" : "lg:grid-cols-[44px_minmax(0,1fr)]"}`}>
         <ConceptsSidebar
           concepts={filteredConcepts}
           isOpen={conceptsOpen}
@@ -279,8 +279,8 @@ export function SessionDetail({ session }: { session: StudySession }) {
           onToggle={() => setConceptsOpen(!conceptsOpen)}
         />
 
-        <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:overflow-y-auto">
-          <div className="sticky top-0 z-10 -mx-4 mb-3 bg-white px-4 pb-3 pt-1 sm:-mx-5 sm:px-5 dark:bg-slate-900">
+        <section className="rounded-panel border border-c-border bg-c-surface p-4 lg:overflow-y-auto">
+          <div className="sticky top-0 z-10 -mx-4 mb-3 border-b border-c-border bg-c-surface px-4 pb-2 pt-1">
             <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
           </div>
 
@@ -365,7 +365,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
       {!showChat && (
         <button
           onClick={() => setShowChat(true)}
-          className="fixed bottom-6 right-6 z-40 flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-[0_8px_30px_rgba(139,92,246,0.4)] transition hover:opacity-90"
+          className="fixed bottom-6 right-6 z-40 flex h-8 items-center gap-[6px] rounded-btn border border-c-blue-border bg-c-blue-soft px-3 text-[11px] font-medium text-c-blue transition hover:opacity-90 focus-visible:outline-none"
         >
           <Brain className="h-4 w-4" />
           Stude

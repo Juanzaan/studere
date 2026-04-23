@@ -84,17 +84,17 @@ export function ConfirmationDialog({
 
   const variants = {
     danger: {
-      icon: "bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400",
-      button: "bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600"
+      icon: "bg-c-red-soft text-c-red",
+      button: "bg-c-red-soft border border-c-red-border text-c-red hover:bg-c-red/20",
     },
     warning: {
-      icon: "bg-amber-100 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400",
-      button: "bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600"
+      icon: "bg-c-amber-soft text-c-amber",
+      button: "bg-c-blue-soft border border-c-blue-border text-c-blue",
     },
     info: {
-      icon: "bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400",
-      button: "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
-    }
+      icon: "bg-c-blue-soft text-c-blue",
+      button: "bg-c-blue-soft border border-c-blue-border text-c-blue",
+    },
   };
 
   const config = variants[variant];
@@ -102,48 +102,48 @@ export function ConfirmationDialog({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={handleClose}
     >
       <div
         ref={dialogRef}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        className="relative w-full max-w-[380px] rounded-panel border border-c-border bg-c-surface p-[20px] shadow-card"
       >
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+          className="absolute right-[12px] top-[12px] rounded-btn p-[4px] text-c-muted transition-colors hover:bg-c-surface-2 hover:text-c-text"
         >
-          <X className="h-5 w-5" />
+          <X className="h-[14px] w-[14px]" />
         </button>
 
         {/* Icon */}
-        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${config.icon}`}>
-          <AlertTriangle className="h-6 w-6" />
+        <div className={`flex h-[36px] w-[36px] items-center justify-center rounded-panel ${config.icon}`}>
+          <AlertTriangle className="h-[18px] w-[18px]" />
         </div>
 
         {/* Content */}
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        <div className="mt-[12px]">
+          <h3 className="text-[14px] font-semibold text-c-text">
             {title}
           </h3>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-[6px] text-[12px] leading-relaxed text-c-muted">
             {message}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="mt-6 flex gap-3">
+        <div className="mt-[16px] flex gap-[8px]">
           <button
             onClick={handleClose}
-            className="flex-1 rounded-2xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="flex-1 rounded-btn border border-c-border px-[14px] py-[7px] text-[12px] font-medium text-c-muted transition-colors hover:bg-c-surface-2"
           >
             {cancelText}
           </button>
           <button
             onClick={handleConfirm}
-            className={`flex-1 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors ${config.button}`}
+            className={`flex-1 rounded-btn px-[14px] py-[7px] text-[12px] font-medium transition-colors ${config.button}`}
           >
             {confirmText}
           </button>

@@ -4,6 +4,52 @@
 
 :root {
   color-scheme: light;
+  
+  /* Design System Colors */
+  --c-bg: #f7f5f0;
+  --c-surface: #ffffff;
+  --c-surface-2: #f0eeea;
+  --c-border: rgba(0, 0, 0, 0.08);
+  --c-text: #1e1b2e;
+  --c-muted: #6b7280;
+  --c-blue: #3b5fc0;
+  --c-blue-soft: rgba(59, 95, 192, 0.08);
+  --c-blue-border: rgba(59, 95, 192, 0.2);
+  --c-teal: #0d9488;
+  --c-teal-soft: rgba(13, 148, 136, 0.08);
+  --c-teal-border: rgba(13, 148, 136, 0.2);
+  --c-violet: #7c3aed;
+  --c-violet-soft: rgba(124, 58, 237, 0.08);
+  --c-violet-border: rgba(124, 58, 237, 0.2);
+  --c-amber: #d97706;
+  --c-amber-soft: rgba(217, 119, 6, 0.1);
+  --c-red: #dc2626;
+  --c-red-soft: rgba(220, 38, 38, 0.08);
+  --c-red-border: rgba(220, 38, 38, 0.2);
+}
+
+.dark {
+  /* Design System Colors - Dark Mode */
+  --c-bg: #0e1117;
+  --c-surface: #151b27;
+  --c-surface-2: #1c2235;
+  --c-border: rgba(255, 255, 255, 0.07);
+  --c-text: #e2e8f0;
+  --c-muted: #8892a4;
+  --c-blue: #4f7cff;
+  --c-blue-soft: rgba(79, 124, 255, 0.1);
+  --c-blue-border: rgba(79, 124, 255, 0.25);
+  --c-teal: #2dd4aa;
+  --c-teal-soft: rgba(45, 212, 170, 0.1);
+  --c-teal-border: rgba(45, 212, 170, 0.25);
+  --c-violet: #a78bfa;
+  --c-violet-soft: rgba(167, 139, 250, 0.1);
+  --c-violet-border: rgba(167, 139, 250, 0.25);
+  --c-amber: #fbbf24;
+  --c-amber-soft: rgba(251, 191, 36, 0.1);
+  --c-red: #f87171;
+  --c-red-soft: rgba(248, 113, 113, 0.1);
+  --c-red-border: rgba(248, 113, 113, 0.25);
 }
 
 html {
@@ -13,20 +59,15 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, rgba(147, 51, 234, 0.08), transparent 24%),
-    linear-gradient(180deg, #f8faff 0%, #f5f7fb 45%, #f3f6fb 100%);
-  color: #0f172a;
+  background: var(--c-bg);
+  color: var(--c-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body,
-html.dark body {
-  background:
-    radial-gradient(circle at top right, rgba(124, 58, 237, 0.10), transparent 28%),
-    linear-gradient(180deg, #0f1117 0%, #12141c 45%, #141620 100%);
-  color: #e2e8f0;
+.dark body {
+  background: var(--c-bg);
+  color: var(--c-text);
 }
 
 * {
@@ -78,6 +119,20 @@ button:active:not(:disabled) {
 ::selection {
   background: rgba(124, 58, 237, 0.15);
   color: #1e1b4b;
+}
+
+.dark ::selection {
+  background: rgba(124, 58, 237, 0.25);
+  color: #e9d5ff;
+}
+
+/* Code block base styles for dark mode */
+.dark pre code.hljs {
+  background: transparent;
+}
+
+pre code.hljs {
+  border-radius: 0.5rem;
 }
 
 ::-webkit-scrollbar {

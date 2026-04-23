@@ -13,14 +13,27 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       colors: {
-        background: "#f8faff",
-        panel: "#ffffff",
-        line: "rgba(226, 232, 240, 0.9)",
-        accent: "#7c3aed",
-        accentSoft: "rgba(124, 58, 237, 0.08)",
-        success: "#10b981",
-        // Mejoras de contraste para dark mode (WCAG AA compliant)
-        "slate-350": "#b0b8c4", // Reemplazo para slate-400 en dark mode (mejor contraste sobre slate-800)
+        "c-bg": "var(--c-bg)",
+        "c-surface": "var(--c-surface)",
+        "c-surface-2": "var(--c-surface-2)",
+        "c-border": "var(--c-border)",
+        "c-text": "var(--c-text)",
+        "c-muted": "var(--c-muted)",
+        "c-blue": "var(--c-blue)",
+        "c-blue-soft": "var(--c-blue-soft)",
+        "c-blue-border": "var(--c-blue-border)",
+        "c-teal": "var(--c-teal)",
+        "c-teal-soft": "var(--c-teal-soft)",
+        "c-teal-border": "var(--c-teal-border)",
+        "c-violet": "var(--c-violet)",
+        "c-violet-soft": "var(--c-violet-soft)",
+        "c-violet-border": "var(--c-violet-border)",
+        "c-amber": "var(--c-amber)",
+        "c-amber-soft": "var(--c-amber-soft)",
+        "c-red": "var(--c-red)",
+        "c-red-soft": "var(--c-red-soft)",
+        "c-red-border": "var(--c-red-border)",
+        "slate-350": "#b0b8c4",
       },
       boxShadow: {
         card: "0 20px 60px rgba(15, 23, 42, 0.08)",
@@ -29,6 +42,11 @@ const config: Config = {
         glow: "0 0 0 1px rgba(124, 58, 237, 0.12), 0 8px 32px rgba(124, 58, 237, 0.08)"
       },
       borderRadius: {
+        btn: "6px",
+        input: "8px",
+        card: "10px",
+        panel: "12px",
+        pill: "20px",
         xl2: "1.25rem",
         "4xl": "1.75rem"
       },

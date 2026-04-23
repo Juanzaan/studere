@@ -1,37 +1,23 @@
 "use client";
 
-import { memo, useEffect, useRef } from "react";
+import { memo, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { FileAudio2, FileText, Film, Sparkles, Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import { StudySession } from "@/lib/types";
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
-function detectKind(session: StudySession) {
-  if (session.sourceKind === "video") {
-    return {
-      label: "Video",
-      icon: Film,
-      badge: "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800",
-    };
-  }
+const AVATAR_COLORS = [
+  "border-c-blue-border bg-c-blue-soft text-c-blue",
+  "border-c-teal-border bg-c-teal-soft text-c-teal",
+  "border-c-violet-border bg-c-violet-soft text-c-violet",
+] as const;
 
-  if (session.sourceKind === "audio") {
-    return {
-      label: "Audio",
-      icon: FileAudio2,
-      badge: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
-    };
-  }
-
-  return {
-    label: "Texto",
-    icon: FileText,
-      badge: "bg-sky-50 text-sky-600 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800",
-  };
+function getInitials(title: string): string {
+  return title.trim().slice(0, 2).toUpperCase();
 }
 
 type SessionRecordsTableProps = {
@@ -48,65 +34,55 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
 
   if (sessions.length === 0) {
     return (
-      <div className="rounded-[24px] border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-500">
+      <div className="rounded-panel border border-dashed border-c-border bg-c-surface p-12 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-panel bg-c-violet-soft text-c-violet">
           <Sparkles className="h-5 w-5" />
         </div>
-        <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">{emptyTitle}</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">{emptyDescription}</p>
+        <h3 className="mt-4 text-[13px] font-semibold text-c-text">{emptyTitle}</h3>
+        <p className="mx-auto mt-2 max-w-md text-[12px] leading-relaxed text-c-muted">{emptyDescription}</p>
       </div>
     );
   }
 
   return (
-    <div ref={tableRef} className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900">
-      <div className="grid grid-cols-[minmax(0,1fr)_60px] gap-4 border-b border-slate-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400 md:grid-cols-[minmax(0,2.8fr)_92px_128px_120px_60px] dark:border-slate-700 dark:text-slate-500">
+    <div ref={tableRef} className="overflow-hidden rounded-panel border border-c-border bg-c-surface">
+      <div className="grid grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border bg-c-surface-2 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wide text-c-muted md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]">
         <span>Sesión</span>
         <span className="hidden md:block">Duración</span>
         <span className="hidden md:block">Fecha</span>
         <span className="hidden md:block">Creador</span>
         <span className="text-right">Fav</span>
       </div>
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
-        {sessions.map((session) => {
-          const meta = detectKind(session);
-          const Icon = meta.icon;
-
+      <div>
+        {sessions.map((session, index) => {
+          const avatarColor = AVATAR_COLORS[index % 3];
           return (
-            <div key={session.id} data-session-row className="grid grid-cols-[minmax(0,1fr)_60px] gap-4 px-5 py-4 transition-all duration-150 hover:bg-violet-50/40 md:grid-cols-[minmax(0,2.8fr)_92px_128px_120px_60px] dark:hover:bg-violet-900/10">
+            <div
+              key={session.id}
+              data-session-row
+              className="grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
+            >
               <Link href={`/sessions/${session.id}`} className="min-w-0">
-                <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl border ${meta.badge}`}>
-                    <Icon className="h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-btn border text-[11px] font-semibold ${avatarColor}`}>
+                    {getInitials(session.title)}
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{session.title}</p>
-                      {session.starred && (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                          Destacada
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{session.course || "Sin materia"}</p>
-                    <p className="mt-1 line-clamp-1 text-xs text-slate-400 dark:text-slate-500">{(session.summary || "").split(/\n\n?/)[0]}</p>
+                    <p className="truncate text-[12px] font-medium text-c-text">{session.title}</p>
+                    <p className="truncate text-[10px] text-c-muted">{session.course || "Sin materia"}</p>
                   </div>
                 </div>
               </Link>
-              <div className="hidden text-sm text-slate-500 md:block dark:text-slate-400">{session.stats.estimatedDurationMinutes} min</div>
-              <div className="hidden text-sm text-slate-500 md:block dark:text-slate-400">{new Date(session.createdAt).toLocaleDateString("es-AR")}</div>
-              <div className="hidden text-sm text-slate-500 md:block dark:text-slate-400">Tú</div>
-              <div className="flex justify-end">
+              <div className="hidden items-center text-[11px] text-c-muted md:flex">{session.stats.estimatedDurationMinutes} min</div>
+              <div className="hidden items-center text-[11px] text-c-muted md:flex">{new Date(session.createdAt).toLocaleDateString("es-AR")}</div>
+              <div className="hidden items-center text-[11px] text-c-muted md:flex">Tú</div>
+              <div className="flex items-center justify-end">
                 <button
                   onClick={() => onToggleStar?.(session.id)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
-                    session.starred
-                      ? "border-amber-200 bg-amber-50 text-amber-500 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                      : "border-slate-200 bg-white text-slate-300 hover:border-slate-300 hover:text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600 dark:hover:text-slate-400"
-                  }`}
+                  className="flex h-7 w-7 items-center justify-center rounded-btn transition-colors focus-visible:outline-none"
                   aria-label={session.starred ? "Quitar de destacados" : "Destacar sesión"}
                 >
-                  <Star className={`h-4 w-4 ${session.starred ? "fill-current" : ""}`} />
+                  <Star className={`h-[14px] w-[14px] ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30"}`} />
                 </button>
               </div>
             </div>

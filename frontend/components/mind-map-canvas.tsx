@@ -148,7 +148,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
   }, [fullscreen]);
 
   const canvas = (
-    <div className={fullscreen ? "fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950" : "relative h-[400px] w-full rounded-[24px] border border-slate-200 bg-slate-50 overflow-hidden dark:border-slate-700 dark:bg-slate-900"}>
+    <div className={fullscreen ? "fixed inset-0 z-50 bg-c-bg" : "relative h-[400px] w-full overflow-hidden rounded-panel border border-c-border bg-c-surface"}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -162,12 +162,12 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(148,163,184,0.15)" />
-        <Controls showInteractive={false} className="!rounded-xl !border-slate-200 !shadow-sm dark:!border-slate-700 [&>button]:bg-white [&>button]:border-slate-200 [&>button]:text-slate-700 [&>button]:hover:bg-slate-50 [&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-slate-500/60 dark:[&>button]:bg-slate-900 dark:[&>button]:border-slate-700 dark:[&>button]:text-slate-100 dark:[&>button]:hover:bg-slate-800" />
+        <Controls showInteractive={false} className="!rounded-card !border-c-border !shadow-none [&>button]:bg-c-surface [&>button]:text-c-muted [&>button]:hover:bg-c-surface-2 [&>button]:border-b [&>button]:border-c-border [&>button]:focus-visible:outline-none" />
         {fullscreen && (
           <MiniMap
             nodeColor={(n) => accentFor(n.data?.accent as string).ring}
             maskColor="rgba(248,250,255,0.8)"
-            className="!rounded-xl !border-slate-200 !shadow-sm dark:!border-slate-700 dark:!bg-slate-800"
+            className="!rounded-card !border-c-border !shadow-none !bg-c-surface-2"
           />
         )}
       </ReactFlow>
@@ -175,7 +175,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
       {/* fullscreen toggle */}
       <button
         onClick={toggleFullscreen}
-        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-btn border border-c-border bg-c-surface text-c-muted transition hover:bg-c-surface-2 focus-visible:outline-none"
         aria-label={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
       >
         {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -184,7 +184,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
       {fullscreen && (
         <button
           onClick={toggleFullscreen}
-          className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-btn border border-c-border bg-c-surface text-c-muted transition hover:bg-c-surface-2 focus-visible:outline-none"
           aria-label="Cerrar"
         >
           <X className="h-4 w-4" />

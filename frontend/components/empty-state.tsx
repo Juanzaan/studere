@@ -83,7 +83,7 @@ export function EmptyState({
   return (
     <div
       ref={containerRef}
-      className="relative flex min-h-[400px] flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900"
+      className="relative flex min-h-[400px] flex-col items-center justify-center rounded-panel border border-dashed border-c-border bg-c-surface p-12 text-center"
     >
       {/* Floating particles */}
       <div ref={particlesRef} className="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]">
@@ -96,16 +96,16 @@ export function EmptyState({
       {/* Icon */}
       <div
         ref={iconRef}
-        className="relative z-10 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 shadow-sm dark:from-violet-950/30 dark:to-violet-900/20 dark:text-violet-400"
+        className="relative z-10 mb-[16px] flex h-14 w-14 items-center justify-center rounded-panel border border-c-border bg-c-surface-2 text-c-blue"
       >
-        <Icon className="h-8 w-8" />
+        <Icon className="h-6 w-6" />
       </div>
 
       {/* Text */}
-      <h3 className="anim-text relative z-10 mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+      <h3 className="anim-text relative z-10 mb-[6px] text-[14px] font-medium text-c-text">
         {title}
       </h3>
-      <p className="anim-text relative z-10 mb-6 max-w-md text-sm text-slate-600 dark:text-slate-400">
+      <p className="anim-text relative z-10 mb-[20px] max-w-md text-[12px] text-c-muted">
         {description}
       </p>
 
@@ -113,7 +113,7 @@ export function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="anim-text relative z-10 rounded-2xl bg-gradient-to-r from-violet-600 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30 dark:from-violet-500 dark:to-violet-400"
+          className="anim-text relative z-10 rounded-btn border border-c-blue-border bg-c-blue-soft px-[14px] py-[7px] text-[12px] font-medium text-c-blue transition-colors hover:bg-c-blue-soft"
         >
           {action.label}
         </button>

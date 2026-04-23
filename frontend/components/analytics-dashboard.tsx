@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BookOpen, Brain, Clock3, TrendingUp } from "lucide-react";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
 
-const COLORS = ["#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899"];
+const COLORS = ["#4f7cff", "#2dd4aa", "#a78bfa", "#fbbf24", "#ef4444", "#ec4899"];
 
 function useDarkMode() {
   const [isDark, setIsDark] = useState(false);
@@ -110,78 +109,47 @@ export function AnalyticsDashboard() {
 
   function chartPlaceholder(hint?: string) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-4 text-center dark:border-slate-700 dark:bg-slate-800">
-        <p className="text-sm font-medium text-slate-400 dark:text-slate-500">Aún no hay suficientes datos</p>
-        {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
+      <div className="flex h-64 flex-col items-center justify-center rounded-panel border border-dashed border-c-border bg-c-surface px-4 text-center">
+        <p className="text-[12px] text-c-muted">Aún no hay suficientes datos</p>
+        {hint && <p className="mt-1 text-[12px] text-c-muted">{hint}</p>}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-7 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+      <div className="rounded-panel border border-c-border bg-c-surface p-5">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Estadísticas</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-[14px] font-semibold text-c-text">Estadísticas</h2>
+          <p className="text-[12px] text-c-muted">
             Visualiza tu progreso, rendimiento y patrones de estudio con un dashboard alineado al nuevo workspace.
           </p>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-lift dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 dark:bg-violet-900/30">
-              <BookOpen className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Sesiones</p>
-              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{totalSessions}</p>
-            </div>
-          </div>
+        <div className="rounded-card bg-c-surface-2 p-3">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</p>
+          <p className="text-[20px] font-semibold text-c-text">{totalSessions}</p>
         </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-lift dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-900/30">
-              <Clock3 className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Tiempo de estudio</p>
-              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{totalMinutes} min</p>
-            </div>
-          </div>
+        <div className="rounded-card bg-c-surface-2 p-3">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo de estudio</p>
+          <p className="text-[20px] font-semibold text-c-text">{totalMinutes} min</p>
         </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-lift dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/30">
-              <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Precisión en quiz</p>
-              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{avgQuizScore}%</p>
-            </div>
-          </div>
+        <div className="rounded-card bg-c-surface-2 p-3">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Precisión en quiz</p>
+          <p className="text-[20px] font-semibold text-c-text">{avgQuizScore}%</p>
         </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-lift dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-900/30">
-              <Brain className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Cards repasadas</p>
-              <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{totalReviews}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">{totalWords.toLocaleString()} palabras procesadas</p>
-            </div>
-          </div>
+        <div className="rounded-card bg-c-surface-2 p-3">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards repasadas</p>
+          <p className="text-[20px] font-semibold text-c-text">{totalReviews}</p>
+          <p className="text-[10px] text-c-muted">{totalWords.toLocaleString()} palabras procesadas</p>
         </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-medium text-slate-900 dark:text-slate-100">Sesiones y repasos · últimos 7 días</h2>
+        <div className="rounded-panel border border-c-border bg-c-surface p-4">
+          <h2 className="text-[14px] font-semibold text-c-text">Sesiones y repasos · últimos 7 días</h2>
           <div className="mt-4 h-64">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -198,8 +166,8 @@ export function AnalyticsDashboard() {
                     labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                     itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                   />
-                  <Area type="monotone" dataKey="sesiones" stroke="#8b5cf6" fill="#ede9fe" strokeWidth={2} />
-                  <Area type="monotone" dataKey="repasos" stroke="#06b6d4" fill="#cffafe" strokeWidth={2} />
+                  <Area type="monotone" dataKey="sesiones" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} />
+                  <Area type="monotone" dataKey="repasos" stroke="#2dd4aa" fill="#d0f5ee" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -208,8 +176,8 @@ export function AnalyticsDashboard() {
           </div>
         </div>
 
-        <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-medium text-slate-900 dark:text-slate-100">Distribución por materia</h2>
+        <div className="rounded-panel border border-c-border bg-c-surface p-4">
+          <h2 className="text-[14px] font-semibold text-c-text">Distribución por materia</h2>
           <div className="mt-4 h-64">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -252,8 +220,8 @@ export function AnalyticsDashboard() {
         </div>
 
         {recentQuizAttempts.length > 0 && (
-          <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-sm font-medium text-slate-900 dark:text-slate-100">Evolución de quiz</h2>
+          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+            <h2 className="text-[14px] font-semibold text-c-text">Evolución de quiz</h2>
             <div className="mt-4 h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -270,7 +238,7 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Area type="monotone" dataKey="porcentaje" stroke="#10b981" fill="#d1fae5" strokeWidth={2} />
+                    <Area type="monotone" dataKey="porcentaje" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -281,8 +249,8 @@ export function AnalyticsDashboard() {
         )}
 
         {topConcepts.length > 0 && (
-          <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-sm font-medium text-slate-900 dark:text-slate-100">Conceptos más frecuentes</h2>
+          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+            <h2 className="text-[14px] font-semibold text-c-text">Conceptos más frecuentes</h2>
             <div className="mt-4 h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -299,7 +267,7 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="count" fill="#2dd4aa" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -310,8 +278,8 @@ export function AnalyticsDashboard() {
         )}
 
         {studyMix.length > 0 && (
-          <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-sm font-medium text-slate-900 dark:text-slate-100">Mix de estudio</h2>
+          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+            <h2 className="text-[14px] font-semibold text-c-text">Mix de estudio</h2>
             <div className="mt-4 h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -341,8 +309,8 @@ export function AnalyticsDashboard() {
       </div>
 
       {totalSessions === 0 && (
-        <div className="rounded-[30px] border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Crea sesiones y completa quizzes para ver tus estadísticas.</p>
+        <div className="rounded-panel border border-dashed border-c-border bg-c-surface p-10 text-center">
+          <p className="text-[12px] text-c-muted">Crea sesiones y completa quizzes para ver tus estadísticas.</p>
         </div>
       )}
     </div>
