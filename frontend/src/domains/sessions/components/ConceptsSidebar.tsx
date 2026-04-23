@@ -1,13 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Layers, ChevronsLeft } from "lucide-react";
+import { Brain, ChevronLeft } from "lucide-react";
 import { Concept } from "@/lib/types";
 import { Highlight } from "@/src/shared/components/Highlight";
 
 const Md = dynamic(() => import("@/components/md-renderer"), {
   ssr: false,
-  loading: () => <span className="text-xs text-slate-400">Cargando…</span>,
+  loading: () => <span className="text-[10px] text-c-muted">Cargando…</span>,
 });
 
 interface ConceptsSidebarProps {
@@ -20,47 +20,48 @@ interface ConceptsSidebarProps {
 export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: ConceptsSidebarProps) {
   if (!isOpen) {
     return (
-      <aside className="rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex items-start">
+      <aside className="flex items-start rounded-panel border border-c-border bg-c-surface transition-all duration-300">
         <button
           onClick={onToggle}
-          className="flex w-full flex-col items-center gap-2 py-4 text-slate-400 transition hover:text-violet-600 dark:text-slate-500 dark:hover:text-violet-400"
-          title="Abrir Conceptos Clave"
+          className="flex w-full flex-col items-center gap-2 py-4 text-c-muted transition hover:text-c-blue"
+          title="Abrir Conceptos"
         >
-          <Layers className="h-4 w-4" />
-          <span className="text-[10px] font-semibold tracking-wider [writing-mode:vertical-lr]">CONCEPTOS</span>
+          <Brain className="h-3.5 w-3.5" />
+          <span className="text-[8px] font-semibold tracking-widest [writing-mode:vertical-lr]">CONCEPTOS</span>
         </button>
       </aside>
     );
   }
 
   return (
-    <aside className="flex flex-col rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 py-3.5">
-        <span className="flex flex-1 items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-0 truncate">
-          <Layers className="h-4 w-4 shrink-0 text-violet-500" />
-          <span className="truncate">Conceptos Clave</span>
-          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">{concepts.length}</span>
+    <aside className="flex flex-col rounded-panel border border-c-border bg-c-surface transition-all duration-300 lg:overflow-hidden">
+      <div className="flex items-center gap-1.5 px-3 py-3">
+        <Brain className="h-3.5 w-3.5 flex-shrink-0 text-c-blue" />
+        <span className="truncate text-[9px] font-semibold uppercase tracking-widest text-c-muted">Conceptos</span>
+        <span className="flex-shrink-0 rounded-pill bg-c-blue-soft px-1.5 py-0.5 text-[9px] font-medium text-c-blue">
+          {concepts.length}
         </span>
         <button
           onClick={onToggle}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+          className="ml-auto flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-btn border border-c-border text-c-muted transition hover:bg-c-surface-2"
           aria-label="Cerrar conceptos"
         >
-          <ChevronsLeft className="h-3.5 w-3.5" />
+          <ChevronLeft className="h-3 w-3" />
         </button>
       </div>
-      <div className="min-h-0 flex-1 animate-fade-in overflow-y-auto border-t border-slate-100 px-4 pb-4 pt-3 dark:border-slate-800">
-        <div className="space-y-4">
-          {concepts.map((concept) => (
-            <div key={concept.term} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <div className="min-h-0 flex-1 animate-fade-in overflow-y-auto border-t border-c-border px-3 pb-3 pt-2">
+        <div>
+          {concepts.map((concept, i) => (
+            <div
+              key={concept.term + i}
+              className="mb-[6px] rounded-card border border-c-border bg-c-surface p-[10px]"
+            >
+              <p className="mb-[2px] text-[11px] font-semibold leading-tight text-c-text">
                 {searchQuery ? <Highlight text={concept.term} query={searchQuery} /> : concept.term}
               </p>
-              <div className="mt-1">
+              <div className="text-[10px] leading-[1.5] text-c-muted">
                 {searchQuery ? (
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    <Highlight text={concept.description} query={searchQuery} />
-                  </p>
+                  <Highlight text={concept.description} query={searchQuery} />
                 ) : (
                   <Md>{concept.description}</Md>
                 )}
@@ -68,7 +69,7 @@ export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: Con
             </div>
           ))}
           {concepts.length === 0 && (
-            <p className="py-4 text-center text-xs text-slate-400 dark:text-slate-500">Sin conceptos que mostrar.</p>
+            <p className="py-4 text-center text-[11px] text-c-muted">Sin conceptos que mostrar.</p>
           )}
         </div>
       </div>

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+const CHART_BAR_COLORS = ["#4f7cff", "#2dd4aa", "#a78bfa", "#fbbf24", "#ef4444", "#ec4899", "#f97316", "#06b6d4"];
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
@@ -257,7 +259,7 @@ export function AnalyticsDashboard() {
                   <BarChart data={topConcepts} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis type="number" stroke="#94a3b8" fontSize={12} />
-                    <YAxis dataKey="term" type="category" stroke="#94a3b8" fontSize={12} width={100} />
+                    <YAxis dataKey="term" type="category" stroke="#94a3b8" tick={{ fontSize: 10 }} width={120} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: isDark ? "#0f172a" : "#ffffff",
@@ -267,7 +269,11 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Bar dataKey="count" fill="#2dd4aa" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                      {topConcepts.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={CHART_BAR_COLORS[index % CHART_BAR_COLORS.length]} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               ) : (

@@ -41,11 +41,11 @@ function MindMapNodeComponent({ data }: { data: { label: string; accent?: string
 
   return (
     <div
-      className={`rounded-2xl border px-4 py-2.5 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border} dark:bg-transparent`}
-      style={{ maxWidth: 220, minWidth: data.isRoot ? 180 : 120, backgroundColor: darkBg, borderColor: darkBorder }}
+      className={`rounded-2xl border px-3 py-2 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border} dark:bg-transparent`}
+      style={{ maxWidth: 260, minWidth: data.isRoot ? 200 : 140, padding: '8px 12px', backgroundColor: darkBg, borderColor: darkBorder }}
     >
       <Handle type="target" position={Position.Top} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
-      <p className={`text-xs font-semibold leading-snug ${style.text} ${data.isRoot ? "text-sm" : ""}`} style={{ color: darkText }}>
+      <p className={`text-[11px] font-semibold leading-snug ${style.text} ${data.isRoot ? "text-[13px]" : ""}`} style={{ color: darkText }}>
         {data.label}
       </p>
       <Handle type="source" position={Position.Bottom} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
@@ -56,8 +56,8 @@ function MindMapNodeComponent({ data }: { data: { label: string; accent?: string
 const nodeTypes = { mindmap: MindMapNodeComponent };
 
 /* ─── tree → ReactFlow nodes/edges ─── */
-const H_GAP = 200;
-const V_GAP = 90;
+const H_GAP = 240;
+const V_GAP = 110;
 
 type LayoutResult = { nodes: Node[]; edges: Edge[]; width: number };
 
@@ -156,7 +156,7 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
+        fitViewOptions={{ padding: 0.2 }}
         minZoom={0.3}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}

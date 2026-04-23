@@ -2,6 +2,14 @@
 
 import { StudySession } from "@/lib/types";
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .trim();
+}
+
 interface InsightsPanelProps {
   session: StudySession;
 }
@@ -38,7 +46,7 @@ export function InsightsPanel({ session }: InsightsPanelProps) {
               {insight.value}
             </span>
           </div>
-          <p className="mt-2 text-[12px] leading-relaxed text-c-muted">{insight.description}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-c-muted">{stripMarkdown(insight.description)}</p>
         </div>
       ))}
     </div>

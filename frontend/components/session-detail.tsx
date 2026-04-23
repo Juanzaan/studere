@@ -280,7 +280,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
         />
 
         <section className="rounded-panel border border-c-border bg-c-surface p-4 lg:overflow-y-auto">
-          <div className="sticky top-0 z-10 -mx-4 mb-3 border-b border-c-border bg-c-surface px-4 pb-2 pt-1">
+          <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-c-border bg-c-surface px-4 pb-2 pt-1" style={{ backgroundColor: 'var(--c-surface)' }}>
             <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
           </div>
 

@@ -82,8 +82,8 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
   const progress = Math.round(((maxReached + 1) / total) * 100);
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <div className="w-full max-w-lg">
+    <div className="flex flex-1 flex-col items-center justify-center gap-5 min-h-[400px]">
+      <div className="w-full max-w-2xl">
         <div className="flex items-center justify-between text-[11px] font-semibold text-c-muted">
           <span>{index + 1} de {total}</span>
           <span>{progress}%</span>
@@ -94,7 +94,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
       </div>
 
       {completed && (
-        <div className="w-full max-w-lg rounded-card border border-c-teal-border bg-c-teal-soft p-4 text-center">
+        <div className="w-full max-w-2xl rounded-card border border-c-teal-border bg-c-teal-soft p-4 text-center">
           <p className="text-[12px] font-semibold text-c-teal">¡Deck completo!</p>
           <p className="mt-1 text-[11px] text-c-teal opacity-80">{total} flashcards repasadas. Seguí repasando para reforzar la retención.</p>
         </div>
@@ -102,7 +102,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
 
       <button
         onClick={() => setFlipped(!flipped)}
-        className="group relative h-56 w-full max-w-lg cursor-pointer [perspective:800px]"
+        className="group relative min-h-[240px] w-full max-w-2xl cursor-pointer [perspective:800px]"
         aria-label={flipped ? "Ver pregunta" : "Ver respuesta"}
       >
         <div
