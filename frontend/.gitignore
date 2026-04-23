@@ -1,5 +1,6 @@
 node_modules
 .next
+.next-dev/
 out
 coverage
 npm-debug.log*
@@ -10,3 +11,7 @@ pnpm-debug.log*
 .env.local
 .env.development.local
 .env.production.local
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+.temp/
+.turbo/
