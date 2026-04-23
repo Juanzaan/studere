@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Brain, ChevronLeft } from "lucide-react";
+import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
 import { Concept } from "@/lib/types";
 import { Highlight } from "@/src/shared/components/Highlight";
 
@@ -20,16 +20,18 @@ interface ConceptsSidebarProps {
 export function ConceptsSidebar({ concepts, isOpen, searchQuery, onToggle }: ConceptsSidebarProps) {
   if (!isOpen) {
     return (
-      <aside className="flex items-start rounded-panel border border-c-border bg-c-surface transition-all duration-300">
+      <div className="flex h-full w-[44px] flex-col items-center border-r border-c-border bg-c-surface pt-3 transition-all duration-300">
         <button
           onClick={onToggle}
-          className="flex w-full flex-col items-center gap-2 py-4 text-c-muted transition hover:text-c-blue"
-          title="Abrir Conceptos"
+          className="flex h-8 w-8 items-center justify-center rounded-btn text-c-muted transition hover:bg-c-surface-2 hover:text-c-blue"
+          title="Abrir conceptos"
         >
-          <Brain className="h-3.5 w-3.5" />
-          <span className="text-[8px] font-semibold tracking-widest [writing-mode:vertical-lr]">CONCEPTOS</span>
+          <ChevronRight className="h-4 w-4" />
         </button>
-      </aside>
+        <span className="mt-1 text-[9px] font-medium text-c-muted">
+          {concepts.length}
+        </span>
+      </div>
     );
   }
 

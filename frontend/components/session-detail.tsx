@@ -258,35 +258,38 @@ export function SessionDetail({ session }: { session: StudySession }) {
   }
 
   return (
-    <div className="space-y-4">
-      <SessionHeader
-        session={current}
-        starred={current.starred}
-        confirmDelete={confirmDelete}
-        onToggleStarred={toggleStarred}
-        onExportMd={exportMd}
-        onExportCsv={exportCsv}
-        onDeleteClick={() => setConfirmDelete(true)}
-        onDeleteConfirm={handleDelete}
-        onDeleteCancel={() => setConfirmDelete(false)}
-      />
-
-      <div className={`grid gap-3 transition-all duration-300 lg:h-[calc(100vh-100px)] lg:overflow-hidden ${conceptsOpen ? "lg:grid-cols-[192px_minmax(0,1fr)]" : "lg:grid-cols-[44px_minmax(0,1fr)]"}`}>
-        <ConceptsSidebar
-          concepts={filteredConcepts}
-          isOpen={conceptsOpen}
-          searchQuery=""
-          onToggle={() => setConceptsOpen(!conceptsOpen)}
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 mb-4">
+        <SessionHeader
+          session={current}
+          starred={current.starred}
+          confirmDelete={confirmDelete}
+          onToggleStarred={toggleStarred}
+          onExportMd={exportMd}
+          onExportCsv={exportCsv}
+          onDeleteClick={() => setConfirmDelete(true)}
+          onDeleteConfirm={handleDelete}
+          onDeleteCancel={() => setConfirmDelete(false)}
         />
+      </div>
 
-        <section className="rounded-panel border border-c-border bg-c-surface p-4 lg:overflow-y-auto">
-          <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-c-border bg-c-surface px-4 pb-2 pt-1" style={{ backgroundColor: 'var(--c-surface)' }}>
-            <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
-          </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className={`grid gap-3 h-full transition-all duration-300 ${conceptsOpen ? "lg:grid-cols-[192px_minmax(0,1fr)]" : "lg:grid-cols-[44px_minmax(0,1fr)]"}`}>
+          <ConceptsSidebar
+            concepts={filteredConcepts}
+            isOpen={conceptsOpen}
+            searchQuery=""
+            onToggle={() => setConceptsOpen(!conceptsOpen)}
+          />
 
-          {/* ── Focus panel content ── */}
-          <div className="mt-4">
-            {focusPanel === "summary" && (
+          <section className="rounded-panel border border-c-border bg-c-surface p-4 overflow-y-auto">
+            <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-c-border bg-white px-4 pb-2 pt-1 dark:bg-slate-900">
+              <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
+            </div>
+
+            {/* ── Focus panel content ── */}
+            <div className="mt-4">
+              {focusPanel === "summary" && (
               <PanelErrorBoundary panelName="Resumen">
                 <SummaryPanel
                   session={current}
@@ -360,6 +363,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
         </section>
 
       </div>
+    </div>
 
       {/* Floating Stude button */}
       {!showChat && (
