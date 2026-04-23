@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Brain } from "lucide-react";
 import { flashcardsToCsv, sessionToMarkdown, triggerDownload } from "@/lib/exporters";
 import { generateFlashcards } from "@/lib/study-generator";
@@ -39,6 +39,10 @@ export function SessionDetail({ session }: { session: StudySession }) {
   const [chartData, setChartData] = useState<{ type: string; description: string; reply: string } | null>(null);
   const [exerciseInput, setExerciseInput] = useState<Record<string, string>>({});
   const [evaluatingTask, setEvaluatingTask] = useState<string | null>(null);
+  const [conceptsWidth, setConceptsWidth] = useState(240);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(240);
 
   useEffect(() => {
     if (!confirmDelete) return;
@@ -257,9 +261,36 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  function handleMouseDown(e: React.MouseEvent) {
+    isDragging.current = true;
+    startX.current = e.clientX;
+    startWidth.current = conceptsWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const delta = e.clientX - startX.current;
+      const newWidth = Math.min(Math.max(startWidth.current + delta, 160), 400);
+      setConceptsWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 mb-4">
+    <>
+      {/* ZONE A: Session Header — never scrolls */}
+      <div className="flex-shrink-0">
         <SessionHeader
           session={current}
           starred={current.starred}
@@ -273,23 +304,54 @@ export function SessionDetail({ session }: { session: StudySession }) {
         />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className={`grid gap-3 h-full transition-all duration-300 ${conceptsOpen ? "lg:grid-cols-[192px_minmax(0,1fr)]" : "lg:grid-cols-[44px_minmax(0,1fr)]"}`}>
-          <ConceptsSidebar
-            concepts={filteredConcepts}
-            isOpen={conceptsOpen}
-            searchQuery=""
-            onToggle={() => setConceptsOpen(!conceptsOpen)}
-          />
+      {/* ZONE B: Two-column layout — fills remaining viewport */}
+      <div
+        className={`grid transition-[grid-template-columns] duration-200 ease-in-out ${
+          conceptsOpen
+            ? "grid-cols-[var(--cw)_4px_minmax(0,1fr)]"
+            : "grid-cols-[44px_0px_minmax(0,1fr)]"
+        }`}
+        style={{
+          height: 'calc(100vh - 180px)',
+          '--cw': `${conceptsWidth}px`,
+        } as React.CSSProperties}
+      >
 
-          <section className="rounded-panel border border-c-border bg-c-surface p-4 overflow-y-auto">
-            <div className="sticky top-0 z-20 -mx-4 mb-3 border-b border-c-border bg-white px-4 pb-2 pt-1 dark:bg-slate-900">
-              <FocusPanelSwitcher activePanel={focusPanel} onPanelChange={setFocusPanel} />
-            </div>
+        {/* LEFT: Concepts sidebar */}
+        <ConceptsSidebar
+          concepts={filteredConcepts}
+          isOpen={conceptsOpen}
+          searchQuery=""
+          onToggle={() => setConceptsOpen(!conceptsOpen)}
+        />
 
-            {/* ── Focus panel content ── */}
-            <div className="mt-4">
-              {focusPanel === "summary" && (
+        {/* DIVIDER: Drag handle */}
+        {conceptsOpen ? (
+          <div
+            onMouseDown={handleMouseDown}
+            className="flex w-1 cursor-col-resize items-center justify-center transition-colors hover:bg-c-blue/20 active:bg-c-blue/30"
+            title="Arrastra para redimensionar"
+          >
+            <div className="h-8 w-0.5 rounded-full bg-c-border" />
+          </div>
+        ) : (
+          <div className="w-0" />
+        )}
+
+        {/* RIGHT: Tab bar + Content panels */}
+        <div className="overflow-y-auto rounded-panel border border-c-border bg-c-surface">
+
+          {/* Tab bar — sticky inside this scroll container */}
+          <div className="sticky top-0 z-20 border-b border-c-border px-4 pb-2 pt-3 bg-white dark:bg-[#151b27]">
+            <FocusPanelSwitcher
+              activePanel={focusPanel}
+              onPanelChange={setFocusPanel}
+            />
+          </div>
+
+          {/* Panel content */}
+          <div className="p-4">
+            {focusPanel === "summary" && (
               <PanelErrorBoundary panelName="Resumen">
                 <SummaryPanel
                   session={current}
@@ -312,7 +374,11 @@ export function SessionDetail({ session }: { session: StudySession }) {
             )}
 
             {focusPanel === "quiz" && (
-              <QuizViewer quiz={current.quiz} sessionId={current.id} onQuizComplete={handleQuizComplete} />
+              <QuizViewer
+                quiz={current.quiz}
+                sessionId={current.id}
+                onQuizComplete={handleQuizComplete}
+              />
             )}
 
             {focusPanel === "mindmap" && (
@@ -326,7 +392,8 @@ export function SessionDetail({ session }: { session: StudySession }) {
                   exerciseInput={exerciseInput}
                   evaluatingTaskId={evaluatingTask}
                   onToggleTask={toggleTask}
-                  onExerciseInputChange={(taskId: string, value: string) => setExerciseInput({ ...exerciseInput, [taskId]: value })}
+                  onExerciseInputChange={(taskId: string, value: string) =>
+                    setExerciseInput({ ...exerciseInput, [taskId]: value })}
                   onSubmitExercise={(taskId: string) => {
                     const text = exerciseInput[taskId]?.trim();
                     if (text) {
@@ -360,10 +427,8 @@ export function SessionDetail({ session }: { session: StudySession }) {
               </PanelErrorBoundary>
             )}
           </div>
-        </section>
-
+        </div>
       </div>
-    </div>
 
       {/* Floating Stude button */}
       {!showChat && (
@@ -376,7 +441,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
         </button>
       )}
 
-      {/* Stude chat popup */}
+      {/* Stude Chat popup — keep existing implementation */}
       {showChat && (
         <PanelErrorBoundary panelName="Chat">
           <StudeChatPopup
@@ -401,6 +466,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

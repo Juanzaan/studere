@@ -40,7 +40,7 @@ interface FocusPanelSwitcherProps {
 
 export function FocusPanelSwitcher({ activePanel, onPanelChange }: FocusPanelSwitcherProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-700">
+    <div className="flex flex-wrap items-center gap-2">
       {FOCUS_PANELS.map((panel) => {
         const Icon = FOCUS_ICONS[panel];
         return (
