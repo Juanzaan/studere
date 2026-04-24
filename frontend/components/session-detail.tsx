@@ -288,9 +288,9 @@ export function SessionDetail({ session }: { session: StudySession }) {
   }
 
   return (
-    <>
+    <div className="space-y-4 pb-4">
       {/* ZONE A: Session Header — never scrolls */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 mb-1">
         <SessionHeader
           session={current}
           starred={current.starred}
@@ -312,7 +312,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
             : "grid-cols-[44px_0px_minmax(0,1fr)]"
         }`}
         style={{
-          height: 'calc(100vh - 180px)',
+          height: 'calc(100vh - 200px)',
           '--cw': `${conceptsWidth}px`,
         } as React.CSSProperties}
       >
@@ -466,6 +466,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

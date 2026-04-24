@@ -29,7 +29,7 @@ export function SessionHeader({
   return (
     <div className="rounded-panel border border-c-border bg-c-surface p-4 overflow-hidden">
       {/* Badges row */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-2 flex items-center gap-2">
         <button
           onClick={onToggleStarred}
           className={`flex items-center gap-1 rounded-pill px-2 py-0.5 text-[10px] font-medium transition focus-visible:outline-none ${
