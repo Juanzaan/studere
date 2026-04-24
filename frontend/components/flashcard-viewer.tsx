@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import gsap from "gsap";
 import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 import { Flashcard } from "@/lib/types";
 import { saveFlashcardAttempt } from "@/lib/analytics-storage";
@@ -31,6 +32,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
   const [flipped, setFlipped] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [maxReached, setMaxReached] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (index >= flashcards.length && flashcards.length > 0) {
@@ -81,6 +83,45 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
 
   const progress = Math.round(((maxReached + 1) / total) * 100);
 
+  const handleFlip = () => {
+    if (!cardRef.current) { setFlipped((f) => !f); return; }
+    gsap.to(cardRef.current, {
+      rotateY: 90, scale: 0.95, opacity: 0.5, duration: 0.2, ease: "power2.in",
+      onComplete: () => {
+        setFlipped((f) => !f);
+        gsap.fromTo(cardRef.current,
+          { rotateY: -90, scale: 0.95, opacity: 0.5 },
+          { rotateY: 0, scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }
+        );
+      },
+    });
+  };
+
+  const handleNext = () => {
+    if (!cardRef.current) { next(); return; }
+    gsap.to(cardRef.current, {
+      x: -30, opacity: 0, duration: 0.15, ease: "power2.in",
+      onComplete: () => { next(); gsap.fromTo(cardRef.current, { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.15, ease: "power2.out" }); }
+    });
+  };
+
+  const handlePrev = () => {
+    if (!cardRef.current) { prev(); return; }
+    gsap.to(cardRef.current, {
+      x: 30, opacity: 0, duration: 0.15, ease: "power2.in",
+      onComplete: () => { prev(); gsap.fromTo(cardRef.current, { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.15, ease: "power2.out" }); }
+    });
+  };
+
+  useEffect(() => {
+    if (cardRef.current) {
+      gsap.fromTo(cardRef.current,
+        { y: 20, opacity: 0, scale: 0.97 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }
+      );
+    }
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       {/* Progress */}
@@ -102,30 +143,22 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
       )}
 
       {/* Card */}
-      <div className="flex flex-1 items-center justify-center py-8">
+      <div className="flex flex-1 items-center justify-center py-8" style={{ perspective: "1000px" }}>
         <button
-          onClick={() => setFlipped(!flipped)}
-          className="group relative w-full max-w-xl cursor-pointer [perspective:800px]"
+          onClick={handleFlip}
+          className="group relative w-full max-w-xl cursor-pointer"
           aria-label={flipped ? "Ver pregunta" : "Ver respuesta"}
         >
           <div
-            className={`relative min-h-[280px] w-full transition-transform duration-500 [transform-style:preserve-3d] ${
-              flipped ? "[transform:rotateY(180deg)]" : ""
-            }`}
+            ref={cardRef}
+            className="relative min-h-[280px] w-full rounded-panel border border-c-border bg-c-surface-2 p-8 flex flex-col items-center justify-center transition-all hover:border-c-blue-border hover:shadow-sm"
+            style={{ transformStyle: "preserve-3d" }}
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-panel border border-c-border bg-c-surface-2 p-8 [backface-visibility:hidden] transition-all hover:border-c-blue-border hover:shadow-sm">
-              <p className="mb-4 text-[9px] font-semibold uppercase tracking-widest text-c-muted">PREGUNTA</p>
-              <div className="text-[15px] font-medium text-c-text text-center leading-relaxed">
-                <Md>{card.question}</Md>
-              </div>
-              <p className="mt-6 text-[10px] text-c-muted">Click para voltear</p>
+            <p className="mb-4 text-[9px] font-semibold uppercase tracking-widest text-c-muted">{flipped ? "RESPUESTA" : "PREGUNTA"}</p>
+            <div className="text-[15px] font-medium text-c-text text-center leading-relaxed">
+              <Md>{flipped ? card.answer : card.question}</Md>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-panel border border-c-border bg-c-surface-2 p-8 [backface-visibility:hidden] [transform:rotateY(180deg)] transition-all hover:border-c-blue-border hover:shadow-sm">
-              <p className="mb-4 text-[9px] font-semibold uppercase tracking-widest text-c-muted">RESPUESTA</p>
-              <div className="text-[15px] font-medium text-c-text text-center leading-relaxed">
-                <Md>{card.answer}</Md>
-              </div>
-            </div>
+            {!flipped && <p className="mt-6 text-[10px] text-c-muted">Click para voltear</p>}
           </div>
         </button>
       </div>
@@ -151,7 +184,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
       {/* Navigation */}
       <div className="flex items-center justify-center gap-3 mt-6">
         <button
-          onClick={prev}
+          onClick={handlePrev}
           className="flex h-9 w-9 items-center justify-center rounded-btn border border-c-border text-c-muted hover:bg-c-surface-2"
           aria-label="Anterior"
         >
@@ -171,7 +204,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
           Reiniciar
         </button>
         <button
-          onClick={next}
+          onClick={handleNext}
           className="flex h-9 w-9 items-center justify-center rounded-btn border border-c-border text-c-muted hover:bg-c-surface-2"
           aria-label="Siguiente"
         >

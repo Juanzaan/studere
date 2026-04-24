@@ -23,10 +23,12 @@ type StudeChatPopupProps = {
   initialMessage?: string;
 };
 
-const MIN_W = 340;
-const MIN_H = 360;
-const DEFAULT_W = 400;
-const DEFAULT_H = 520;
+const MIN_W = 360;
+const MIN_H = 400;
+const MAX_W = 800;
+const MAX_H = 900;
+const DEFAULT_W = 480;
+const DEFAULT_H = 600;
 
 const CHART_KEYWORDS = [
   "gráfico", "grafico", "chart", "graph", "diagrama", "mapa conceptual",
@@ -154,8 +156,8 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
       const dw = ev.clientX - resizeRef.current.startX;
       const dh = ev.clientY - resizeRef.current.startY;
       setSize({
-        w: Math.max(MIN_W, resizeRef.current.origW + dw),
-        h: Math.max(MIN_H, resizeRef.current.origH + dh),
+        w: Math.min(MAX_W, Math.max(MIN_W, resizeRef.current.origW + dw)),
+        h: Math.min(MAX_H, Math.max(MIN_H, resizeRef.current.origH + dh)),
       });
     }
     function onUp() {
@@ -273,11 +275,17 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
                 key={msg.id}
                 className={`group/msg relative px-3.5 py-2.5 text-[12px] ${
                   msg.role === "assistant"
-                    ? "rounded-card border border-c-border bg-c-surface-2 text-c-text"
+                    ? "rounded-card border border-c-border bg-c-surface-2 text-c-text [&_h1]:text-[13px] [&_h1]:font-semibold [&_h1]:mt-2 [&_h1]:mb-1 [&_h2]:text-[12px] [&_h2]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1 [&_h3]:text-[11px] [&_h3]:font-semibold [&_h3]:mt-1.5 [&_h3]:mb-0.5 [&_p]:text-[12px] [&_p]:leading-relaxed [&_p]:mb-1.5 [&_ul]:text-[12px] [&_ul]:pl-4 [&_ul]:mb-1.5 [&_ol]:text-[12px] [&_ol]:pl-4 [&_ol]:mb-1.5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_code]:text-[11px] [&_code]:bg-c-surface [&_code]:px-1 [&_code]:rounded [&_blockquote]:border-l-2 [&_blockquote]:border-c-blue [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-c-muted"
                     : "ml-8 whitespace-pre-wrap rounded-card border border-c-blue-border bg-c-blue-soft text-c-text"
                 }`}
               >
-                {msg.role === "assistant" ? <Md>{msg.content}</Md> : msg.content}
+                {msg.role === "assistant" ? (
+                  <div className="prose-sm max-w-none">
+                    <Md>{msg.content}</Md>
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-c-text">{msg.content}</p>
+                )}
                 {msg.role === "assistant" && (
                   <button
                     onClick={() => navigator.clipboard?.writeText(msg.content)}
