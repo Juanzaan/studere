@@ -38,33 +38,60 @@ export function createActionItems(session: Pick<StudySession, "id" | "summary" |
   const concept = session.keyConcepts[0];
   const secondConcept = session.keyConcepts[1];
   const firstSegment = session.transcript[0];
+  const summaryParas = summaryParagraphs(session.summary);
+  const mainTopic = summaryParas[0] ? firstSentence(summaryParas[0]) : "la sesión";
 
-  return [
-    {
-      id: stableId("task", `${session.id}-repaso-general`),
-      title: session.summary ? `Repasar la idea principal: ${firstSentence(summaryParagraphs(session.summary)[0] || "")}` : "Repasar la idea principal de la sesión",
-      owner: "Tú",
-      status: "pending",
-      dueLabel: "Hoy",
-      sourceSegmentId: firstSegment?.id,
-    },
-    {
+  const items: ActionItem[] = [];
+
+  items.push({
+    id: stableId("task", `${session.id}-repaso-general`),
+    title: session.summary
+      ? `Releer y resumir con tus propias palabras: ${mainTopic}`
+      : "Releer el material de la sesión y escribir un resumen propio",
+    owner: "Tú",
+    status: "pending",
+    dueLabel: "Hoy",
+    sourceSegmentId: firstSegment?.id,
+    exercisePrompt: session.summary
+      ? `Escribí un párrafo de al menos 100 palabras explicando ${mainTopic} con tus propias palabras, sin mirar el resumen original.`
+      : "Escribí un resumen de lo que recordás de la clase en al menos 100 palabras.",
+  });
+
+  if (concept) {
+    items.push({
       id: stableId("task", `${session.id}-concepto-clave`),
-      title: concept ? `Dominar el concepto ${concept.term}` : "Dominar el concepto más importante de la sesión",
+      title: `Explicar el concepto "${concept.term}" con un ejemplo concreto`,
       owner: "Tú",
       status: "pending",
       dueLabel: "Antes del próximo repaso",
       sourceSegmentId: firstSegment?.id,
-    },
-    {
-      id: stableId("task", `${session.id}-practica`),
-      title: secondConcept ? `Resolver una pregunta práctica sobre ${secondConcept.term}` : "Resolver el mini quiz de la sesión",
+      exercisePrompt: `Explicá qué es "${concept.term}" como si se lo contaras a un compañero que no entendió. Incluí un ejemplo real o aplicado.`,
+    });
+  }
+
+  if (secondConcept) {
+    items.push({
+      id: stableId("task", `${session.id}-comparacion`),
+      title: `Comparar "${concept?.term || "el primer concepto"}" con "${secondConcept.term}"`,
       owner: "Tú",
       status: "pending",
       dueLabel: "Esta semana",
       sourceSegmentId: session.transcript[1]?.id,
-    },
-  ];
+      exercisePrompt: `Escribí tres diferencias claras y una similitud entre "${concept?.term || "concepto A"}" y "${secondConcept.term}".`,
+    });
+  } else if (session.quiz.length > 0) {
+    items.push({
+      id: stableId("task", `${session.id}-practica`),
+      title: `Resolver la pregunta de práctica: ${firstSentence(session.quiz[0].question)}`,
+      owner: "Tú",
+      status: "pending",
+      dueLabel: "Esta semana",
+      sourceSegmentId: session.transcript[1]?.id,
+      exercisePrompt: session.quiz[0].question,
+    });
+  }
+
+  return items;
 }
 
 function mapAccent(index: number): MindMapNode["accent"] {
