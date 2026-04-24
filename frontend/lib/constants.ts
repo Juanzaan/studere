@@ -53,6 +53,14 @@ export const PROCESSING_TIME_ESTIMATES = {
   SERVER_SIDE_LARGE_MINUTES: { min: 15, max: 30 },
 } as const;
 
+// Configuración de Pomodoro
+export const POMODORO = {
+  FOCUS_MINUTES: 25,
+  SHORT_BREAK_MINUTES: 5,
+  LONG_BREAK_MINUTES: 15,
+  ROUNDS_BEFORE_LONG_BREAK: 4,
+} as const;
+
 // Backend URL - Force correct port
 export const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||

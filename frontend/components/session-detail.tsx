@@ -12,7 +12,9 @@ import { ActionItem, ChatMessage, StudySession } from "@/lib/types";
 import { useThrottledPersist } from "@/lib/use-throttled-persist";
 import { FLASHCARD_INTERVALS, QUIZ_ACCURACY_THRESHOLDS } from "@/lib/constants";
 import { compressImage } from "@/lib/image-compression";
+import { useFocus } from "@/lib/focus-context";
 import { SessionHeader, ConceptsSidebar, FocusPanelSwitcher, FocusPanel, TasksPanel } from "@/src/domains/sessions/components";
+import { PomodoroTimer } from "@/components/pomodoro-timer";
 
 import { useToastContext } from "@/components/toast-provider";
 import { PanelErrorBoundary } from "@/components/error-boundary";
@@ -29,6 +31,7 @@ import {
 export function SessionDetail({ session }: { session: StudySession }) {
   const router = useRouter();
   const toast = useToastContext();
+  const { isFocused, enterFocus, exitFocus } = useFocus();
   const [current, setCurrent] = useState(session);
   const throttledPersist = useThrottledPersist(session.id, 500);
   const [conceptsOpen, setConceptsOpen] = useState(true);
@@ -290,43 +293,50 @@ export function SessionDetail({ session }: { session: StudySession }) {
   return (
     <div className="space-y-4 pb-4">
       {/* ZONE A: Session Header — never scrolls */}
-      <div className="flex-shrink-0 mb-1">
-        <SessionHeader
-          session={current}
-          starred={current.starred}
-          confirmDelete={confirmDelete}
-          onToggleStarred={toggleStarred}
-          onExportMd={exportMd}
-          onExportCsv={exportCsv}
-          onDeleteClick={() => setConfirmDelete(true)}
-          onDeleteConfirm={handleDelete}
-          onDeleteCancel={() => setConfirmDelete(false)}
-        />
-      </div>
+      {!isFocused && (
+        <div className="flex-shrink-0 mb-1">
+          <SessionHeader
+            session={current}
+            starred={current.starred}
+            confirmDelete={confirmDelete}
+            onToggleStarred={toggleStarred}
+            onExportMd={exportMd}
+            onExportCsv={exportCsv}
+            onDeleteClick={() => setConfirmDelete(true)}
+            onDeleteConfirm={handleDelete}
+            onDeleteCancel={() => setConfirmDelete(false)}
+            onFocusMode={enterFocus}
+          />
+        </div>
+      )}
 
       {/* ZONE B: Two-column layout — fills remaining viewport */}
       <div
         className={`grid transition-[grid-template-columns] duration-200 ease-in-out ${
-          conceptsOpen
+          !isFocused && conceptsOpen
             ? "grid-cols-[var(--cw)_4px_minmax(0,1fr)]"
-            : "grid-cols-[44px_0px_minmax(0,1fr)]"
+            : !isFocused
+            ? "grid-cols-[44px_0px_minmax(0,1fr)]"
+            : "grid-cols-[0px_0px_minmax(0,1fr)]"
         }`}
         style={{
-          height: 'calc(100vh - 200px)',
+          height: isFocused ? 'calc(100vh - 32px)' : 'calc(100vh - 200px)',
           '--cw': `${conceptsWidth}px`,
         } as React.CSSProperties}
       >
 
         {/* LEFT: Concepts sidebar */}
-        <ConceptsSidebar
-          concepts={filteredConcepts}
-          isOpen={conceptsOpen}
-          searchQuery=""
-          onToggle={() => setConceptsOpen(!conceptsOpen)}
-        />
+        {!isFocused && (
+          <ConceptsSidebar
+            concepts={filteredConcepts}
+            isOpen={conceptsOpen}
+            searchQuery=""
+            onToggle={() => setConceptsOpen(!conceptsOpen)}
+          />
+        )}
 
         {/* DIVIDER: Drag handle */}
-        {conceptsOpen ? (
+        {!isFocused && conceptsOpen ? (
           <div
             onMouseDown={handleMouseDown}
             className="flex w-1 cursor-col-resize items-center justify-center transition-colors hover:bg-c-blue/20 active:bg-c-blue/30"
@@ -340,6 +350,9 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
         {/* RIGHT: Tab bar + Content panels */}
         <div className="overflow-y-auto rounded-panel border border-c-border bg-c-surface">
+
+          {/* Pomodoro timer — sticky bar in focus mode */}
+          {isFocused && <PomodoroTimer onExit={exitFocus} />}
 
           {/* Tab bar — sticky inside this scroll container */}
           <div className="sticky top-0 z-20 border-b border-c-border px-4 pb-2 pt-3 bg-white dark:bg-[#151b27]">

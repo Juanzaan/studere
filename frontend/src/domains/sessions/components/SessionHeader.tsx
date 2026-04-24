@@ -13,6 +13,7 @@ interface SessionHeaderProps {
   onDeleteClick: () => void;
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
+  onFocusMode?: () => void;
 }
 
 export function SessionHeader({
@@ -25,6 +26,7 @@ export function SessionHeader({
   onDeleteClick,
   onDeleteConfirm,
   onDeleteCancel,
+  onFocusMode,
 }: SessionHeaderProps) {
   return (
     <div className="rounded-panel border border-c-border bg-c-surface p-4 overflow-hidden">
@@ -60,6 +62,14 @@ export function SessionHeader({
 
       {/* Action buttons */}
       <div className="mt-3 flex items-center gap-2">
+        {onFocusMode && (
+          <button
+            onClick={onFocusMode}
+            className="flex items-center gap-1.5 rounded-btn border border-c-blue-border bg-c-blue-soft px-3 py-1.5 text-[11px] text-c-blue transition hover:opacity-80 focus-visible:outline-none"
+          >
+            ⏱ Modo Foco
+          </button>
+        )}
         <button
           onClick={onExportMd}
           className="flex items-center gap-1.5 rounded-btn border border-c-border px-3 py-1.5 text-[11px] text-c-muted transition hover:bg-c-surface-2 focus-visible:outline-none"
