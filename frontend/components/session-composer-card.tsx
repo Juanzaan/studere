@@ -207,8 +207,11 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   }
 
   return (
-    <section ref={cardRef} className="rounded-panel border border-c-border bg-c-surface p-5">
-      <div className="flex items-start gap-3">
+    <section ref={cardRef} className="relative rounded-panel border border-c-border bg-c-surface p-5">
+      {isCreating && (
+        <div className="absolute inset-0 rounded-panel bg-c-bg/50 backdrop-blur-[1px] z-10 flex items-center justify-center cursor-not-allowed" />
+      )}
+      <div className={`flex items-start gap-3 ${isCreating ? "opacity-50" : ""}`}>
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn border border-c-blue-border bg-c-blue-soft text-c-blue">
           <ModeIcon className="h-4 w-4" />
         </div>
@@ -229,7 +232,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ej. Marketing digital — clase 3"
-              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
+              disabled={isCreating}
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </label>
           <label className="space-y-1.5">
@@ -238,7 +242,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
               value={course}
               onChange={(event) => setCourse(event.target.value)}
               placeholder="Ej. Historia económica"
-              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
+              disabled={isCreating}
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </label>
         </div>
@@ -250,12 +255,13 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
               value={sourceUrl}
               onChange={(event) => setSourceUrl(event.target.value)}
               placeholder="https://..."
-              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none"
+              disabled={isCreating}
+              className="h-9 w-full rounded-input border border-c-border bg-c-surface-2 px-4 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:border-c-blue-border focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </label>
         )}
 
-        <div className="space-y-2">
+        <div className={`space-y-2 ${isCreating ? "pointer-events-none opacity-50" : ""}`}>
           <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">Archivo base</span>
           <label
             className={`block cursor-pointer overflow-hidden rounded-input border border-dashed p-5 transition ${
@@ -350,7 +356,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
             onChange={(event) => setNotes(event.target.value)}
             rows={6}
             placeholder="Pegá apuntes, un transcript o contexto para que Studere genere resumen, conceptos, flashcards, quiz y plan de repaso."
-            className={`w-full rounded-input border bg-c-surface-2 px-4 py-3 text-[12px] leading-relaxed text-c-text outline-none placeholder:text-c-muted focus:outline-none ${
+            disabled={isCreating}
+            className={`w-full rounded-input border bg-c-surface-2 px-4 py-3 text-[12px] leading-relaxed text-c-text outline-none placeholder:text-c-muted focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
               useAI && !notes.trim() && !file ? "border-c-amber/20" : "border-c-border"
             }`}
           />

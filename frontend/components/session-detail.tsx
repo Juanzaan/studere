@@ -291,7 +291,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
   }
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="flex flex-col h-full space-y-4 pb-4">
       {/* ZONE A: Session Header — never scrolls */}
       {!isFocused && (
         <div className="flex-shrink-0 mb-1">
@@ -312,7 +312,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
       {/* ZONE B: Two-column layout — fills remaining viewport */}
       <div
-        className={`grid transition-[grid-template-columns] duration-200 ease-in-out ${
+        className={`grid flex-1 min-h-0 transition-[grid-template-columns] duration-200 ease-in-out ${
           !isFocused && conceptsOpen
             ? "grid-cols-[var(--cw)_4px_minmax(0,1fr)]"
             : !isFocused
@@ -320,7 +320,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
             : "grid-cols-[0px_0px_minmax(0,1fr)]"
         }`}
         style={{
-          height: isFocused ? 'calc(100vh - 32px)' : 'calc(100vh - 200px)',
           '--cw': `${conceptsWidth}px`,
         } as React.CSSProperties}
       >

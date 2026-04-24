@@ -13,9 +13,9 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-c-bg">
       {!isFocused && <Sidebar />}
-      <div className="min-w-0 flex-1">
+      <div className="flex flex-1 flex-col min-w-0 h-screen overflow-hidden">
         {!isFocused && <AppTopbar />}
-        <main id="main-content" className={`min-w-0 animate-fade-in px-4 pb-4 ${isFocused ? "" : "pt-3"}`}>
+        <main id="main-content" className={`min-w-0 flex-1 overflow-y-auto bg-c-bg animate-fade-in ${isFocused ? "" : "px-4 pb-4 pt-3"}`}>
           {children}
         </main>
       </div>

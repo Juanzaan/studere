@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 interface FocusContextValue {
   isFocused: boolean;
@@ -28,6 +29,12 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [isFocused]);
+
+  // Exit focus when navigating away from session page
+  const pathname = usePathname();
+  useEffect(() => {
+    exitFocus();
+  }, [pathname, exitFocus]);
 
   return (
     <FocusContext.Provider value={{ isFocused, enterFocus, exitFocus }}>
