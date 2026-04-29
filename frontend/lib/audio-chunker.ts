@@ -80,7 +80,6 @@ export async function chunkAudioFile(
   file: File,
   onProgress?: (message: string) => void,
 ): Promise<AudioChunk[]> {
-  console.log(`[Chunking] File: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
   
   // Estimate duration based on file size
   const estimatedMinutes = file.size / (1024 * 1024) / AUDIO_LIMITS.MB_PER_MINUTE_ESTIMATE;
@@ -94,23 +93,18 @@ export async function chunkAudioFile(
   
   // If file is small enough, no chunking needed
   if (file.size <= 10 * 1024 * 1024) {
-    console.log('[Chunking] File small enough, no chunking needed');
     return [{ file, index: 0, total: 1 }];
   }
-
-  console.log('[Chunking] File too large, will chunk');
   onProgress?.("Decodificando audio...");
   
   let audioBuffer: AudioBuffer;
   try {
     audioBuffer = await decodeFile(file);
   } catch (error) {
-    console.error('[Chunking] Failed to decode audio:', error);
     throw new Error(`No se pudo decodificar el audio. El archivo puede estar corrupto o en un formato no soportado. Error: ${error instanceof Error ? error.message : 'Unknown'}`);
   }
   
   const durationSec = audioBuffer.duration;
-  console.log(`[Chunking] Decoded: ${durationSec.toFixed(1)}s duration (${(durationSec/60).toFixed(1)} min)`);
   
   // Check duration limit
   if (durationSec > MAX_AUDIO_DURATION_SECONDS) {

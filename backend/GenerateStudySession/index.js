@@ -14,7 +14,11 @@
 const { getClient, getDeployment, isConfigured } = require("../shared/openai-client");
 const cache = require("../shared/cache");
 const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
-const { OUTPUT_SCHEMA, SYSTEM_PROMPT, FALLBACK_SYSTEM, normalizeOutput } = require("../shared/study-session-config");
+const {
+  OUTPUT_SCHEMA, SYSTEM_PROMPT, FALLBACK_SYSTEM, normalizeOutput,
+  evaluateOutputQuality, ENRICH_SUMMARY_PROMPT,
+  ENRICH_CONCEPTS_PROMPT, ENRICH_QUIZ_PROMPT,
+} = require("../shared/study-session-config");
 
 const MAX_TRANSCRIPT_LENGTH = 200000; // Increased for long audio files (2+ hours)
 const REQUEST_TIMEOUT_MS = 90000; // 90 seconds
@@ -25,7 +29,7 @@ const REQUEST_TIMEOUT_MS = 90000; // 90 seconds
 async function callModel(systemPrompt, userPrompt, maxTokens) {
   const client = getClient();
   const deployment = getDeployment();
-  
+
   return client.getChatCompletions(deployment, [
     { role: "system", content: systemPrompt },
     { role: "user", content: userPrompt },
@@ -33,6 +37,188 @@ async function callModel(systemPrompt, userPrompt, maxTokens) {
     temperature: 0.2,
     maxTokens,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Post-generation enrichment — targeted fixes for weak sections
+// ---------------------------------------------------------------------------
+async function enrichIfNeeded(context, output, transcript, client, requestId) {
+  const quality = evaluateOutputQuality(output);
+
+  if (quality.passed) {
+    structuredLog(context, 'info', 'Quality check passed',
+      { score: quality.score }, requestId);
+    return output;
+  }
+
+  structuredLog(context, 'warn', 'Quality check failed — enriching',
+    { issues: quality.issues, score: quality.score }, requestId);
+
+  const transcriptExcerpt = (transcript || '').substring(0, 3000);
+  const enriched = { ...output };
+
+  // Fix summary if needed
+  const summaryIssue = quality.issues.find(i =>
+    i.type === 'summary_too_short' || i.type === 'summary_too_listy'
+  );
+  if (summaryIssue) {
+    try {
+      const summaryPrompt = ENRICH_SUMMARY_PROMPT
+        .replace('{summary}', output.summary || '')
+        .replace('{transcriptExcerpt}', transcriptExcerpt);
+
+      const summaryCall = () => client.getChatCompletions(
+        getDeployment(),
+        [{ role: 'user', content: summaryPrompt }],
+        { maxTokens: 2000, temperature: 0.4 }
+      );
+
+      const summaryResult = (typeof retryWithBackoff === 'function')
+        ? await retryWithBackoff(summaryCall, 2, 1000)
+        : await summaryCall();
+
+      const improvedSummary = summaryResult.choices?.[0]?.message?.content;
+      if (improvedSummary && improvedSummary.trim().length > 200) {
+        enriched.summary = improvedSummary.trim();
+        structuredLog(context, 'info', 'Summary enriched',
+          {
+            originalWords: (output.summary || '').split(/\s+/).filter(Boolean).length,
+            newWords: improvedSummary.split(/\s+/).filter(Boolean).length
+          },
+          requestId
+        );
+      } else {
+        structuredLog(context, 'warn', 'Summary enrichment returned weak content',
+          { length: improvedSummary ? improvedSummary.length : 0 }, requestId);
+      }
+    } catch (err) {
+      structuredLog(context, 'warn', 'Summary enrichment failed',
+        { error: err?.message || String(err) }, requestId);
+    }
+  }
+
+  // Fix concepts if needed
+  const conceptsIssue = quality.issues.find(i => i.type === 'concepts_insufficient');
+  if (conceptsIssue) {
+    const existingCount = (output.keyConcepts || []).length;
+    const needed = Math.max(0, 6 - existingCount);
+
+    if (needed > 0) {
+      try {
+        const conceptsPrompt = ENRICH_CONCEPTS_PROMPT
+          .replace('{existingConcepts}', JSON.stringify(output.keyConcepts || []))
+          .replace('{summary}', (output.summary || '').substring(0, 1000))
+          .replace('{needed}', needed.toString());
+
+        const conceptsCall = () => client.getChatCompletions(
+          getDeployment(),
+          [{ role: 'user', content: conceptsPrompt }],
+          { maxTokens: 800, temperature: 0.3 }
+        );
+
+        const conceptsResult = (typeof retryWithBackoff === 'function')
+          ? await retryWithBackoff(conceptsCall, 2, 1000)
+          : await conceptsCall();
+
+        const raw = conceptsResult.choices?.[0]?.message?.content || '';
+        const cleaned = raw.replace(/```json|```/g, '').trim();
+
+        let additional = [];
+        try {
+          additional = JSON.parse(cleaned);
+        } catch (parseErr) {
+          structuredLog(context, 'warn', 'Concepts enrichment JSON parse failed',
+            { error: parseErr?.message || String(parseErr), rawPreview: cleaned.substring(0, 500) },
+            requestId
+          );
+          additional = [];
+        }
+
+        if (Array.isArray(additional) && additional.length > 0) {
+          enriched.keyConcepts = [...(output.keyConcepts || []), ...additional];
+          structuredLog(context, 'info', 'Concepts enriched',
+            { added: additional.length }, requestId);
+        }
+      } catch (err) {
+        structuredLog(context, 'warn', 'Concepts enrichment failed',
+          { error: err?.message || String(err) }, requestId);
+      }
+    } else {
+      structuredLog(context, 'info', 'Concepts enrichment skipped (needed=0)',
+        { existingCount }, requestId);
+    }
+  }
+
+  // Fix quiz explanations if needed
+  const quizIssue = quality.issues.find(i => i.type === 'quiz_weak_explanations');
+  if (quizIssue) {
+    const weakQuestions = (output.quiz || [])
+      .filter(q => !q.explanation || q.explanation.split(/\s+/).filter(Boolean).length < 20)
+      .map(q => ({
+        question: q.question,
+        correct: q.correct,
+        options: q.options,
+        currentExplanation: q.explanation
+      }));
+
+    if (weakQuestions.length > 0) {
+      try {
+        const quizPrompt = ENRICH_QUIZ_PROMPT
+          .replace('{weakQuestions}', JSON.stringify(weakQuestions));
+
+        const quizCall = () => client.getChatCompletions(
+          getDeployment(),
+          [{ role: 'user', content: quizPrompt }],
+          { maxTokens: 1000, temperature: 0.3 }
+        );
+
+        const quizResult = (typeof retryWithBackoff === 'function')
+          ? await retryWithBackoff(quizCall, 2, 1000)
+          : await quizCall();
+
+        const raw = quizResult.choices?.[0]?.message?.content || '';
+        const cleaned = raw.replace(/```json|```/g, '').trim();
+
+        let improvements = [];
+        try {
+          improvements = JSON.parse(cleaned);
+        } catch (parseErr) {
+          structuredLog(context, 'warn', 'Quiz enrichment JSON parse failed',
+            { error: parseErr?.message || String(parseErr), rawPreview: cleaned.substring(0, 500) },
+            requestId
+          );
+          improvements = [];
+        }
+
+        if (Array.isArray(improvements) && improvements.length > 0) {
+          enriched.quiz = (output.quiz || []).map(q => {
+            const improved = improvements.find(i => i.question === q.question);
+            return improved && improved.explanation
+              ? { ...q, explanation: improved.explanation }
+              : q;
+          });
+
+          structuredLog(context, 'info', 'Quiz explanations enriched',
+            { improved: improvements.length }, requestId);
+        }
+      } catch (err) {
+        structuredLog(context, 'warn', 'Quiz enrichment failed',
+          { error: err?.message || String(err) }, requestId);
+      }
+    } else {
+      structuredLog(context, 'info', 'Quiz enrichment skipped (no weak questions)',
+        {}, requestId);
+    }
+  }
+
+  // Optional: re-evaluate for logging only (no loops)
+  const finalQuality = evaluateOutputQuality(enriched);
+  structuredLog(context, 'info', 'Quality after enrichment',
+    { passed: finalQuality.passed, score: finalQuality.score, issues: finalQuality.issues },
+    requestId
+  );
+
+  return enriched;
 }
 
 // ---------------------------------------------------------------------------
@@ -162,16 +348,17 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const normalized = normalizeOutput(parsed);
+  let finalOutput = normalizeOutput(parsed);
+  finalOutput = await enrichIfNeeded(context, finalOutput, transcript, getClient(), requestId);
 
   // --- Cache the successful response ---
-  if (normalized) {
-    cache.set("generation", cacheKey, normalized);
+  if (finalOutput) {
+    cache.set("generation", cacheKey, finalOutput);
     structuredLog(context, "info", "Response cached successfully", {}, requestId);
   }
 
   jsonResponse(context, 200, {
-    output: normalized,
+    output: finalOutput,
     cached: false,
   }, requestId);
 };

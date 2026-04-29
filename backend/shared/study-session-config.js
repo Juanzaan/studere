@@ -323,9 +323,152 @@ function normalizeOutput(data) {
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Quality evaluation — run after normalizeOutput, before caching
+// ---------------------------------------------------------------------------
+function evaluateOutputQuality(output) {
+  const issues = [];
+
+  // Summary quality
+  const summary = output.summary || '';
+  const wordCount = summary.split(/\s+/).filter(Boolean).length;
+  const lines = summary.split('\n').filter(Boolean);
+  const bulletLines = lines.filter(l =>
+    l.trim().startsWith('-') || l.trim().startsWith('•') ||
+    /^\d+\./.test(l.trim())
+  ).length;
+  const bulletRatio = lines.length > 0 ? bulletLines / lines.length : 0;
+
+  if (wordCount < 300) {
+    issues.push({
+      type: 'summary_too_short',
+      detail: `${wordCount} words (minimum 300)`
+    });
+  }
+  if (bulletRatio > 0.6 && lines.length > 4) {
+    issues.push({
+      type: 'summary_too_listy',
+      detail: `${Math.round(bulletRatio * 100)}% bullet lines`
+    });
+  }
+
+  // Concepts quality
+  const concepts = output.keyConcepts || [];
+  const validConcepts = concepts.filter(c =>
+    c.term && c.description &&
+    c.description.split(/\s+/).filter(Boolean).length >= 10
+  );
+  if (validConcepts.length < 4) {
+    issues.push({
+      type: 'concepts_insufficient',
+      detail: `Only ${validConcepts.length} valid concepts`
+    });
+  }
+
+  // Quiz quality
+  const quiz = output.quiz || [];
+  const weakQuiz = quiz.filter(q =>
+    !q.explanation ||
+    q.explanation.split(/\s+/).filter(Boolean).length < 20
+  );
+  if (weakQuiz.length > 0) {
+    issues.push({
+      type: 'quiz_weak_explanations',
+      detail: `${weakQuiz.length} questions with thin explanations`,
+      items: weakQuiz.map(q => q.question)
+    });
+  }
+
+  // Flashcards quality
+  const flashcards = output.flashcards || [];
+  if (flashcards.length < 4) {
+    issues.push({
+      type: 'flashcards_insufficient',
+      detail: `Only ${flashcards.length} flashcards`
+    });
+  }
+
+  return {
+    passed: issues.length === 0,
+    issues,
+    score: Math.max(0, 100 - (issues.length * 25))
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Enrichment prompts — targeted, section-specific
+// ---------------------------------------------------------------------------
+const ENRICH_SUMMARY_PROMPT = `
+You are an educational content quality reviewer.
+The following study summary was generated from a class transcript
+but is too short, too list-heavy, or lacks explanatory depth.
+
+ORIGINAL SUMMARY:
+{summary}
+
+TRANSCRIPT EXCERPT (for context):
+{transcriptExcerpt}
+
+Your task: Rewrite and expand this summary so that:
+- It is at least 400 words
+- It uses explanatory paragraphs as the primary format
+- It uses H2/H3 headings to organize sections
+- It sounds like a study guide written by a knowledgeable tutor
+- It preserves all correct information from the original
+- Bullets are used ONLY for truly enumerable items
+- It ends with a brief "Conclusión" paragraph
+
+Respond ONLY with the improved summary text in Spanish.
+No JSON, no preamble, just the markdown summary.
+`;
+
+const ENRICH_CONCEPTS_PROMPT = `
+You are an educational content quality reviewer.
+The following concepts were extracted from a class transcript
+but are insufficient in quality or quantity.
+
+EXISTING CONCEPTS:
+{existingConcepts}
+
+SUMMARY (for context):
+{summary}
+
+Generate {needed} additional high-quality key concepts that:
+- Are true academic/domain concepts, not transcript fragments
+- Have terms of 2-5 words maximum
+- Have descriptions of at least 2 complete sentences (15+ words)
+- Do not duplicate existing concepts
+- Are relevant to the main topic
+
+Respond ONLY with a JSON array of objects with "term" and
+"description" fields. No markdown fences, no preamble.
+`;
+
+const ENRICH_QUIZ_PROMPT = `
+You are an educational content quality reviewer.
+The following quiz questions have weak or missing explanations.
+
+For each question below, provide an improved explanation that:
+- Is at least 30 words
+- Explains WHY the correct answer is right
+- Explains why at least one wrong option is incorrect
+- Teaches the underlying concept
+
+QUESTIONS TO IMPROVE:
+{weakQuestions}
+
+Respond ONLY with a JSON array where each object has:
+"question" (exact original text) and "explanation" (improved text).
+No markdown fences, no preamble.
+`;
+
 module.exports = {
   OUTPUT_SCHEMA,
   SYSTEM_PROMPT,
   FALLBACK_SYSTEM,
   normalizeOutput,
+  evaluateOutputQuality,
+  ENRICH_SUMMARY_PROMPT,
+  ENRICH_CONCEPTS_PROMPT,
+  ENRICH_QUIZ_PROMPT,
 };

@@ -135,7 +135,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error desconocido";
-      console.error("Exercise evaluation error:", err);
       toast.error("Error al evaluar ejercicio", errorMessage);
       persistWithDerived({
         ...withSubmission,
@@ -155,7 +154,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
       const compressedDataUrl = await compressImage(file, 1200, 1200, 0.8);
       submitExercise(taskId, "image", compressedDataUrl);
     } catch (error) {
-      console.error("Error al comprimir imagen:", error);
       toast.warning("Compresión fallida", "Usando imagen original.");
       // Fallback: usar imagen original si compresión falla
       const reader = new FileReader();
@@ -291,8 +289,15 @@ export function SessionDetail({ session }: { session: StudySession }) {
   }
 
   return (
-    <div className="flex flex-col h-full space-y-4 pb-4">
-      {/* ZONE A: Session Header — never scrolls */}
+    <div className="flex flex-col min-h-0 flex-1">
+      {/* Pomodoro timer — only in focus mode */}
+      {isFocused && (
+        <div className="flex-shrink-0">
+          <PomodoroTimer onExit={exitFocus} />
+        </div>
+      )}
+
+      {/* Session Header — only in normal mode */}
       {!isFocused && (
         <div className="flex-shrink-0 mb-1">
           <SessionHeader
@@ -310,51 +315,37 @@ export function SessionDetail({ session }: { session: StudySession }) {
         </div>
       )}
 
-      {/* ZONE B: Two-column layout — fills remaining viewport */}
-      <div
-        className={`grid flex-1 min-h-0 transition-[grid-template-columns] duration-200 ease-in-out ${
-          !isFocused && conceptsOpen
-            ? "grid-cols-[var(--cw)_4px_minmax(0,1fr)]"
-            : !isFocused
-            ? "grid-cols-[44px_0px_minmax(0,1fr)]"
-            : "grid-cols-[0px_0px_minmax(0,1fr)]"
-        }`}
-        style={{
-          '--cw': `${conceptsWidth}px`,
-        } as React.CSSProperties}
-      >
+      {/* Two-column layout */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
 
         {/* LEFT: Concepts sidebar */}
         {!isFocused && (
-          <ConceptsSidebar
-            concepts={filteredConcepts}
-            isOpen={conceptsOpen}
-            searchQuery=""
-            onToggle={() => setConceptsOpen(!conceptsOpen)}
-          />
+          <div className={`flex-shrink-0 overflow-y-auto transition-all duration-200 ${conceptsOpen ? 'w-[192px]' : 'w-[40px]'}`}>
+            <ConceptsSidebar
+              concepts={filteredConcepts}
+              isOpen={conceptsOpen}
+              searchQuery=""
+              onToggle={() => setConceptsOpen(!conceptsOpen)}
+            />
+          </div>
         )}
 
-        {/* DIVIDER: Drag handle */}
-        {!isFocused && conceptsOpen ? (
+        {/* DIVIDER: Drag handle — only when sidebar is open */}
+        {!isFocused && conceptsOpen && (
           <div
             onMouseDown={handleMouseDown}
-            className="flex w-1 cursor-col-resize items-center justify-center transition-colors hover:bg-c-blue/20 active:bg-c-blue/30"
+            className="flex w-4 cursor-col-resize items-center justify-center transition-colors hover:bg-c-blue/20 active:bg-c-blue/30"
             title="Arrastra para redimensionar"
           >
             <div className="h-8 w-0.5 rounded-full bg-c-border" />
           </div>
-        ) : (
-          <div className="w-0" />
         )}
 
         {/* RIGHT: Tab bar + Content panels */}
-        <div className="overflow-y-auto rounded-panel border border-c-border bg-c-surface">
-
-          {/* Pomodoro timer — sticky bar in focus mode */}
-          {isFocused && <PomodoroTimer onExit={exitFocus} />}
+        <div className="flex-1 min-h-0 overflow-y-auto rounded-panel border border-c-border bg-c-surface ml-3">
 
           {/* Tab bar — sticky inside this scroll container */}
-          <div className="sticky top-0 z-20 border-b border-c-border px-4 pb-2 pt-3 bg-white dark:bg-[#151b27]">
+          <div className="sticky top-0 z-20 border-b border-c-border px-4 pb-2 pt-3 bg-c-surface">
             <FocusPanelSwitcher
               activePanel={focusPanel}
               onPanelChange={setFocusPanel}

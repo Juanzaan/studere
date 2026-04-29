@@ -46,7 +46,6 @@ async function uploadAudioChunks(
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
   const sessionId = generateSessionId();
 
-  console.log(`[ServerSide] Uploading ${file.name} in ${totalChunks} chunks`);
 
   for (let i = 0; i < totalChunks; i++) {
     const start = i * CHUNK_SIZE;
@@ -62,8 +61,6 @@ async function uploadAudioChunks(
     });
 
     const url = `${BACKEND_URL}/api/upload-audio-chunk`;
-    console.log(`[ServerSide] Uploading chunk ${i + 1}/${totalChunks}, size: ${chunk.size} bytes`);
-    console.log(`[ServerSide] URL: ${url}`);
 
     // Fetch with timeout
     const controller = new AbortController();
@@ -86,7 +83,6 @@ async function uploadAudioChunks(
       clearTimeout(timeoutId);
     } catch (error) {
       clearTimeout(timeoutId);
-      console.error(`[ServerSide] Chunk ${i + 1} upload failed:`, error);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Error: tiempo de espera agotado subiendo parte ${i + 1}/${totalChunks}. Verificá tu conexión.`);
       }
@@ -99,8 +95,7 @@ async function uploadAudioChunks(
       throw new Error(`Error al subir audio (parte ${i + 1}/${totalChunks}): ${errorMsg}`);
     }
 
-    const result = await response.json();
-    console.log(`[ServerSide] Chunk ${i + 1} uploaded. Complete: ${result.complete}`);
+    await response.json();
   }
 
   onProgress?.({
@@ -127,8 +122,6 @@ async function processAudio(
   });
 
   const url = `${BACKEND_URL}/api/process-audio`;
-  console.log(`[ServerSide] Processing session ${sessionId}`);
-  console.log(`[ServerSide] URL: ${url}`);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 35 * 60 * 1000);
@@ -158,11 +151,6 @@ async function processAudio(
       message: `Transcripción completa (${result.segments} segmentos)`
     });
 
-    console.log(`[ServerSide] Processing complete:`, {
-      segments: result.segments,
-      textLength: result.text.length
-    });
-
     return {
       text: result.text,
       language: result.language
@@ -181,7 +169,6 @@ export async function transcribeAudioServerSide(
   language?: string,
   onProgress?: (message: string) => void
 ): Promise<{ text: string; language: string; duration: number | null }> {
-  console.log(`[ServerSide] Starting server-side transcription for ${file.name}`);
   
   const progressAdapter = (progress: ServerSideUploadProgress) => {
     onProgress?.(progress.message);
@@ -201,7 +188,6 @@ export async function transcribeAudioServerSide(
     };
 
   } catch (error) {
-    console.error('[ServerSide] Transcription failed:', error);
     throw error;
   }
 }

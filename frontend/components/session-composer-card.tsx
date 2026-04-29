@@ -119,7 +119,6 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
             toast.warning("Transcripción muy corta", "El audio no generó suficiente texto. Continuando con datos locales.");
           }
         } catch (transcribeError) {
-          console.error("Audio transcription failed:", transcribeError);
           const errorMessage = transcribeError instanceof Error ? transcribeError.message : "Error desconocido";
           toast.error("Error al transcribir audio", errorMessage);
           setIsCreating(false);
@@ -165,7 +164,6 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
 
           setAiStatus("success");
         } catch (aiError) {
-          console.error("AI generation failed:", aiError);
           const errorMessage = aiError instanceof Error ? aiError.message : "Error desconocido";
           toast.warning("Generación con IA falló", `${errorMessage}. Usando contenido local.`);
           setAiStatus("fallback");
@@ -177,7 +175,6 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
       onCreated?.();
       router.push(`/sessions/${session.id}`);
     } catch (error) {
-      console.error("Session creation error:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast.error("Error al crear sesión", errorMessage);
       setIsCreating(false);

@@ -67,7 +67,6 @@ export function AudioRecorderWidget() {
           toast.warning("Transcripción muy corta", "El audio no generó suficiente texto.");
         }
       } catch (transcribeErr) {
-        console.error("Whisper transcription failed:", transcribeErr);
         const errorMessage = transcribeErr instanceof Error ? transcribeErr.message : "Error desconocido";
         toast.error("Error al transcribir audio", errorMessage);
         setState("error");
@@ -99,7 +98,6 @@ export function AudioRecorderWidget() {
           if (!session.mindMap?.children?.length) session.mindMap = createMindMap(session);
           session.chatHistory = createWelcomeChat(session);
         } catch (aiErr) {
-          console.error("AI generation failed:", aiErr);
           const errorMessage = aiErr instanceof Error ? aiErr.message : "Error desconocido";
           toast.warning("Generación con IA falló", `${errorMessage}. Usando contenido local.`);
         }

@@ -51,12 +51,8 @@ async function transcribeChunk(
   file: File,
   language?: string,
 ): Promise<TranscriptionResult> {
-  console.log(`[Transcribe] Chunk: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
-  
   try {
     const base64 = await fileToBase64(file);
-    const base64SizeMB = (base64.length / 1024 / 1024).toFixed(2);
-    console.log(`[Transcribe] Base64 size: ${base64SizeMB}MB`);
 
     const res = await fetch(`${BACKEND_URL}/api/transcribe-audio`, {
       method: "POST",
@@ -70,7 +66,6 @@ async function transcribeChunk(
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);
-      console.error('[Transcribe] Error response:', body);
       const errorMsg = body?.error || 'Error desconocido del servidor';
       throw new Error(`Error al transcribir audio: ${errorMsg}`);
     }
@@ -81,10 +76,8 @@ async function transcribeChunk(
     } catch {
       throw new Error('Invalid response from server — expected JSON');
     }
-    console.log(`[Transcribe] Success: ${result.text?.length || 0} characters`);
     return result;
   } catch (error) {
-    console.error('[Transcribe] Fetch error:', error);
     throw error;
   }
 }
@@ -104,17 +97,12 @@ export async function transcribeAudio(
                         file.size > MAX_CLIENT_DURATION_BYTES;
   
   if (useServerSide) {
-    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-    const estimatedMin = Math.round(file.size / (1024 * 1024) / AUDIO_LIMITS.MB_PER_MINUTE_ESTIMATE);
-    console.log(`[Transcribe] File size ${sizeMB}MB (est. ${estimatedMin}min), using server-side processing`);
-    
     // Import dynamically to avoid bundle bloat
     const { transcribeAudioServerSide } = await import('./api-server-side');
     return transcribeAudioServerSide(file, language, onProgress);
   }
   
   // Client-side processing for smaller files
-  console.log(`[Transcribe] File size ${(file.size / 1024 / 1024).toFixed(2)}MB, using client-side processing`);
   
   onProgress?.("Preparando audio...");
   const chunks = await chunkAudioFile(file, onProgress);

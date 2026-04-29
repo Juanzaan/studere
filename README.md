@@ -36,10 +36,10 @@ Transform your class recordings and notes into interactive study materials with 
 - Performance metrics and progress visualization
 - Session history and starred favorites
 
-### 💾 Offline-First Architecture
-- LocalStorage + IndexedDB persistence
-- Works without constant internet connection
-- Automatic sync when online
+### 💾 Local-First Architecture
+- LocalStorage persistence for session data
+- Works entirely client-side (no backend database)
+- Azure Functions used only for AI processing
 
 ### 🎨 Modern UI/UX
 - Dark mode support

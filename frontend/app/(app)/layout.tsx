@@ -8,19 +8,36 @@ import { SkipLinks } from "@/components/skip-links";
 import { ToastProvider } from "@/components/toast-provider";
 import { FocusProvider, useFocus } from "@/lib/focus-context";
 
-function AppLayoutInner({ children }: { children: ReactNode }) {
-  const { isFocused } = useFocus();
+function NormalLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-c-bg">
-      {!isFocused && <Sidebar />}
+      <Sidebar />
       <div className="flex flex-1 flex-col min-w-0 h-screen overflow-hidden">
-        {!isFocused && <AppTopbar />}
-        <main id="main-content" className={`min-w-0 flex-1 overflow-y-auto bg-c-bg animate-fade-in ${isFocused ? "" : "px-4 pb-4 pt-3"}`}>
+        <AppTopbar />
+        <main id="main-content" className="min-w-0 flex-1 overflow-y-auto bg-c-bg animate-fade-in px-4 pb-4 pt-3">
           {children}
         </main>
       </div>
     </div>
   );
+}
+
+function FocusedLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-col w-screen h-screen overflow-hidden bg-c-bg">
+      <main className="flex-1 overflow-y-auto bg-c-bg">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+function AppLayoutInner({ children }: { children: ReactNode }) {
+  const { isFocused } = useFocus();
+  if (isFocused) {
+    return <FocusedLayout>{children}</FocusedLayout>;
+  }
+  return <NormalLayout>{children}</NormalLayout>;
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {

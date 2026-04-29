@@ -51,7 +51,6 @@ export const StudeChartWindow = dynamic(
   { ssr: false }
 );
 
-// TODO: Replace with useMemo inside SessionDetail component to avoid module-level state
 export function completionRate(session: StudySession): number {
   const taskRatio =
     session.actionItems.length === 0

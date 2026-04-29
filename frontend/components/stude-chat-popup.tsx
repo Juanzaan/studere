@@ -197,7 +197,6 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
         chatHistory: withUser.slice(-16).map((m) => ({ role: m.role, content: m.content })),
       });
     } catch (error) {
-      console.error("Chat API failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast.warning("Chat con IA no disponible", `${errorMessage}. Usando respuestas locales.`);
       // Fallback to local heuristics

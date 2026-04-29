@@ -3,12 +3,19 @@
 import { useEffect, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-const CHART_BAR_COLORS = ["#4f7cff", "#2dd4aa", "#a78bfa", "#fbbf24", "#ef4444", "#ec4899", "#f97316", "#06b6d4"];
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
 
-const COLORS = ["#4f7cff", "#2dd4aa", "#a78bfa", "#fbbf24", "#ef4444", "#ec4899"];
+// Chart colors using CSS custom properties for theming
+const CHART_COLORS = [
+  "var(--color-blue)",
+  "var(--color-teal)",
+  "var(--color-violet)",
+  "var(--color-amber)",
+  "#ef4444",
+  "#ec4899",
+];
 
 function useDarkMode() {
   const [isDark, setIsDark] = useState(false);
@@ -39,8 +46,7 @@ export function AnalyticsDashboard() {
         setQuizAttempts(quizAttempts);
         setFlashcardAttempts(flashcardAttempts);
         setMounted(true);
-      } catch (e) {
-        console.error('[Analytics] Failed to load analytics data:', e);
+      } catch {
         setSessions([]);
         setQuizAttempts([]);
         setFlashcardAttempts([]);
@@ -168,8 +174,8 @@ export function AnalyticsDashboard() {
                     labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                     itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                   />
-                  <Area type="monotone" dataKey="sesiones" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} />
-                  <Area type="monotone" dataKey="repasos" stroke="#2dd4aa" fill="#d0f5ee" strokeWidth={2} />
+                  <Area type="monotone" dataKey="sesiones" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="repasos" stroke="var(--color-teal)" fill="var(--color-teal-soft)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -194,7 +200,7 @@ export function AnalyticsDashboard() {
                     dataKey="value"
                   >
                     {sessionsByCourse.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
@@ -271,7 +277,7 @@ export function AnalyticsDashboard() {
                     />
                     <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                       {topConcepts.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_BAR_COLORS[index % CHART_BAR_COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -292,7 +298,7 @@ export function AnalyticsDashboard() {
                   <PieChart>
                     <Pie data={studyMix} cx="50%" cy="50%" innerRadius={52} outerRadius={84} dataKey="value">
                       {studyMix.map((_, index) => (
-                        <Cell key={`mix-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`mix-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip
