@@ -75,3 +75,12 @@ logs/
 
 # Local Netlify folder
 .netlify
+
+# AI Tool Directories
+.claude/
+.claude-flow/
+.swarm/
+.windsurf/
+
+# AI Configuration
+.mcp.json
