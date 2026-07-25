@@ -97,16 +97,16 @@ export const AppTopbar = memo(function AppTopbar() {
 
         <button
           onClick={toggleTheme}
-          className="flex h-[28px] w-[28px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none"
+          className="flex h-[32px] w-[32px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-[28px] sm:w-[28px]"
           aria-label="Cambiar tema"
         >
-          {dark === "dark" ? <Sun className="h-[13px] w-[13px]" /> : <Moon className="h-[13px] w-[13px]" />}
+          {dark === "dark" ? <Sun className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" /> : <Moon className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" />}
         </button>
         <button
-          className="flex h-[28px] w-[28px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none"
+          className="flex h-[32px] w-[32px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-[28px] sm:w-[28px]"
           aria-label="Notificaciones"
         >
-          <Bell className="h-[13px] w-[13px]" />
+          <Bell className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" />
         </button>
         <button
           className="flex items-center gap-[6px] rounded-full border border-c-border bg-c-surface-2 px-[8px] py-[4px] transition-colors hover:bg-c-surface-2 focus-visible:outline-none"

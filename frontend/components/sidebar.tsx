@@ -261,7 +261,7 @@ export function Sidebar() {
         </div>
 
         {/* ── FOOTER ── */}
-        <div className={`shrink-0 border-t border-c-border p-[6px_8px] ${collapsed ? "flex flex-col items-center gap-[1px]" : "flex flex-col gap-[1px]"}`}>
+        <div className={`shrink-0 border-t border-c-border p-[6px_8px] ${collapsed ? "flex flex-col items-center gap-[4px]" : "flex flex-col gap-[1px]"}`}>
           <TutorialTrigger onRestart={restartTutorial} compact={collapsed} />
           <Link
             href="/integrations"
@@ -276,24 +276,6 @@ export function Sidebar() {
             <Plug2 className="h-[14px] w-[14px] shrink-0" />
             {!collapsed && <span className="text-[12px]">Integraciones</span>}
           </Link>
-          <button
-            onClick={toggleCollapsed}
-            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-            className={`flex items-center rounded-input text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none ${
-              collapsed
-                ? "mx-auto h-[34px] w-[34px] justify-center"
-                : "w-full gap-[9px] px-[10px] py-[6px]"
-            }`}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-[14px] w-[14px] shrink-0" />
-            ) : (
-              <>
-                <ChevronLeft className="h-[14px] w-[14px] shrink-0" />
-                <span className="text-[12px]">Colapsar</span>
-              </>
-            )}
-          </button>
         </div>
       </aside>
     </>
