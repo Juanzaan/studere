@@ -22,6 +22,12 @@ type StudeChartWindowProps = {
   anchorY?: number;
 };
 
+// ── Chart animation config ───────────────────────────────────────────────
+// animationDuration (Recharts) debe coincidir con el delay del setTimeout
+// que desactiva isAnimationActive luego del mount.
+const CHART_ANIM_DURATION = 400;
+const CHART_ANIM_DISABLE_DELAY = CHART_ANIM_DURATION + 200;
+
 const COLORS = ["#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#6366f1", "#14b8a6"];
 const MIN_W = 360;
 const MIN_H = 300;
@@ -101,8 +107,9 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
   const [expanded, setExpanded] = useState(false);
   const [chartAnimated, setChartAnimated] = useState(false);
   useEffect(() => {
-    // Esperar a que la animación de Recharts (400ms) se complete.
-    const timer = setTimeout(() => setChartAnimated(true), 600);
+    // ⚠️ Deriva de CHART_ANIM_DISABLE_DELAY. Si cambiás animationDuration,
+    //    actualizá también la constante. (ver CHART_ANIM_DURATION)
+    const timer = setTimeout(() => setChartAnimated(true), CHART_ANIM_DISABLE_DELAY);
     return () => clearTimeout(timer);
   }, []);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -170,7 +177,7 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
               onClick={(_, idx) => handleBarClick(data[idx])}
               className="cursor-pointer"
               isAnimationActive={!chartAnimated}
-              animationDuration={400}
+              animationDuration={CHART_ANIM_DURATION}
               animationEasing="ease-out"
             >
               {data.map((_, i) => (
@@ -203,7 +210,7 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
                 if (p.payload?.fullName) handleBarClick({ fullName: p.payload.fullName });
               }}}
               isAnimationActive={!chartAnimated}
-              animationDuration={400}
+              animationDuration={CHART_ANIM_DURATION}
               animationEasing="ease-out"
             />
           </LineChart>
@@ -219,7 +226,7 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
           <XAxis dataKey="name" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }} />
-          <Bar dataKey="relevance" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(entry) => handleBarClick(entry)} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out">
+          <Bar dataKey="relevance" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(entry) => handleBarClick(entry)} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out">
             {data.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}

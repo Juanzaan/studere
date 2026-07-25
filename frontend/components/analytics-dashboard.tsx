@@ -8,7 +8,13 @@ import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
 
-// Chart colors using CSS custom properties for theming
+// ── Chart animation config ───────────────────────────────────────────────
+// animationDuration (Recharts) debe coincidir con el delay del setTimeout
+// que desactiva isAnimationActive luego del mount.
+const CHART_ANIM_DURATION = 400;
+const CHART_ANIM_DISABLE_DELAY = CHART_ANIM_DURATION + 200; // 200ms buffer post-animación
+
+// ── Chart colors using CSS custom properties for theming ──────────────────
 const CHART_COLORS = [
   "var(--color-blue)",
   "var(--color-teal)",
@@ -42,9 +48,10 @@ export function AnalyticsDashboard() {
   const isDark = useDarkMode();
   const [chartAnimated, setChartAnimated] = useState(false);
   useEffect(() => {
-    // Esperar a que la animación de Recharts (400ms) se complete antes de
-    // deshabilitarla, para que no se corte a mitad de camino.
-    const timer = setTimeout(() => setChartAnimated(true), 600);
+    // ⚠️ Este timeout deriva de CHART_ANIM_DISABLE_DELAY. Si cambiás
+    //    animationDuration en los <Area>/<Bar>/<Pie>, actualizá también
+    //    la constante arriba. (ver CHART_ANIM_DURATION)
+    const timer = setTimeout(() => setChartAnimated(true), CHART_ANIM_DISABLE_DELAY);
     return () => clearTimeout(timer);
   }, []);
 
@@ -190,8 +197,8 @@ export function AnalyticsDashboard() {
                     labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                     itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                   />
-                  <Area type="monotone" dataKey="sesiones" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out" />
-                  <Area type="monotone" dataKey="repasos" stroke="var(--color-teal)" fill="var(--color-teal-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out" />
+                  <Area type="monotone" dataKey="sesiones" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
+                  <Area type="monotone" dataKey="repasos" stroke="var(--color-teal)" fill="var(--color-teal-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -215,7 +222,7 @@ export function AnalyticsDashboard() {
                     fill="#8884d8"
                     dataKey="value"
                     isAnimationActive={!chartAnimated}
-                    animationDuration={400}
+                    animationDuration={CHART_ANIM_DURATION}
                     animationEasing="ease-out"
                   >
                     {sessionsByCourse.map((_, index) => (
@@ -265,7 +272,7 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Area type="monotone" dataKey="porcentaje" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out" />
+                    <Area type="monotone" dataKey="porcentaje" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -294,7 +301,7 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out">
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out">
                       {topConcepts.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
@@ -315,7 +322,7 @@ export function AnalyticsDashboard() {
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={studyMix} cx="50%" cy="50%" innerRadius={52} outerRadius={84} dataKey="value" isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out">
+                    <Pie data={studyMix} cx="50%" cy="50%" innerRadius={52} outerRadius={84} dataKey="value" isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out">
                       {studyMix.map((_, index) => (
                         <Cell key={`mix-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
