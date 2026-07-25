@@ -91,7 +91,7 @@ export const SessionSkeleton = memo(function SessionSkeleton({
 
         <div className="mt-4 space-y-2">
           <ProgressStep
-            done={phase === "generating" || phase === "transcribing"}
+            done={phase === "generating"}
             label="Audio → Transcripción"
             isActive={phase === "transcribing"}
           />
