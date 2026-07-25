@@ -26,6 +26,13 @@ export interface TutorialStep {
   target?: string;
   /** Tooltip placement relative to the target. Defaults to "bottom" */
   placement?: TutorialPlacement;
+  /**
+   * Whether this step blocks interaction with the page behind.
+   * - `true`  → backdrop blocks clicks (pasos informativos: bienvenida, cierre)
+   * - `false` → user can click the highlighted element (pasos click-through)
+   * Defaults to `false`. Center-placement steps default to `true`.
+   */
+  blocking?: boolean;
   /** Illustration to show — built-in placeholder key or ReactNode */
   illustration?: ReactNode | "placeholder-study" | "placeholder-celebration";
 }
@@ -60,6 +67,7 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
     description:
       "Studere convierte tus grabaciones de clase en paquetes completos de estudio con resúmenes, flashcards, quizzes, mapas mentales y más — todo generado con IA.",
     placement: "center",
+    blocking: true,
     illustration: "placeholder-study",
   },
   {
@@ -69,6 +77,7 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
       "Usá la barra lateral para ir a Inicio, Biblioteca, Próximos, Destacados y Estadísticas. Cada sección te ayuda a organizar tu estudio de forma distinta.",
     target: "#navigation",
     placement: "right",
+    blocking: false,
   },
   {
     id: "topbar",
@@ -77,6 +86,7 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
       "Desde la barra superior podés buscar sesiones con Ctrl+K, cambiar entre tema claro/oscuro, y acceder a tu perfil y notificaciones.",
     target: "header",
     placement: "bottom",
+    blocking: false,
   },
   {
     id: "composer",
@@ -85,6 +95,7 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
       "Subí un audio, pegá tu transcript o escribí notas. La IA genera automáticamente: resumen explicativo, flashcards, quiz interactivo, mapa mental y ejercicios prácticos.",
     target: "[data-tutorial='composer']",
     placement: "bottom",
+    blocking: false,
   },
   {
     id: "wrap-up",
@@ -92,6 +103,7 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
     description:
       "Creá tu primera sesión y explorá las pestañas de resumen, flashcards, quiz interactivo, mapa mental y ejercicios. Stude, tu tutor IA, te va a acompañar en cada paso.",
     placement: "center",
+    blocking: true,
     illustration: "placeholder-celebration",
   },
 ];
@@ -388,10 +400,25 @@ export function TutorialOverlay({
   }
 
   // ── Don't render until mounted (avoids flash of misplaced tooltip) ────
+  // ── Determine if the target element is actually visible on screen ────
+  // On mobile the sidebar (#navigation) is translated off-screen.
+  // If the target exists but is outside the viewport, fall back to center.
+  const targetVisible =
+    !step.target || step.placement === "center" || !spotlight
+      ? false
+      : spotlight.top >= 0 &&
+        spotlight.left >= 0 &&
+        spotlight.bottom <= viewport.height &&
+        spotlight.right <= viewport.width;
+
+  const effectivePlacement =
+    isMobile && step.target && !targetVisible ? "center" : step.placement;
+  const isCenter = effectivePlacement === "center" || (!step.target && !spotlight);
+
+  const isBlocking = step.blocking ?? (step.placement === "center");
+
   if (!mounted) return null;
   if (!step) return null;
-
-  const isCenter = step.placement === "center" || !spotlight;
 
   return (
     <>
@@ -408,8 +435,8 @@ export function TutorialOverlay({
            mobile hamburger (z-50) — but below tooltip (z-[70])           */}
       <div
         className="fixed inset-0 z-[60]"
-        style={{ pointerEvents: isCenter ? "auto" : "none" }}
-        aria-hidden={!isCenter}
+        style={{ pointerEvents: isBlocking ? "auto" : "none" }}
+        aria-hidden={!isBlocking}
       >
         {/* The spotlight "hole" div: box-shadow creates the dark overlay */}
         {!isCenter && spotlight && (
@@ -429,8 +456,8 @@ export function TutorialOverlay({
           />
         )}
 
-        {/* Full-screen overlay when centered (welcome/celebration steps) */}
-        {isCenter && (
+        {/* Full-screen overlay when blocking or when target is off-screen */}
+        {isBlocking && (
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
             style={{ pointerEvents: "auto" }}
@@ -444,7 +471,7 @@ export function TutorialOverlay({
         ref={tooltipRef}
         role="dialog"
         aria-label={`Tutorial: paso ${stepIndex + 1} de ${steps.length}`}
-        aria-modal="false"
+        aria-modal={isBlocking ? "true" : "false"}
         tabIndex={-1}
         className="fixed z-[70] w-[300px] rounded-[16px] border border-c-border bg-c-surface shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-c-violet/40"
         style={{
