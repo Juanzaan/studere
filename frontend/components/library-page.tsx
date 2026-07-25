@@ -95,8 +95,12 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
 
       <SessionRecordsTable
         sessions={filtered}
-        emptyTitle="Sin resultados"
-        emptyDescription="Probá con otra búsqueda o creá una nueva sesión desde Inicio."
+        emptyTitle={sessions.length === 0 ? "Sin sesiones todavía" : query ? "Sin resultados" : "Nada por aquí"}
+        emptyDescription={
+          sessions.length === 0
+            ? "Todas tus sesiones de estudio aparecen acá. Creá una desde Inicio para empezar."
+            : "Probá con otra búsqueda o filtro."
+        }
         onToggleStar={toggleStar}
       />
     </div>
