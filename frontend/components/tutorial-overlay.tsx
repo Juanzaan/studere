@@ -404,9 +404,11 @@ export function TutorialOverlay({
     if (!mounted) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === "Enter") {
-        if (!isLast) {
-          e.preventDefault();
-          setStepIndex((i) => Math.min(i + 1, steps.length - 1));
+        e.preventDefault();
+        if (isLast) {
+          handleComplete();
+        } else {
+          setStepIndex((i) => i + 1);
         }
       }
       if (e.key === "ArrowLeft") {
