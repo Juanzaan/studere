@@ -97,26 +97,26 @@ export const AppTopbar = memo(function AppTopbar() {
 
         <button
           onClick={toggleTheme}
-          className="flex h-[32px] w-[32px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-[28px] sm:w-[28px]"
+          className="flex h-10 w-10 items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-8 sm:w-8"
           aria-label="Cambiar tema"
         >
-          {dark === "dark" ? <Sun className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" /> : <Moon className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" />}
+          {dark === "dark" ? <Sun className="h-[16px] w-[16px] sm:h-[14px] sm:w-[14px]" /> : <Moon className="h-[16px] w-[16px] sm:h-[14px] sm:w-[14px]" />}
         </button>
         <button
-          className="flex h-[32px] w-[32px] items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-[28px] sm:w-[28px]"
+          className="flex h-10 w-10 items-center justify-center rounded-btn border border-c-border text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:h-8 sm:w-8"
           aria-label="Notificaciones"
         >
-          <Bell className="h-[14px] w-[14px] sm:h-[13px] sm:w-[13px]" />
+          <Bell className="h-[16px] w-[16px] sm:h-[14px] sm:w-[14px]" />
         </button>
         <button
-          className="flex items-center gap-[6px] rounded-full border border-c-border bg-c-surface-2 px-[8px] py-[4px] transition-colors hover:bg-c-surface-2 focus-visible:outline-none"
+          className="flex items-center gap-[6px] rounded-full border border-c-border bg-c-surface-2 px-[10px] py-[6px] transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:px-[8px] sm:py-[4px]"
           aria-label="Perfil de usuario"
         >
           <div className="hidden text-right sm:block">
-            <p className="text-[11px] font-medium text-c-text">JP</p>
+            <p className="text-[12px] sm:text-[11px] font-medium text-c-text">JP</p>
             <p className="text-[10px] text-c-muted">Plan Pro</p>
           </div>
-          <UserCircle2 className="h-[20px] w-[20px] text-c-muted" />
+          <UserCircle2 className="h-[22px] w-[22px] sm:h-[20px] sm:w-[20px] text-c-muted" />
         </button>
       </div>
     </header>

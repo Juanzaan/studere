@@ -90,11 +90,11 @@ export function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed left-4 top-[76px] z-50 flex h-9 w-9 items-center justify-center rounded-input border border-c-border bg-c-surface text-c-muted shadow-sm transition-colors hover:bg-c-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-c-blue lg:hidden"
+        className="fixed left-4 top-[76px] z-50 flex h-11 w-11 items-center justify-center rounded-input border border-c-border bg-c-surface text-c-muted shadow-sm transition-colors hover:bg-c-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-c-blue lg:hidden"
         aria-label={open ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
         aria-expanded={open}
       >
-        {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        {open ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
       </button>
 
       {/* Mobile backdrop */}
@@ -107,7 +107,7 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-c-border bg-c-surface transition-[width] duration-200 ease-in-out lg:sticky lg:top-0 lg:h-screen ${
-          collapsed ? "w-[52px]" : "w-[224px]"
+          collapsed ? "w-[52px]" : "w-[280px] lg:w-[224px]"
         } ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
 
@@ -181,12 +181,12 @@ export function Sidebar() {
                 className={`sidebar-nav-item flex items-center rounded-input transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
                   collapsed
                     ? "mx-auto h-[34px] w-[34px] justify-center"
-                    : "gap-[9px] px-[10px] py-[7px]"
+                    : "gap-[9px] px-[10px] py-[10px] lg:py-[7px]"
                 } ${isActive ? "bg-c-blue-soft text-c-blue" : "text-c-muted hover:bg-c-surface-2"}`}
               >
-                <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-c-blue" : "text-c-muted"}`} />
+                <Icon className={`h-[18px] w-[18px] lg:h-[16px] lg:w-[16px] shrink-0 ${isActive ? "text-c-blue" : "text-c-muted"}`} />
                 {!collapsed && (
-                  <span className="truncate text-[12px] font-medium">{item.label}</span>
+                  <span className="truncate text-[13px] lg:text-[12px] font-medium">{item.label}</span>
                 )}
               </Link>
             );
@@ -234,12 +234,12 @@ export function Sidebar() {
                     key={session.id}
                     href={`/sessions/${session.id}`}
                     onClick={() => setOpen(false)}
-                    className={`sidebar-recent-item flex items-center gap-[8px] rounded-input px-[10px] py-[5px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
+                    className={`sidebar-recent-item flex items-center gap-[8px] rounded-input px-[10px] py-[8px] lg:py-[5px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
                       isActive ? "bg-c-blue-soft" : "hover:bg-c-surface-2"
                     }`}
                   >
                     <span
-                      className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-btn border text-[9px] font-semibold ${
+                      className={`flex h-[24px] w-[24px] lg:h-[22px] lg:w-[22px] shrink-0 items-center justify-center rounded-btn border text-[10px] lg:text-[9px] font-semibold ${
                         isActive
                           ? "border-c-blue-border bg-c-blue-soft text-c-blue"
                           : "border-c-border bg-c-surface-2 text-c-muted"
@@ -248,7 +248,7 @@ export function Sidebar() {
                       {getInitials(session.title)}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] font-medium text-c-text">{session.title}</p>
+                      <p className="truncate text-[12px] lg:text-[11px] font-medium text-c-text">{session.title}</p>
                       <p className="truncate text-[10px] text-c-muted">
                         {new Date(session.createdAt).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
                       </p>
@@ -270,11 +270,11 @@ export function Sidebar() {
             className={`flex items-center rounded-input text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none ${
               collapsed
                 ? "mx-auto h-[34px] w-[34px] justify-center"
-                : "gap-[9px] px-[10px] py-[6px]"
+                : "gap-[9px] px-[10px] py-[8px] lg:py-[6px]"
             }`}
           >
-            <Plug2 className="h-[14px] w-[14px] shrink-0" />
-            {!collapsed && <span className="text-[12px]">Integraciones</span>}
+            <Plug2 className="h-[16px] w-[16px] lg:h-[14px] lg:w-[14px] shrink-0" />
+            {!collapsed && <span className="text-[13px] lg:text-[12px]">Integraciones</span>}
           </Link>
         </div>
       </aside>
