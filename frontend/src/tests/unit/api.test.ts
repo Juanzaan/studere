@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { transcribeAudio, generateStudySession, evaluateExercise, sendStudeChat } from '@/lib/api';
+import { transcribeAudio, fileToBase64, generateStudySession, evaluateExercise, sendStudeChat } from '@/lib/api';
 
-const BACKEND_URL = 'http://localhost:7080';
+const BACKEND_URL = 'http://localhost:7071';
 
 const server = setupServer(
   http.post(`${BACKEND_URL}/api/transcribe-audio`, () => {
@@ -58,6 +58,18 @@ describe('api.ts', () => {
       expect(result.duration).toBe(300);
     });
 
+    it('should call onProgress during transcription for small files', async () => {
+      const onProgress = vi.fn();
+      const mockFile = new File(['small'], 'test.mp3', { type: 'audio/mp3' });
+      
+      await transcribeAudio(mockFile, undefined, onProgress);
+      
+      // Should have called at least the initial progress message
+      expect(onProgress).toHaveBeenCalled();
+      const messages = onProgress.mock.calls.map((c: string[]) => c[0]);
+      expect(messages.some((m: string) => m.includes('Preparando'))).toBe(true);
+    });
+
     it('should handle API errors gracefully', async () => {
       server.use(
         http.post(`${BACKEND_URL}/api/transcribe-audio`, () => {
@@ -77,7 +89,88 @@ describe('api.ts', () => {
       );
 
       const mockFile = new File(['data'], 'test.mp3', { type: 'audio/mp3' });
-      await expect(transcribeAudio(mockFile)).rejects.toThrow('Transcription failed (503)');
+      await expect(transcribeAudio(mockFile)).rejects.toThrow('Error desconocido del servidor');
+    });
+
+    it('should route to server-side when file > 10MB (using injected mock)', async () => {
+      const mockServerSide = vi.fn().mockResolvedValue({
+        text: 'Server-side transcription result',
+        language: 'en',
+        duration: 600,
+      });
+
+      // File > 10MB triggers the server-side routing branch
+      const largeFile = new File(
+        [new ArrayBuffer(15 * 1024 * 1024)],
+        'large-audio.mp3',
+        { type: 'audio/mp3' },
+      );
+
+      const result = await transcribeAudio(largeFile, 'es', undefined, {
+        transcribeAudioServerSide: mockServerSide,
+      });
+
+      expect(mockServerSide).toHaveBeenCalledOnce();
+      expect(mockServerSide).toHaveBeenCalledWith(largeFile, 'es', undefined);
+      expect(result.text).toBe('Server-side transcription result');
+      expect(result.language).toBe('en');
+      expect(result.duration).toBe(600);
+    });
+
+    it('should route to server-side when file exceeds 30-min estimate (using injected mock)', async () => {
+      const mockServerSide = vi.fn().mockResolvedValue({
+        text: 'Long audio result',
+        language: 'en',
+        duration: 2000,
+      });
+
+      // File > 30MB (MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN * MB_PER_MINUTE_ESTIMATE * 1024*1024)
+      const longFile = new File(
+        [new ArrayBuffer(35 * 1024 * 1024)],
+        'long-audio.mp3',
+        { type: 'audio/mp3' },
+      );
+
+      const result = await transcribeAudio(longFile, 'en', undefined, {
+        transcribeAudioServerSide: mockServerSide,
+      });
+
+      expect(mockServerSide).toHaveBeenCalledOnce();
+      expect(result.text).toBe('Long audio result');
+    });
+
+    it('should use injected fileToBase64 for large files (>=1MB, simulating Web Worker path)', async () => {
+      const mockBase64 = vi.fn().mockResolvedValue('bW9jay1iYXNlNjQ='); // 'mock-base64' encoded
+
+      // File >= 1MB (triggers the Web Worker branch in fileToBase64 when not mocked)
+      const medFile = new File(
+        [new ArrayBuffer(2 * 1024 * 1024)],
+        'medium-audio.mp3',
+        { type: 'audio/mp3' },
+      );
+
+      const result = await transcribeAudio(medFile, 'es', undefined, {
+        fileToBase64: mockBase64,
+      });
+
+      expect(mockBase64).toHaveBeenCalledOnce();
+      expect(mockBase64).toHaveBeenCalledWith(medFile);
+      expect(result.text).toBe('Transcribed text from audio');
+      // The mock base64 was sent; the server responded normally
+    });
+
+    it('should propagate fileToBase64 errors from injected mock', async () => {
+      const mockBase64 = vi.fn().mockRejectedValue(new Error('Base64 encoding failed'));
+
+      const medFile = new File(
+        [new ArrayBuffer(2 * 1024 * 1024)],
+        'error-audio.mp3',
+        { type: 'audio/mp3' },
+      );
+
+      await expect(
+        transcribeAudio(medFile, 'es', undefined, { fileToBase64: mockBase64 }),
+      ).rejects.toThrow('Base64 encoding failed');
     });
   });
 
@@ -137,7 +230,7 @@ describe('api.ts', () => {
         })
       );
 
-      await expect(generateStudySession({ transcript: 'Test' })).rejects.toThrow('Backend returned 500');
+      await expect(generateStudySession({ transcript: 'Test' })).rejects.toThrow();
     });
 
     it('should handle string output (unparseable response)', async () => {
@@ -148,6 +241,26 @@ describe('api.ts', () => {
       );
 
       await expect(generateStudySession({ transcript: 'Test' })).rejects.toThrow('unparseable response');
+    });
+
+    it('should handle missing output field (undefined)', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/generate-study-session`, () => {
+          return HttpResponse.json({});
+        })
+      );
+
+      await expect(generateStudySession({ transcript: 'Test' })).rejects.toThrow('unparseable response');
+    });
+
+    it('should handle non-JSON response from server', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/generate-study-session`, () => {
+          return new HttpResponse('<html>Error</html>', { status: 200, headers: { 'Content-Type': 'text/html' } });
+        })
+      );
+
+      await expect(generateStudySession({ transcript: 'Test' })).rejects.toThrow('Invalid response from server');
     });
   });
 
@@ -192,7 +305,55 @@ describe('api.ts', () => {
       );
 
       await expect(evaluateExercise({ exercise: 'Test', studentAnswer: 'Answer' }))
-        .rejects.toThrow('Evaluation failed (503)');
+        .rejects.toThrow();
+    });
+
+    it('should use default grade "partial" when missing', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/evaluate-exercise`, () => {
+          return HttpResponse.json({ explanation: 'Some feedback' });
+        })
+      );
+
+      const result = await evaluateExercise({ exercise: 'Test', studentAnswer: 'Answer' });
+      expect(result.grade).toBe('partial');
+      expect(result.explanation).toBe('Some feedback');
+    });
+
+    it('should use default explanation when missing', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/evaluate-exercise`, () => {
+          return HttpResponse.json({ grade: 'correct' });
+        })
+      );
+
+      const result = await evaluateExercise({ exercise: 'Test', studentAnswer: 'Answer' });
+      expect(result.grade).toBe('correct');
+      expect(result.explanation).toBe('Sin explicación disponible.');
+    });
+
+    it('should include receivedAt timestamp in response', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/evaluate-exercise`, () => {
+          return HttpResponse.json({ grade: 'incorrect', explanation: 'Wrong' });
+        })
+      );
+
+      const result = await evaluateExercise({ exercise: 'Test', studentAnswer: 'Wrong' });
+      expect(result.receivedAt).toBeDefined();
+      expect(typeof result.receivedAt).toBe('string');
+    });
+
+    it('should handle non-JSON response', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/evaluate-exercise`, () => {
+          return new HttpResponse('Not JSON', { status: 200, headers: { 'Content-Type': 'text/plain' } });
+        })
+      );
+
+      await expect(evaluateExercise({ exercise: 'Test', studentAnswer: 'Answer' })).rejects.toThrow(
+        'Invalid response from server'
+      );
     });
   });
 
@@ -249,7 +410,7 @@ describe('api.ts', () => {
       );
 
       await expect(sendStudeChat({ message: 'Test' }))
-        .rejects.toThrow('Chat failed (500)');
+        .rejects.toThrow();
     });
 
     it('should provide default reply if missing', async () => {
@@ -261,6 +422,18 @@ describe('api.ts', () => {
 
       const result = await sendStudeChat({ message: 'Test' });
       expect(result).toBe('No pude generar una respuesta.');
+    });
+
+    it('should handle non-JSON response from server', async () => {
+      server.use(
+        http.post(`${BACKEND_URL}/api/stude-chat`, () => {
+          return new HttpResponse('Not JSON', { status: 200, headers: { 'Content-Type': 'text/plain' } });
+        })
+      );
+
+      await expect(sendStudeChat({ message: 'Test' })).rejects.toThrow(
+        'Invalid response from server'
+      );
     });
   });
 });

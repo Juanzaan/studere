@@ -81,7 +81,7 @@ describe('SessionHeader', () => {
       />
     );
 
-    const starButton = screen.getByText('Marcar como importante');
+    const starButton = screen.getByText('Marcar');
     fireEvent.click(starButton);
     expect(onToggleStarred).toHaveBeenCalledTimes(1);
 

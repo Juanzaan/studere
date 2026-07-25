@@ -11,7 +11,11 @@ export type TranscriptionResult = {
   duration: number | null;
 };
 
-async function fileToBase64(file: File): Promise<string> {
+// ---------------------------------------------------------------------------
+// fileToBase64 — exported for testing; uses fast sync path for small files
+// and a Web Worker for files >= 1MB.
+// ---------------------------------------------------------------------------
+export async function fileToBase64(file: File): Promise<string> {
   // Para archivos pequeños (<1MB), usar método síncrono rápido
   if (file.size < 1024 * 1024) {
     const arrayBuffer = await file.arrayBuffer();
@@ -47,12 +51,19 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
+export type TranscribeChunkOptions = {
+  /** Override for fileToBase64 — used to mock the Web Worker path in tests */
+  fileToBase64?: typeof fileToBase64;
+};
+
 async function transcribeChunk(
   file: File,
   language?: string,
+  options?: TranscribeChunkOptions,
 ): Promise<TranscriptionResult> {
+  const encodeFile = options?.fileToBase64 ?? fileToBase64;
   try {
-    const base64 = await fileToBase64(file);
+    const base64 = await encodeFile(file);
 
     const res = await fetch(`${BACKEND_URL}/api/transcribe-audio`, {
       method: "POST",
@@ -82,10 +93,22 @@ async function transcribeChunk(
   }
 }
 
+export type TranscribeAudioOptions = {
+  /** Override for fileToBase64 — used to mock the Web Worker path in tests */
+  fileToBase64?: typeof fileToBase64;
+  /** Override for server-side audio processing — used to mock the dynamic import in tests */
+  transcribeAudioServerSide?: (
+    file: File,
+    language?: string,
+    onProgress?: (message: string) => void,
+  ) => Promise<TranscriptionResult>;
+};
+
 export async function transcribeAudio(
   file: File,
   language?: string,
   onProgress?: (message: string) => void,
+  options?: TranscribeAudioOptions,
 ): Promise<TranscriptionResult> {
   const DIRECT_UPLOAD_LIMIT = AUDIO_LIMITS.CLIENT_SIDE_MAX_MB * 1024 * 1024;
   const MAX_CLIENT_DURATION_BYTES = 
@@ -97,6 +120,10 @@ export async function transcribeAudio(
                         file.size > MAX_CLIENT_DURATION_BYTES;
   
   if (useServerSide) {
+    if (options?.transcribeAudioServerSide) {
+      // Injected mock (testing)
+      return options.transcribeAudioServerSide(file, language, onProgress);
+    }
     // Import dynamically to avoid bundle bloat
     const { transcribeAudioServerSide } = await import('./api-server-side');
     return transcribeAudioServerSide(file, language, onProgress);
@@ -105,11 +132,12 @@ export async function transcribeAudio(
   // Client-side processing for smaller files
   
   onProgress?.("Preparando audio...");
+  const chunkOptions: TranscribeChunkOptions = options ? { fileToBase64: options.fileToBase64 } : {};
   const chunks = await chunkAudioFile(file, onProgress);
 
   if (chunks.length === 1) {
     onProgress?.("Transcribiendo audio...");
-    return transcribeChunk(chunks[0].file, language);
+    return transcribeChunk(chunks[0].file, language, chunkOptions);
   }
 
   // Multiple chunks — transcribe sequentially and concatenate
@@ -118,7 +146,7 @@ export async function transcribeAudio(
 
   for (const chunk of chunks) {
     onProgress?.(`Transcribiendo parte ${chunk.index + 1} de ${chunk.total}...`);
-    const result = await transcribeChunk(chunk.file, language);
+    const result = await transcribeChunk(chunk.file, language, chunkOptions);
     texts.push(result.text);
     if (result.language && result.language !== "unknown") {
       detectedLanguage = result.language;

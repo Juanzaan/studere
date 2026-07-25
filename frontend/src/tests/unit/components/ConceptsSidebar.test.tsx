@@ -16,7 +16,7 @@ describe('ConceptsSidebar', () => {
       <ConceptsSidebar concepts={mockConcepts} isOpen={false} searchQuery="" onToggle={onToggle} />
     );
 
-    expect(screen.getByText('CONCEPTOS')).toBeInTheDocument();
+    expect(screen.getByTitle('Abrir conceptos')).toBeInTheDocument();
     expect(screen.queryByText('JavaScript')).not.toBeInTheDocument();
   });
 
@@ -26,7 +26,7 @@ describe('ConceptsSidebar', () => {
       <ConceptsSidebar concepts={mockConcepts} isOpen={true} searchQuery="" onToggle={onToggle} />
     );
 
-    expect(screen.getByText('Conceptos Clave')).toBeInTheDocument();
+    expect(screen.getByText('Conceptos')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument(); // Count badge
     expect(screen.getByText('JavaScript')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
@@ -39,14 +39,19 @@ describe('ConceptsSidebar', () => {
       <ConceptsSidebar concepts={mockConcepts} isOpen={false} searchQuery="" onToggle={onToggle} />
     );
 
-    fireEvent.click(screen.getByTitle('Abrir Conceptos Clave'));
+    fireEvent.click(screen.getByTitle('Abrir conceptos'));
     expect(onToggle).toHaveBeenCalledTimes(1);
 
     rerender(
       <ConceptsSidebar concepts={mockConcepts} isOpen={true} searchQuery="" onToggle={onToggle} />
     );
 
-    fireEvent.click(screen.getByLabelText('Cerrar conceptos'));
+    // Close button is the chevron-left button in the header
+    const buttons = screen.getAllByRole('button');
+    const closeButton = buttons.find(b => b.querySelector('.lucide-chevron-left'));
+    if (closeButton) {
+      fireEvent.click(closeButton);
+    }
     expect(onToggle).toHaveBeenCalledTimes(2);
   });
 
@@ -67,6 +72,6 @@ describe('ConceptsSidebar', () => {
   it('should show empty state when no concepts', () => {
     render(<ConceptsSidebar concepts={[]} isOpen={true} searchQuery="" onToggle={vi.fn()} />);
 
-    expect(screen.getByText('Sin conceptos que mostrar.')).toBeInTheDocument();
+    expect(screen.getByText('Sin conceptos detectados')).toBeInTheDocument();
   });
 });

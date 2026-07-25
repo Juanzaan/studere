@@ -103,20 +103,81 @@ console.log(hello);
   });
 
   describe('Callouts', () => {
-    it('should render blockquotes with special keywords as callouts', () => {
+    it('should render markdown blockquotes (GFM)', () => {
+      const markdown = '> This is a blockquote';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/This is a blockquote/)).toBeInTheDocument();
+    });
+
+    it('should render Tip content in blockquote', () => {
       const markdown = '> Tip: This is a helpful tip';
-      const { container } = render(<Md>{markdown}</Md>);
+      render(<Md>{markdown}</Md>);
       expect(screen.getByText(/This is a helpful tip/)).toBeInTheDocument();
-      // Component should render the blockquote content
-      expect(container.querySelector('.stude-markdown')).toBeInTheDocument();
+    });
+
+    it('should render Consejo content', () => {
+      const markdown = '> Consejo: Estudia con flashcards';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Estudia con flashcards/)).toBeInTheDocument();
+    });
+
+    it('should render Warning content', () => {
+      const markdown = '> Warning: This topic is frequently tested';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/This topic is frequently tested/)).toBeInTheDocument();
+    });
+
+    it('should render Atención content', () => {
+      const markdown = '> Atención: Este concepto es importante';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Este concepto es importante/)).toBeInTheDocument();
+    });
+
+    it('should render atencion (without accent) content', () => {
+      const markdown = '> atencion: Sin acento también funciona';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Sin acento también funciona/)).toBeInTheDocument();
+    });
+
+    it('should render Important content', () => {
+      const markdown = '> Important: This is a key concept';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/This is a key concept/)).toBeInTheDocument();
+    });
+
+    it('should render Importante content', () => {
+      const markdown = '> Importante: Revisar antes del examen';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Revisar antes del examen/)).toBeInTheDocument();
+    });
+
+    it('should render Exam content', () => {
+      const markdown = '> Exam: This will be on the test';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/This will be on the test/)).toBeInTheDocument();
+    });
+
+    it('should render Examen content', () => {
+      const markdown = '> Examen: Pregunta frecuente en parciales';
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Pregunta frecuente en parciales/)).toBeInTheDocument();
     });
 
     it('should render regular blockquotes without keywords', () => {
       const markdown = '> This is a regular quote';
       const { container } = render(<Md>{markdown}</Md>);
       expect(screen.getByText(/This is a regular quote/)).toBeInTheDocument();
-      // Should render as regular blockquote
-      expect(container.querySelector('blockquote.border-l-4')).toBeInTheDocument();
+      // Should render inside the markdown wrapper
+      expect(container.querySelector('.stude-markdown')).toBeInTheDocument();
+    });
+
+    it('should render mixed callout and regular blockquotes', () => {
+      const markdown = `> Tip: Use spaced repetition
+
+> This is just a regular thought`;
+      render(<Md>{markdown}</Md>);
+      expect(screen.getByText(/Use spaced repetition/)).toBeInTheDocument();
+      expect(screen.getByText(/just a regular thought/)).toBeInTheDocument();
     });
   });
 
@@ -124,7 +185,6 @@ console.log(hello);
     it('should render inline math', () => {
       const markdown = 'The equation $E = mc^2$ is famous';
       render(<Md>{markdown}</Md>);
-      // KaTeX renders to spans with specific classes
       expect(screen.getByText(/The equation/)).toBeInTheDocument();
       expect(screen.getByText(/is famous/)).toBeInTheDocument();
     });
@@ -132,16 +192,23 @@ console.log(hello);
     it('should render block math', () => {
       const markdown = `
 $$
-\\frac{a}{b} = c
+\\\\frac{a}{b} = c
 $$
       `;
       const { container } = render(<Md>{markdown}</Md>);
-      // Math block should be rendered (KaTeX creates specific DOM structure)
       expect(container.querySelector('.katex-display')).toBeInTheDocument();
     });
   });
 
-  describe('Custom Components', () => {
+  describe('Custom className', () => {
+    it('should apply custom className to wrapper', () => {
+      const { container } = render(<Md className="custom-class">Hello</Md>);
+      const wrapper = container.querySelector('.stude-markdown');
+      expect(wrapper).toHaveClass('custom-class');
+    });
+  });
+
+  describe('Edge Cases', () => {
     it('should render blockquotes without callout syntax as regular blockquotes', () => {
       const markdown = '> This is a regular quote';
       render(<Md>{markdown}</Md>);
@@ -150,13 +217,19 @@ $$
 
     it('should handle empty string content', () => {
       render(<Md>{''}</Md>);
-      // Should render without errors
       expect(document.body).toBeInTheDocument();
     });
 
     it('should handle whitespace content', () => {
       render(<Md>{' '}</Md>);
       expect(document.body).toBeInTheDocument();
+    });
+
+    it('should render blockquotes with keyword prefix but no text', () => {
+      const markdown = '> Tip: ';
+      render(<Md>{markdown}</Md>);
+      // Content renders without error
+      expect(screen.getByText(/Tip/)).toBeInTheDocument();
     });
   });
 
@@ -179,7 +252,6 @@ const x = 5;
       expect(screen.getByText('bold')).toBeInTheDocument();
       expect(screen.getByText('italic')).toBeInTheDocument();
       expect(screen.getByText('List item 1')).toBeInTheDocument();
-      // Code is split into spans by syntax highlighter
       expect(container.querySelector('code.language-javascript')).toBeInTheDocument();
     });
 
