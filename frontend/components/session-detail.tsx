@@ -89,8 +89,9 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
   // ── Focus management + scroll reset + a11y announcement ───────────────
   useEffect(() => {
-    // Reset scroll al tope
-    panelContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    // Reset scroll al tope — instant si el usuario prefiere animaciones reducidas
+    const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panelContainerRef.current?.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
 
     // Anunciar panel activo via aria-live
     if (liveRegionRef.current) {
