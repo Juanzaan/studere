@@ -13,6 +13,7 @@ import { StudySession } from "@/lib/types";
 import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
 import { validateAudioFile, getAudioCategoryEmoji, getProcessingDescription, getAudioSizeLabel } from "@/lib/audio-validation";
 import { useToastContext } from "@/components/toast-provider";
+import { SessionSkeleton } from "@/components/session-skeleton";
 
 gsap.registerPlugin(useGSAP);
 
@@ -205,6 +206,10 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
 
   return (
     <section ref={cardRef} data-tutorial="composer" className="relative rounded-panel border border-c-border bg-c-surface p-5">
+      {(aiStatus === "transcribing" || aiStatus === "generating") ? (
+        <SessionSkeleton phase={aiStatus} progressMsg={progressMsg} />
+      ) : (
+      <>
       {isCreating && (
         <div className="absolute inset-0 rounded-panel bg-c-bg/50 backdrop-blur-[1px] z-10 flex items-center justify-center cursor-not-allowed" />
       )}
@@ -369,14 +374,12 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
             disabled={isCreating || !title.trim()}
             className="inline-flex h-9 items-center gap-2 rounded-btn bg-c-blue px-4 text-[12px] font-medium text-white transition hover:opacity-90 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {aiStatus === "transcribing" || aiStatus === "generating" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : useAI && (notes.trim() || file) ? (
+            {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : useAI && (notes.trim() || file) ? (
               <Sparkles className="h-4 w-4" />
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            {aiStatus === "transcribing" ? (progressMsg || "Transcribiendo audio...") : aiStatus === "generating" ? "Generando con IA..." : isCreating ? "Creando..." : useAI && (notes.trim() || file) ? "Crear con IA" : "Crear sesión"}
+            {isCreating ? "Creando..." : useAI && (notes.trim() || file) ? "Crear con IA" : "Crear sesión"}
           </button>
 
           <label className="flex cursor-pointer items-center gap-2">
@@ -398,6 +401,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
           </p>
         </div>
       </form>
+      </>
+      )}
     </section>
   );
 }

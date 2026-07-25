@@ -9,6 +9,7 @@ import { transcribeAudio, generateStudySession } from "@/lib/api";
 import { upsertSession } from "@/lib/storage";
 import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
 import { useToastContext } from "@/components/toast-provider";
+import { SessionSkeleton } from "@/components/session-skeleton";
 
 export function AudioRecorderWidget() {
   const router = useRouter();
@@ -124,6 +125,14 @@ export function AudioRecorderWidget() {
     setElapsed(0);
   }, []);
 
+  if (state === "transcribing" || state === "generating" || state === "processing") {
+    return (
+      <div className="rounded-panel border border-c-border bg-c-surface p-5">
+        <SessionSkeleton phase={state === "processing" ? "generating" : state} />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-panel border border-c-border bg-c-surface p-4">
       <div className="flex items-center gap-3">
@@ -132,23 +141,17 @@ export function AudioRecorderWidget() {
             ? "animate-pulse bg-c-red text-white"
             : "border border-c-blue-border bg-c-blue-soft text-c-blue"
         }`}>
-          {state === "recording" ? <Mic className="h-5 w-5" /> : state === "transcribing" || state === "generating" || state === "processing" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className="h-5 w-5" />}
+          {state === "recording" ? <Mic className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
         </div>
         <div aria-live="polite" aria-atomic="true">
           <h3 className="text-[13px] font-semibold text-c-text">
             {state === "idle" && "Grabar audio"}
             {state === "recording" && "Grabando..."}
-            {state === "transcribing" && "Transcribiendo audio..."}
-            {state === "generating" && "Generando con IA..."}
-            {state === "processing" && "Procesando audio..."}
             {state === "error" && "Error de grabación"}
           </h3>
           <p className={state === "recording" ? "text-[20px] font-semibold text-c-text tabular-nums" : state === "error" ? "text-[11px] text-c-red" : "text-[11px] text-c-muted"}>
             {state === "idle" && "Captúrá audio desde tu micrófono. Ideal para clases en vivo y notas de estudio."}
             {state === "recording" && formatTime(elapsed)}
-            {state === "transcribing" && "Whisper está procesando el audio..."}
-            {state === "generating" && "Stude IA está creando tu material de estudio..."}
-            {state === "processing" && "Creando tu workspace de estudio..."}
             {state === "error" && errorMsg}
           </p>
         </div>
