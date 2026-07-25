@@ -55,7 +55,7 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
 
   return (
     <div ref={tableRef} className="overflow-hidden rounded-panel border border-c-border bg-c-surface">
-      <div className="grid grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border bg-c-surface-2 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wide text-c-muted md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_44px] gap-3 border-b border-c-border bg-c-surface-2 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wide text-c-muted md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_44px] md:gap-4">
         <span>Sesión</span>
         <span className="hidden md:block">Duración</span>
         <span className="hidden md:block">Fecha</span>
@@ -65,42 +65,45 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
       <div>
         {sessions.map((session, index) => {
           const avatarColor = AVATAR_COLORS[index % 3];
-          return (
-            <div
-              key={session.id}
-              data-session-row
-              className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
-            >
-              <Link href={`/sessions/${session.id}`} className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-btn border text-[11px] font-semibold ${avatarColor}`}>
-                    {getInitials(session.title)}
+          return (              <div
+                key={session.id}
+                data-session-row
+                className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_44px] gap-3 border-b border-c-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_44px] md:gap-4 md:py-3"
+              >
+                <Link href={`/sessions/${session.id}`} className="min-w-0">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-btn border text-[11px] font-semibold ${avatarColor} md:h-8 md:w-8`}>
+                      {getInitials(session.title)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[12px] font-medium text-c-text">{session.title}</p>
+                      <p className="truncate text-[10px] text-c-muted">{session.course || "Sin materia"}</p>
+                      {/* Mobile-only compact meta: duration · date */}
+                      <p className="mt-0.5 truncate text-[10px] text-c-muted/60 md:hidden">
+                        {session.stats.estimatedDurationMinutes} min · {new Date(session.createdAt).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-[12px] font-medium text-c-text">{session.title}</p>
-                    <p className="truncate text-[10px] text-c-muted">{session.course || "Sin materia"}</p>
-                  </div>
+                </Link>
+                <div className="hidden items-center text-[11px] text-c-muted md:flex">{session.stats.estimatedDurationMinutes} min</div>
+                <div className="hidden items-center text-[11px] text-c-muted md:flex">{new Date(session.createdAt).toLocaleDateString("es-AR")}</div>
+                <div className="hidden items-center text-[11px] text-c-muted md:flex">Tú</div>
+                <div className="flex items-center justify-end">
+                  <button
+                    onClick={(e) => {
+                      const btn = e.currentTarget.querySelector(".star-icon");
+                      if (btn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                        gsap.fromTo(btn, { scale: 1 }, { scale: 1.35, duration: 0.15, ease: "back.out(2)", yoyo: true, repeat: 1 });
+                      }
+                      onToggleStar?.(session.id);
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-btn transition-colors hover:scale-110 focus-visible:outline-none active:scale-95 md:h-8 md:w-8"
+                    aria-label={session.starred ? "Quitar de destacados" : "Destacar sesión"}
+                  >
+                    <Star className={`star-icon h-[14px] w-[14px] transition-colors ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30 group-hover:opacity-60"}`} />
+                  </button>
                 </div>
-              </Link>
-              <div className="hidden items-center text-[11px] text-c-muted md:flex">{session.stats.estimatedDurationMinutes} min</div>
-              <div className="hidden items-center text-[11px] text-c-muted md:flex">{new Date(session.createdAt).toLocaleDateString("es-AR")}</div>
-              <div className="hidden items-center text-[11px] text-c-muted md:flex">Tú</div>
-              <div className="flex items-center justify-end">
-                <button
-                  onClick={(e) => {
-                    const btn = e.currentTarget.querySelector(".star-icon");
-                    if (btn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-                      gsap.fromTo(btn, { scale: 1 }, { scale: 1.35, duration: 0.15, ease: "back.out(2)", yoyo: true, repeat: 1 });
-                    }
-                    onToggleStar?.(session.id);
-                  }}
-                  className="flex h-7 w-7 items-center justify-center rounded-btn transition-colors hover:scale-110 focus-visible:outline-none active:scale-95"
-                  aria-label={session.starred ? "Quitar de destacados" : "Destacar sesión"}
-                >
-                  <Star className={`star-icon h-[14px] w-[14px] transition-colors ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30 group-hover:opacity-60"}`} />
-                </button>
               </div>
-            </div>
           );
         })}
       </div>
