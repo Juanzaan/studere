@@ -79,6 +79,8 @@ const MOCK_SESSIONS = [
 async function seedSessions(page: Page) {
   await page.evaluate((data) => {
     localStorage.setItem("studere.sessions.v1", JSON.stringify(data));
+    // Mark tutorial as completed so the overlay doesn't block interactions
+    localStorage.setItem("studere.tutorial.completed", "true");
   }, MOCK_SESSIONS);
 }
 
@@ -381,22 +383,30 @@ test.describe("StudeChat @critical", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 test.describe("Mobile sidebar @critical", () => {
   test("Hamburger abre y cierra sidebar en mobile @critical", async ({ page }) => {
-    // Set mobile viewport
+    // Mark tutorial as completed BEFORE navigation
+    await page.addInitScript(() => {
+      localStorage.setItem("studere.tutorial.completed", "true");
+    });
+
+    // Set mobile viewport BEFORE navigation
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
 
-    const hamburger = page.locator('[aria-label="Abrir menú de navegación"]');
+    // Use aria-label*="menú de navegación" — matches both "Abrir" and "Cerrar"
+    const hamburger = page.locator('[aria-label*="menú de navegación"]');
     await expect(hamburger).toBeVisible();
     await expect(hamburger).toHaveAttribute("aria-expanded", "false");
 
     // Open
     await hamburger.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
+
+    // After click, aria-expanded becomes "true" and label changes to "Cerrar..."
     await expect(hamburger).toHaveAttribute("aria-expanded", "true");
     await expect(hamburger).toHaveAttribute("aria-label", "Cerrar menú de navegación");
 
-    // Sidebar should be visible
+    // Sidebar should now be visible (translate-x-0)
     await expect(page.locator("aside")).toBeVisible();
 
     // Close by clicking a nav link
@@ -423,11 +433,12 @@ test.describe("Search @critical", () => {
   });
 
   test("Input de búsqueda tiene aria-label @critical", async ({ page }) => {
-    await expect(page.locator('[aria-label="Buscar sesiones en la biblioteca"]')).toBeVisible();
+    const searchInput = page.locator('[aria-label="Buscar sesiones en la biblioteca"]').last();
+    await expect(searchInput).toBeVisible();
   });
 
   test("Búsqueda filtra sesiones @critical", async ({ page }) => {
-    const searchInput = page.locator('[aria-label="Buscar sesiones en la biblioteca"]');
+    const searchInput = page.locator('[aria-label="Buscar sesiones en la biblioteca"]').last();
     await searchInput.fill("Neurociencia");
     await page.waitForTimeout(300);
 
