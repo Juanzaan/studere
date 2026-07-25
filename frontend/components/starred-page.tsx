@@ -9,7 +9,7 @@ export function StarredPage() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState(() => getSessions());
 
-  useFadeInStagger(headerRef, ".starred-header", { y: 16, stagger: 0.06, duration: 0.5 });
+  useFadeInStagger(headerRef, ".starred-header", { y: 16, stagger: 0.06, duration: 0.5, scale: 0.96, ease: "smooth" });
   const starred = sessions.filter((session) => session.starred);
 
   useEffect(() => {

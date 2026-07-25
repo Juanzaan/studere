@@ -24,9 +24,9 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const [libFilter, setLibFilter] = useState<LibraryFilter>("all");
 
-  useFadeInStagger(headerRef, ".lib-header", { y: 16, stagger: 0.06, duration: 0.5 });
-  useFadeInStagger(filtersRef, ".lib-filter", { y: 8, stagger: 0.04, duration: 0.35, delay: 0.15 });
-  useFadeInStagger(searchRef, ".lib-search", { y: 8, duration: 0.4, delay: 0.3 });
+  useFadeInStagger(headerRef, ".lib-header", { y: 16, stagger: 0.06, duration: 0.5, scale: 0.96, ease: "smooth" });
+  useFadeInStagger(filtersRef, ".lib-filter", { y: 8, stagger: 0.04, duration: 0.35, delay: 0.15, ease: "smooth" });
+  useFadeInStagger(searchRef, ".lib-search", { y: 8, duration: 0.4, delay: 0.3, ease: "smooth" });
   const query = localQuery.trim().toLowerCase();
 
   useEffect(() => {

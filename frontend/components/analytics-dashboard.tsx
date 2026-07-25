@@ -55,9 +55,9 @@ export function AnalyticsDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  useFadeInStagger(headerRef, ".analytics-header", { y: 16, stagger: 0.06, duration: 0.5 });
-  useFadeInStagger(statCardsRef, ".analytics-stat", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2 });
-  useFadeInStagger(chartGridRef, ".analytics-chart", { y: 12, stagger: 0.06, duration: 0.45, delay: 0.3 });
+  useFadeInStagger(headerRef, ".analytics-header", { y: 16, stagger: 0.06, duration: 0.5, scale: 0.96, ease: "smooth" });
+  useFadeInStagger(statCardsRef, ".analytics-stat", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2, scale: 0.96, ease: "smooth" });
+  useFadeInStagger(chartGridRef, ".analytics-chart", { y: 12, stagger: 0.06, duration: 0.45, delay: 0.3, scale: 0.96, ease: "smooth" });
 
   useEffect(() => {
     function syncAnalytics() {
@@ -272,7 +272,7 @@ export function AnalyticsDashboard() {
                       labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
                       itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
                     />
-                    <Area type="monotone" dataKey="porcentaje" stroke="#4f7cff" fill="#e0e8ff" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
+                    <Area type="monotone" dataKey="porcentaje" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (

@@ -9,37 +9,31 @@ const INTEGRATIONS = [
     name: "Google Calendar",
     description: "Detecta próximas clases y prepara la captura automática.",
     icon: Calendar,
-    accent: "bg-sky-50 text-sky-600",
   },
   {
     name: "Microsoft Outlook",
     description: "Ideal para horarios académicos, tutorías y reuniones de equipo.",
     icon: Calendar,
-    accent: "bg-indigo-50 text-indigo-600",
   },
   {
     name: "Google Drive / Dropbox",
     description: "Trae grabaciones y transcribe contenido remoto desde archivos compartidos.",
     icon: Cloud,
-    accent: "bg-emerald-50 text-emerald-600",
   },
   {
     name: "Slack / Discord",
     description: "Comparte AI notes, tareas y resúmenes con tus grupos de estudio.",
     icon: MessageSquareShare,
-    accent: "bg-violet-50 text-violet-600",
   },
   {
     name: "Chrome Extension",
     description: "Captura contenido y abre Studere desde el navegador con un click.",
     icon: Chrome,
-    accent: "bg-amber-50 text-amber-600",
   },
   {
     name: "Automatizaciones",
     description: "Dispara resúmenes, exportaciones y flujos post-clase automáticamente.",
     icon: Workflow,
-    accent: "bg-rose-50 text-rose-600",
   },
 ];
 
@@ -50,7 +44,7 @@ export function IntegrationsPage() {
   const [connecting, setConnecting] = useState<string | null>(null);
 
   useFadeInStagger(headerRef, ".int-header", { y: 16, stagger: 0.06, duration: 0.5 });
-  useFadeInStagger(gridRef, ".int-card", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2 });
+  useFadeInStagger(gridRef, ".int-card", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2, scale: 0.96, ease: "smooth" });
 
   function handleConnect(name: string) {
     setConnecting(name);
@@ -60,34 +54,34 @@ export function IntegrationsPage() {
   }
 
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-7 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-      <div ref={headerRef}>
-        <h1 className="int-header text-2xl font-semibold text-slate-900 dark:text-slate-100">Integraciones</h1>
-        <p className="int-header mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+    <div className="rounded-panel border border-c-border bg-c-surface p-5">
+      <div ref={headerRef} className="space-y-3">
+        <h1 className="int-header text-[16px] font-semibold text-c-text">Integraciones</h1>
+        <p className="int-header max-w-3xl text-[12px] leading-relaxed text-c-muted">
           Tu estudio no es un silo: conecta Studere con calendario, archivos, automatizaciones y canales compartidos.
         </p>
         {!FEATURE_ENABLED && (
-          <div className="int-header mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+          <div className="int-header rounded-card border border-c-amber/20 bg-c-amber-soft px-4 py-3 text-[12px] text-c-amber">
             Las integraciones están en desarrollo. Estarán disponibles próximamente.
           </div>
         )}
       </div>
 
-      <div ref={gridRef} className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div ref={gridRef} className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {INTEGRATIONS.map((integration) => {
           const Icon = integration.icon;
 
           return (
-            <div key={integration.name} className="int-card rounded-[24px] border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card dark:border-slate-700 dark:bg-slate-900">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${integration.accent}`}>
-                <Icon className="h-5 w-5" />
+            <div key={integration.name} className="int-card rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
+              <div className="flex h-10 w-10 items-center justify-center rounded-btn border border-c-blue-border bg-c-blue-soft text-c-blue">
+                <Icon className="h-[18px] w-[18px]" />
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{integration.description}</p>
+              <h2 className="mt-3 text-[13px] font-semibold text-c-text">{integration.name}</h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-c-muted">{integration.description}</p>
               <button
                 onClick={FEATURE_ENABLED ? () => handleConnect(integration.name) : undefined}
                 disabled={!FEATURE_ENABLED || connecting === integration.name}
-                className="mt-4 inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500 dark:hover:bg-violet-900/30 dark:hover:text-violet-400"
+                className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-btn border border-c-border bg-c-surface-2 px-4 text-[11px] font-semibold text-c-muted transition-colors hover:bg-c-blue-soft hover:text-c-blue focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {!FEATURE_ENABLED ? "Próximamente" : connecting === integration.name ? "Conectando..." : "Conectar"}
               </button>
