@@ -4,9 +4,10 @@ import { memo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Sparkles, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { StudySession } from "@/lib/types";
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
+import { IllustrationScene } from "@/components/illustration-scene";
 
 gsap.registerPlugin(useGSAP);
 
@@ -34,12 +35,18 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
 
   if (sessions.length === 0) {
     return (
-      <div className="rounded-panel border border-dashed border-c-border bg-c-surface p-12 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-panel bg-c-violet-soft text-c-violet">
-          <Sparkles className="h-5 w-5" />
+      <div className="rounded-panel border border-dashed border-c-border bg-c-surface px-8 py-10 text-center">
+        <div className="mx-auto w-40">
+          <IllustrationScene
+            src="placeholder-empty"
+            animation={{
+              delay: 0.1,
+              floatLayers: ["dots"],
+            }}
+          />
         </div>
-        <h3 className="mt-4 text-[13px] font-semibold text-c-text">{emptyTitle}</h3>
-        <p className="mx-auto mt-2 max-w-md text-[12px] leading-relaxed text-c-muted">{emptyDescription}</p>
+        <h3 className="mt-2 text-[13px] font-semibold text-c-text">{emptyTitle}</h3>
+        <p className="mx-auto mt-1 max-w-md text-[12px] leading-relaxed text-c-muted">{emptyDescription}</p>
       </div>
     );
   }
