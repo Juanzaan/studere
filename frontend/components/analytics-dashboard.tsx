@@ -181,7 +181,7 @@ export function AnalyticsDashboard() {
       <div ref={chartGridRef} className="grid gap-4 xl:grid-cols-2">
         <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Sesiones y repasos · últimos 7 días</h2>
-          <div className="mt-4 h-48 sm:h-64">
+          <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de sesiones y repasos en los últimos 7 días">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={sessionsByDay}>
@@ -209,7 +209,7 @@ export function AnalyticsDashboard() {
 
         <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Distribución por materia</h2>
-          <div className="mt-4 h-48 sm:h-64">
+          <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico circular de distribución de sesiones por materia">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -256,7 +256,7 @@ export function AnalyticsDashboard() {
         {recentQuizAttempts.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Evolución de quiz</h2>
-            <div className="mt-4 h-48 sm:h-64">
+            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de evolución de resultados en quizzes">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={recentQuizAttempts}>
@@ -285,7 +285,7 @@ export function AnalyticsDashboard() {
         {topConcepts.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Conceptos más frecuentes</h2>
-            <div className="mt-4 h-48 sm:h-64">
+            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de barras de conceptos más frecuentes">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topConcepts} layout="vertical">
@@ -318,7 +318,7 @@ export function AnalyticsDashboard() {
         {studyMix.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Mix de estudio</h2>
-            <div className="mt-4 h-48 sm:h-64">
+            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico circular de mix de estudio">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

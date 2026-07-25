@@ -196,6 +196,7 @@ export function DashboardHome() {
                         ? "border border-c-blue-border bg-c-blue-soft text-c-blue"
                         : "border border-c-border text-c-muted hover:bg-c-surface-2"
                     }`}
+                    aria-pressed={recordFilter === f.key}
                   >
                     {f.label}
                   </button>
@@ -239,7 +240,7 @@ export function DashboardHome() {
               <span className="text-[20px] font-semibold text-c-text">{minutesUsed}</span>
               <span className="text-[12px] text-c-muted">/ {FREE_PLAN_MINUTES} min</span>
             </div>
-            <div className="mt-3 h-[4px] rounded-full bg-c-surface-2">
+            <div className="mt-3 h-[4px] rounded-full bg-c-surface-2" role="progressbar" aria-valuenow={minutesUsed} aria-valuemin={0} aria-valuemax={FREE_PLAN_MINUTES} aria-label="Minutos usados del plan gratuito">
               <div className="h-full rounded-full bg-c-blue" style={{ width: `${Math.min(100, (minutesUsed / FREE_PLAN_MINUTES) * 100)}%` }} />
             </div>
             <p className="mt-3 text-[10px] text-c-muted">

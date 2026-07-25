@@ -149,7 +149,10 @@ export function AudioRecorderWidget() {
             {state === "recording" && "Grabando..."}
             {state === "error" && "Error de grabación"}
           </h3>
-          <p className={state === "recording" ? "text-[20px] font-semibold text-c-text tabular-nums" : state === "error" ? "text-[11px] text-c-red" : "text-[11px] text-c-muted"}>
+          <p className={state === "recording" ? "text-[20px] font-semibold text-c-text tabular-nums" : state === "error" ? "text-[11px] text-c-red" : "text-[11px] text-c-muted"}
+             role={state === "recording" ? "timer" : undefined}
+             aria-label={state === "recording" ? `Tiempo de grabación: ${formatTime(elapsed)}` : undefined}
+          >
             {state === "idle" && "Captúrá audio desde tu micrófono. Ideal para clases en vivo y notas de estudio."}
             {state === "recording" && formatTime(elapsed)}
             {state === "error" && errorMsg}

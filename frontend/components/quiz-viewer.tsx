@@ -80,7 +80,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
             </button>
           )}
         </div>
-        <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-c-surface-2">
+        <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-c-surface-2" role="progressbar" aria-valuenow={totalAnswered} aria-valuemin={0} aria-valuemax={quiz.length} aria-label={allDone ? `Quiz completado: ${correctCount} de ${quiz.length} correctas` : `${totalAnswered} de ${quiz.length} respondidas`}>
           <div
             className="h-full rounded-full bg-c-blue transition-all duration-500"
             style={{ width: `${(totalAnswered / quiz.length) * 100}%` }}

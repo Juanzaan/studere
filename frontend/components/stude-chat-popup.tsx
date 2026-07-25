@@ -268,7 +268,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
       {!minimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 space-y-2 overflow-y-auto p-3">
+          <div className="flex-1 space-y-2 overflow-y-auto p-3" aria-live="polite" aria-atomic="false" aria-relevant="additions">
             {chatHistory.map((msg) => (
               <div
                 key={msg.id}
@@ -296,11 +296,10 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
                 )}
               </div>
             ))}
-            {thinking && (
-              <div className="flex items-center gap-2 rounded-card border border-c-border bg-c-surface-2 px-3.5 py-2.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-c-blue" />
-                <span className="text-[11px] text-c-muted">Stude está pensando…</span>
-              </div>
+            {thinking && (                <div className="flex items-center gap-2 rounded-card border border-c-border bg-c-surface-2 px-3.5 py-2.5" role="status">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-c-blue" aria-hidden="true" />
+                  <span className="text-[11px] text-c-muted">Stude está pensando…</span>
+                </div>
             )}
             <div ref={chatEndRef} />
           </div>

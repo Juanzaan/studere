@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, X } from "lucide-react";
 import {
   ReactFlow,
@@ -131,6 +131,24 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
     setEdges(result.edges);
   }, [mindMap, setNodes, setEdges]);
 
+  // Add aria-labels to ReactFlow Control buttons
+  const controlsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!controlsRef.current) return;
+    const container = controlsRef.current;
+    const observer = new MutationObserver(() => {
+      const zoomIn = container.querySelector(".react-flow__controls-zoomin");
+      const zoomOut = container.querySelector(".react-flow__controls-zoomout");
+      const fitView = container.querySelector(".react-flow__controls-fitview");
+      if (zoomIn && !zoomIn.getAttribute("aria-label")) zoomIn.setAttribute("aria-label", "Acercar");
+      if (zoomOut && !zoomOut.getAttribute("aria-label")) zoomOut.setAttribute("aria-label", "Alejar");
+      if (fitView && !fitView.getAttribute("aria-label")) fitView.setAttribute("aria-label", "Ajustar vista");
+    });
+    observer.observe(container, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   const toggleFullscreen = useCallback(() => setFullscreen((v) => !v), []);
 
   useEffect(() => {
@@ -157,7 +175,9 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--c-border)" />
-        <Controls showInteractive={false} className="!rounded-card !border-c-border !shadow-none [&>button]:bg-c-surface [&>button]:text-c-muted [&>button]:hover:bg-c-surface-2 [&>button]:border-b [&>button]:border-c-border [&>button]:focus-visible:outline-none" />
+        <div ref={controlsRef}>
+          <Controls showInteractive={false} className="!rounded-card !border-c-border !shadow-none [&>button]:bg-c-surface [&>button]:text-c-muted [&>button]:hover:bg-c-surface-2 [&>button]:border-b [&>button]:border-c-border [&>button]:focus-visible:outline-none" />
+        </div>
         {fullscreen && (
           <MiniMap
             nodeColor={(n) => accentFor(n.data?.accent as string).ring}

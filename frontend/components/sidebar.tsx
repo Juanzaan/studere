@@ -106,6 +106,7 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
+        aria-label="Navegación principal"
         className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-c-border bg-c-surface transition-[width] duration-200 ease-in-out lg:sticky lg:top-0 lg:h-screen ${
           collapsed ? "w-[52px]" : "w-[280px] lg:w-[224px]"
         } ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}

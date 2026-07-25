@@ -130,7 +130,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
           <span>{index + 1} de {total}</span>
           <span>{progress}%</span>
         </div>
-        <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-c-surface-2">
+        <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-c-surface-2" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progreso de flashcards">
           <div className="h-full rounded-full bg-c-blue transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>

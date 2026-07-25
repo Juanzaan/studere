@@ -55,23 +55,40 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
 
   return (
     <div ref={tableRef} className="overflow-hidden rounded-panel border border-c-border bg-c-surface">
-      <div className="grid grid-cols-[minmax(0,1fr)_44px] gap-3 border-b border-c-border bg-c-surface-2 px-4 py-2.5 text-[10px] font-medium uppercase tracking-wide text-c-muted md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_44px] md:gap-4">
-        <span>Sesión</span>
-        <span className="hidden md:block">Duración</span>
-        <span className="hidden md:block">Fecha</span>
-        <span className="hidden md:block">Creador</span>
-        <span className="text-right">Fav</span>
-      </div>
-      <div>
-        {sessions.map((session, index) => {
-          const avatarColor = AVATAR_COLORS[index % 3];
-          return (              <div
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-c-border bg-c-surface-2">
+            <th scope="col" className="px-4 py-2.5 text-left text-[10px] font-medium uppercase tracking-wide text-c-muted">
+              Sesión
+            </th>
+            <th scope="col" className="hidden px-4 py-2.5 text-left text-[10px] font-medium uppercase tracking-wide text-c-muted md:table-cell">
+              Duración
+            </th>
+            <th scope="col" className="hidden px-4 py-2.5 text-left text-[10px] font-medium uppercase tracking-wide text-c-muted md:table-cell">
+              Fecha
+            </th>
+            <th scope="col" className="hidden px-4 py-2.5 text-left text-[10px] font-medium uppercase tracking-wide text-c-muted md:table-cell">
+              Creador
+            </th>
+            <th scope="col" className="px-4 py-2.5 text-right text-[10px] font-medium uppercase tracking-wide text-c-muted">
+              Fav
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {sessions.map((session, index) => {
+            const avatarColor = AVATAR_COLORS[index % 3];
+            return (
+              <tr
                 key={session.id}
                 data-session-row
-                className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_44px] gap-3 border-b border-c-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_44px] md:gap-4 md:py-3"
+                className="group border-b border-c-border transition-colors last:border-b-0 hover:bg-c-surface-2"
               >
-                <Link href={`/sessions/${session.id}`} className="min-w-0">
-                  <div className="flex items-center gap-3">
+                <td className="px-4 py-3.5 md:py-3">
+                  <Link
+                    href={`/sessions/${session.id}`}
+                    className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-c-blue focus-visible:ring-inset rounded-btn"
+                  >
                     <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-btn border text-[11px] font-semibold ${avatarColor} md:h-8 md:w-8`}>
                       {getInitials(session.title)}
                     </div>
@@ -83,12 +100,18 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
                         {session.stats.estimatedDurationMinutes} min · {new Date(session.createdAt).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
                       </p>
                     </div>
-                  </div>
-                </Link>
-                <div className="hidden items-center text-[11px] text-c-muted md:flex">{session.stats.estimatedDurationMinutes} min</div>
-                <div className="hidden items-center text-[11px] text-c-muted md:flex">{new Date(session.createdAt).toLocaleDateString("es-AR")}</div>
-                <div className="hidden items-center text-[11px] text-c-muted md:flex">Tú</div>
-                <div className="flex items-center justify-end">
+                  </Link>
+                </td>
+                <td className="hidden px-4 py-3.5 align-middle text-[11px] text-c-muted md:table-cell md:py-3">
+                  {session.stats.estimatedDurationMinutes} min
+                </td>
+                <td className="hidden px-4 py-3.5 align-middle text-[11px] text-c-muted md:table-cell md:py-3">
+                  {new Date(session.createdAt).toLocaleDateString("es-AR")}
+                </td>
+                <td className="hidden px-4 py-3.5 align-middle text-[11px] text-c-muted md:table-cell md:py-3">
+                  Tú
+                </td>
+                <td className="px-4 py-3.5 align-middle text-right md:py-3">
                   <button
                     onClick={(e) => {
                       const btn = e.currentTarget.querySelector(".star-icon");
@@ -102,11 +125,12 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
                   >
                     <Star className={`star-icon h-[14px] w-[14px] transition-colors ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30 group-hover:opacity-60"}`} />
                   </button>
-                </div>
-              </div>
-          );
-        })}
-      </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 });

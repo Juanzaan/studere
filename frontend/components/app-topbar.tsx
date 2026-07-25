@@ -70,7 +70,7 @@ export const AppTopbar = memo(function AppTopbar() {
       <div className="flex h-[52px] items-center gap-3 px-4 sm:px-5">
         <form onSubmit={handleSubmit} className="flex min-w-0 flex-1 items-center gap-3">
           <label className="relative flex min-w-0 flex-1 items-center">
-            <Search className="pointer-events-none absolute left-[9px] h-[13px] w-[13px] text-c-muted" />
+            <Search className="pointer-events-none absolute left-[9px] h-[13px] w-[13px] text-c-muted" aria-hidden="true" />
             <input
               ref={searchRef}
               value={query}
@@ -89,8 +89,8 @@ export const AppTopbar = memo(function AppTopbar() {
             <Sparkles className="h-[12px] w-[12px]" />
             Stude
           </div>
-          <button className="inline-flex h-[28px] items-center gap-[5px] rounded-btn border border-c-border px-[10px] text-[11px] font-medium text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none">
-            <Crown className="h-[12px] w-[12px]" />
+          <button className="inline-flex h-[28px] items-center gap-[5px] rounded-btn border border-c-border px-[10px] text-[11px] font-medium text-c-muted transition-colors hover:bg-c-surface-2 focus-visible:outline-none" aria-label="Iniciar prueba gratuita">
+            <Crown className="h-[12px] w-[12px]" aria-hidden="true" />
             Iniciar prueba
           </button>
         </div>

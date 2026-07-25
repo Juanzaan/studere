@@ -77,6 +77,7 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
                 ? "border border-c-blue-border bg-c-blue-soft text-c-blue"
                 : "border border-c-border text-c-muted hover:bg-c-surface-2"
             }`}
+            aria-pressed={libFilter === f.key}
           >
             {f.label}
           </button>
@@ -89,6 +90,7 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
           value={localQuery}
           onChange={(e) => setLocalQuery(e.target.value)}
           placeholder="Buscar sesiones..."
+          aria-label="Buscar sesiones en la biblioteca"
           className="lib-search h-[34px] w-full rounded-input border border-c-border bg-c-surface-2 pl-[28px] pr-3 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:ring-1 focus:ring-c-blue-border"
         />
       </div>
