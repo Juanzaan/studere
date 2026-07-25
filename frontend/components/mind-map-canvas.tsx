@@ -18,12 +18,12 @@ import {
 import "@xyflow/react/dist/style.css";
 import { MindMapNode } from "@/lib/types";
 
-/* ─── colour palette keyed by accent ─── */
+/* ─── colour palette keyed by accent — uses CSS vars for auto dark mode ─── */
 const ACCENT_STYLES: Record<string, { bg: string; border: string; text: string; ring: string }> = {
-  violet: { bg: "bg-violet-100", border: "border-violet-300", text: "text-violet-900", ring: "#7c3aed" },
-  blue:   { bg: "bg-sky-100",    border: "border-sky-300",    text: "text-sky-900",    ring: "#0284c7" },
-  green:  { bg: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-900", ring: "#059669" },
-  amber:  { bg: "bg-amber-100",  border: "border-amber-300",  text: "text-amber-900",  ring: "#d97706" },
+  violet: { bg: "bg-c-violet-soft", border: "border-c-violet-border", text: "text-c-violet", ring: "var(--c-violet)" },
+  blue:   { bg: "bg-c-blue-soft",   border: "border-c-blue-border",   text: "text-c-blue",   ring: "var(--c-blue)" },
+  green:  { bg: "bg-c-teal-soft",   border: "border-c-teal-border",   text: "text-c-teal",   ring: "var(--c-teal)" },
+  amber:  { bg: "bg-c-amber-soft",  border: "border-c-amber/20",      text: "text-c-amber",  ring: "var(--c-amber)" },
 };
 
 function accentFor(accent?: string) {
@@ -34,21 +34,16 @@ function accentFor(accent?: string) {
 function MindMapNodeComponent({ data }: { data: { label: string; accent?: string; isRoot?: boolean } }) {
   const style = accentFor(data.accent);
 
-  const accent = data.accent || "violet";
-  const darkBg = { violet: "rgba(139,92,246,0.15)", blue: "rgba(14,165,233,0.15)", green: "rgba(16,185,129,0.15)", amber: "rgba(245,158,11,0.15)" }[accent] ?? "rgba(139,92,246,0.15)";
-  const darkBorder = { violet: "rgba(139,92,246,0.4)", blue: "rgba(14,165,233,0.4)", green: "rgba(16,185,129,0.4)", amber: "rgba(245,158,11,0.4)" }[accent] ?? "rgba(139,92,246,0.4)";
-  const darkText = { violet: "#c4b5fd", blue: "#7dd3fc", green: "#6ee7b7", amber: "#fcd34d" }[accent] ?? "#c4b5fd";
-
   return (
     <div
-      className={`rounded-2xl border px-3 py-2 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border} dark:bg-transparent`}
-      style={{ maxWidth: 260, minWidth: data.isRoot ? 200 : 140, padding: '8px 12px', backgroundColor: darkBg, borderColor: darkBorder }}
+      className={`rounded-card border px-3 py-2 text-center shadow-sm transition-shadow hover:shadow-md ${style.bg} ${style.border}`}
+      style={{ maxWidth: 260, minWidth: data.isRoot ? 200 : 140, padding: '8px 12px' }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
-      <p className={`text-[11px] font-semibold leading-snug ${style.text} ${data.isRoot ? "text-[13px]" : ""}`} style={{ color: darkText }}>
+      <Handle type="target" position={Position.Top} className="!bg-c-border !w-2 !h-2" />
+      <p className={`text-[11px] font-semibold leading-snug ${style.text} ${data.isRoot ? "text-[13px]" : ""}`}>
         {data.label}
       </p>
-      <Handle type="source" position={Position.Bottom} className="!bg-slate-300 !w-2 !h-2 dark:!bg-slate-600" />
+      <Handle type="source" position={Position.Bottom} className="!bg-c-border !w-2 !h-2" />
     </div>
   );
 }
@@ -161,12 +156,12 @@ export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(148,163,184,0.15)" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--c-border)" />
         <Controls showInteractive={false} className="!rounded-card !border-c-border !shadow-none [&>button]:bg-c-surface [&>button]:text-c-muted [&>button]:hover:bg-c-surface-2 [&>button]:border-b [&>button]:border-c-border [&>button]:focus-visible:outline-none" />
         {fullscreen && (
           <MiniMap
             nodeColor={(n) => accentFor(n.data?.accent as string).ring}
-            maskColor="rgba(248,250,255,0.8)"
+            maskColor="var(--c-bg)"
             className="!rounded-card !border-c-border !shadow-none !bg-c-surface-2"
           />
         )}

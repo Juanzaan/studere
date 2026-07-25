@@ -157,7 +157,7 @@ export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps)
               </div>
             ) : (
               /* ── Legacy fallback (no options) — show explanation as text ── */
-              <div className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              <div className="mt-3 text-[12px] text-c-muted">
                 <Md>{item.explanation || ""}</Md>
               </div>
             )}
