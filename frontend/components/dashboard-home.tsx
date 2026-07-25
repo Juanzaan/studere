@@ -53,7 +53,7 @@ function greetingByHour() {
 export function DashboardHome() {
   const heroRef = useRef<HTMLDivElement>(null);
   const quickActionsRef = useRef<HTMLDivElement>(null);
-  const statCardsRef = useRef<HTMLDivElement>(null);
+  const statCardsRef = useRef<HTMLDListElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);
   const rightColumnRef = useRef<HTMLDivElement>(null);
 
@@ -158,20 +158,20 @@ export function DashboardHome() {
               <p className="text-[12px] font-medium text-c-text">Resumen de actividad</p>
               <Link href="/analytics" className="text-[11px] text-c-muted transition-colors hover:text-c-text">Ver todo</Link>
             </div>
-            <div ref={statCardsRef} className="mt-3 grid grid-cols-3 gap-3">
+            <dl ref={statCardsRef} className="mt-3 grid grid-cols-3 gap-3">
               <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
-                <p className="text-[20px] font-semibold text-c-blue">{sessions.length}</p>
-                <p className="text-[10px] text-c-muted">Sesiones</p>
+                <dt className="text-[10px] text-c-muted">Sesiones</dt>
+                <dd className="m-0 text-[20px] font-semibold text-c-blue">{sessions.length}</dd>
               </div>
               <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
-                <p className="text-[20px] font-semibold text-c-teal">{flashcardsReviewed}</p>
-                <p className="text-[10px] text-c-muted">Flashcards</p>
+                <dt className="text-[10px] text-c-muted">Flashcards</dt>
+                <dd className="m-0 text-[20px] font-semibold text-c-teal">{flashcardsReviewed}</dd>
               </div>
               <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
-                <p className="text-[20px] font-semibold text-c-violet">{quizAttemptsCount}</p>
-                <p className="text-[10px] text-c-muted">Quizzes</p>
+                <dt className="text-[10px] text-c-muted">Quizzes</dt>
+                <dd className="m-0 text-[20px] font-semibold text-c-violet">{quizAttemptsCount}</dd>
               </div>
-            </div>
+            </dl>
             <div className="mt-3 rounded-card border border-c-amber/20 bg-c-amber-soft p-3">
               <div className="flex items-center gap-2">
                 <span className="text-[22px] font-bold text-c-amber">🔥 {streak}</span>

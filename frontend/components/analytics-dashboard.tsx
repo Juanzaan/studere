@@ -38,7 +38,7 @@ function useDarkMode() {
 
 export function AnalyticsDashboard() {
   const headerRef = useRef<HTMLDivElement>(null);
-  const statCardsRef = useRef<HTMLDivElement>(null);
+  const statCardsRef = useRef<HTMLDListElement>(null);
   const chartGridRef = useRef<HTMLDivElement>(null);
 
   const [sessions, setSessions] = useState<StudySession[]>([]);
@@ -158,25 +158,25 @@ export function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div ref={statCardsRef} className="grid gap-4 grid-cols-2 sm:grid-cols-2 xl:grid-cols-4">
+      <dl ref={statCardsRef} className="grid gap-4 grid-cols-2 sm:grid-cols-2 xl:grid-cols-4">
         <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</p>
-          <p className="text-[20px] font-semibold text-c-text">{totalSessions}</p>
+          <dt className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</dt>
+          <dd className="m-0 text-[20px] font-semibold text-c-text">{totalSessions}</dd>
         </div>
         <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo</p>
-          <p className="text-[20px] font-semibold text-c-text">{totalMinutes} min</p>
+          <dt className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo</dt>
+          <dd className="m-0 text-[20px] font-semibold text-c-text">{totalMinutes} min</dd>
         </div>
         <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Quiz</p>
-          <p className="text-[20px] font-semibold text-c-text">{avgQuizScore}%</p>
+          <dt className="text-[10px] uppercase tracking-wide text-c-muted">Quiz</dt>
+          <dd className="m-0 text-[20px] font-semibold text-c-text">{avgQuizScore}%</dd>
         </div>
         <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards</p>
-          <p className="text-[20px] font-semibold text-c-text">{totalReviews}</p>
+          <dt className="text-[10px] uppercase tracking-wide text-c-muted">Cards</dt>
+          <dd className="m-0 text-[20px] font-semibold text-c-text">{totalReviews}</dd>
           <p className="text-[9px] text-c-muted leading-tight">{totalWords.toLocaleString()} palabras</p>
         </div>
-      </div>
+      </dl>
 
       <div ref={chartGridRef} className="grid gap-4 xl:grid-cols-2">
         <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
