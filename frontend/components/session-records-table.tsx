@@ -36,6 +36,8 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
   if (sessions.length === 0) {
     return (
       <div className="rounded-panel border border-dashed border-c-border bg-c-surface px-8 py-10 text-center">
+        {/* TODO: Replace placeholder-empty with Blush SVG when available.
+            Keep data-layer-name convention for animation support. */}
         <div className="mx-auto w-40">
           <IllustrationScene
             src="placeholder-empty"

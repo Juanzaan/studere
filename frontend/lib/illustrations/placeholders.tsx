@@ -2,7 +2,15 @@
  * Placeholder SVG illustrations for the IllustrationScene component.
  * Each layer is a <g data-layer-name="..."> so GSAP can target them individually.
  *
- * When you get your Blush SVGs, replace these. Keep the data-layer-name convention.
+ * TODO: Replace these placeholders with Blush SVGs when available.
+ * Keep the data-layer-name and data-layer-skip convention.
+ *
+ * Blush export steps:
+ * 1. Design character/scene in Blush.design
+ * 2. Export as SVG with separate layers
+ * 3. Add data-layer-name="..." to each <g>
+ * 4. Replace the JSX below with the new SVG
+ * 5. Adjust animation options in IllustrationScene
  */
 
 export function PlaceholderStudy({ className }: { className?: string }) {
