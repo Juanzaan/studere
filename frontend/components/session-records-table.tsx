@@ -60,7 +60,7 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
             <div
               key={session.id}
               data-session-row
-              className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-all duration-200 last:border-b-0 hover:bg-c-surface-2 hover:shadow-[inset_2px_0_0_0_var(--color-blue)] md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
+              className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
             >
               <Link href={`/sessions/${session.id}`} className="min-w-0">
                 <div className="flex items-center gap-3">

@@ -36,7 +36,7 @@ export function UpcomingPage() {
 
       <div ref={itemsRef} className="space-y-3">
         {UPCOMING_ITEMS.map((item) => (
-          <div key={item.title} className="upcoming-item rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-sm">
+          <div key={item.title} className="upcoming-item rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
             <div className="flex flex-wrap items-center gap-2">
               <Clock3 className="h-[12px] w-[12px] text-c-muted" />
               <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">{item.time}</span>
@@ -47,7 +47,7 @@ export function UpcomingPage() {
         ))}
       </div>
 
-      <div ref={calendarRef} className="upcoming-cal rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-sm">
+      <div ref={calendarRef} className="upcoming-cal rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
         <h3 className="text-[13px] font-medium text-c-text">Conectá tu calendario</h3>
         <p className="mt-1 text-[12px] leading-relaxed text-c-muted">Sincronizá Google Calendar u Outlook para detectar clases futuras.</p>
         <div className="mt-3 space-y-2">

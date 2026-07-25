@@ -159,15 +159,15 @@ export function DashboardHome() {
               <Link href="/analytics" className="text-[11px] text-c-muted transition-colors hover:text-c-text">Ver todo</Link>
             </div>
             <div ref={statCardsRef} className="mt-3 grid grid-cols-3 gap-3">
-              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
                 <p className="text-[20px] font-semibold text-c-blue">{sessions.length}</p>
                 <p className="text-[10px] text-c-muted">Sesiones</p>
               </div>
-              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
                 <p className="text-[20px] font-semibold text-c-teal">{flashcardsReviewed}</p>
                 <p className="text-[10px] text-c-muted">Flashcards</p>
               </div>
-              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 card-interactive">
                 <p className="text-[20px] font-semibold text-c-violet">{quizAttemptsCount}</p>
                 <p className="text-[10px] text-c-muted">Quizzes</p>
               </div>
@@ -213,7 +213,7 @@ export function DashboardHome() {
 
         {/* RIGHT */}
         <div ref={rightColumnRef} className="space-y-4">
-          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-250 hover:-translate-y-[1px] hover:shadow-sm">
+          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
             <div className="inline-flex items-center gap-[5px] rounded-pill border border-c-blue-border bg-c-blue-soft px-2 py-1 text-[10px] text-c-blue">
               <Sparkles className="h-3 w-3" />
               Stude IA
@@ -233,7 +233,7 @@ export function DashboardHome() {
             </Link>
           </section>
 
-          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-250 hover:-translate-y-[1px] hover:shadow-sm">
+          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
             <p className="text-[11px] font-medium text-c-text">Plan gratuito</p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-[20px] font-semibold text-c-text">{minutesUsed}</span>

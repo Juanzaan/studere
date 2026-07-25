@@ -145,19 +145,19 @@ export function AnalyticsDashboard() {
       </div>
 
       <div ref={statCardsRef} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</p>
           <p className="text-[20px] font-semibold text-c-text">{totalSessions}</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo de estudio</p>
           <p className="text-[20px] font-semibold text-c-text">{totalMinutes} min</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Precisión en quiz</p>
           <p className="text-[20px] font-semibold text-c-text">{avgQuizScore}%</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards repasadas</p>
           <p className="text-[20px] font-semibold text-c-text">{totalReviews}</p>
           <p className="text-[10px] text-c-muted">{totalWords.toLocaleString()} palabras procesadas</p>
