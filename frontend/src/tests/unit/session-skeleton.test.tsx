@@ -39,11 +39,11 @@ describe("SessionSkeleton", () => {
       expect(getByText("Generando con IA...")).toBeTruthy();
     });
 
-    it("should mark Step 1 as done (✓ checkmark)", () => {
-      const { getByText } = render(<SessionSkeleton phase="generating" />);
-      // Step 1 is done: label says "Audio → Transcripción" and has a checkmark
-      const checkmarks = getByText("✓");
-      expect(checkmarks).toBeTruthy();
+    it("should mark Step 1 as done (Check icon visible)", () => {
+      const { container } = render(<SessionSkeleton phase="generating" />);
+      // Step 1 is done: label says "Audio → Transcripción" and has a Check icon
+      const checkIcon = container.querySelector(".lucide-check");
+      expect(checkIcon).toBeTruthy();
     });
 
     it("should mark Step 2 as active (has spinner)", () => {
@@ -95,9 +95,9 @@ describe("SessionSkeleton", () => {
   });
 
   describe("phase transition consistency", () => {
-    it("should not show checkmark in transcribing phase", () => {
-      const { queryByText } = render(<SessionSkeleton phase="transcribing" />);
-      expect(queryByText("✓")).toBeNull();
+    it("should not show Check icon in transcribing phase", () => {
+      const { container } = render(<SessionSkeleton phase="transcribing" />);
+      expect(container.querySelector(".lucide-check")).toBeNull();
     });
 
     it("renders the same layout structure in both phases", () => {

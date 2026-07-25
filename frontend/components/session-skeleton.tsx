@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Check, Sparkles, Loader2 } from "lucide-react";
 
 /* ─── SkeletonBlock: a single shimmer rectangle ─── */
 function SkeletonBlock({
@@ -36,13 +36,13 @@ function ProgressStep({
       <div
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold transition-colors ${
           done
-            ? "bg-c-teal text-white"
+            ? "border-2 border-c-teal-border bg-c-teal-soft text-c-teal"
             : isActive
               ? "animate-pulse border border-c-blue-border bg-c-blue-soft text-c-blue"
               : "border border-c-border bg-c-surface-2 text-c-muted"
         }`}
       >
-        {done ? "✓" : isActive ? <Loader2 className="h-3 w-3 animate-spin" /> : "·"}
+        {done ? <Check className="h-3 w-3" /> : isActive ? <Loader2 className="h-3 w-3 animate-spin" /> : "·"}
       </div>
       <span
         className={`text-[11px] font-medium transition-colors ${
