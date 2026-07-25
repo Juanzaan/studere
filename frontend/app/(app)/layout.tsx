@@ -1,12 +1,34 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { AppTopbar } from "@/components/app-topbar";
 import { Sidebar } from "@/components/sidebar";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SkipLinks } from "@/components/skip-links";
 import { ToastProvider } from "@/components/toast-provider";
 import { FocusProvider, useFocus } from "@/lib/focus-context";
+import {
+  TutorialOverlay,
+  DEFAULT_TUTORIAL_STEPS,
+  isTutorialCompleted,
+} from "@/components/tutorial-overlay";
+
+// ─── Tutorial restart context ──────────────────────────────────────────────
+
+interface TutorialContextValue {
+  restartTutorial: () => void;
+}
+
+const TutorialContext = createContext<TutorialContextValue>({
+  restartTutorial: () => {},
+});
+
+export function useTutorialContext() {
+  return useContext(TutorialContext);
+}
+
+// ─── Layout variants ──────────────────────────────────────────────────────
 
 function NormalLayout({ children }: { children: ReactNode }) {
   return (
@@ -34,10 +56,41 @@ function FocusedLayout({ children }: { children: ReactNode }) {
 
 function AppLayoutInner({ children }: { children: ReactNode }) {
   const { isFocused } = useFocus();
-  if (isFocused) {
-    return <FocusedLayout>{children}</FocusedLayout>;
-  }
-  return <NormalLayout>{children}</NormalLayout>;
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Show tutorial on first visit
+  useEffect(() => {
+    if (!isTutorialCompleted()) {
+      // Small delay so the page renders first
+      const timer = setTimeout(() => setShowTutorial(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const restartTutorial = useCallback(() => {
+    setShowTutorial(true);
+  }, []);
+
+  const handleTutorialComplete = useCallback(() => {
+    setShowTutorial(false);
+  }, []);
+
+  return (
+    <TutorialContext.Provider value={{ restartTutorial }}>
+      {isFocused ? (
+        <FocusedLayout>{children}</FocusedLayout>
+      ) : (
+        <NormalLayout>{children}</NormalLayout>
+      )}
+
+      {showTutorial && (
+        <TutorialOverlay
+          steps={DEFAULT_TUTORIAL_STEPS}
+          onComplete={handleTutorialComplete}
+        />
+      )}
+    </TutorialContext.Provider>
+  );
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {

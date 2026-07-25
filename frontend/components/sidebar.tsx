@@ -19,6 +19,8 @@ import {
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
+import { useTutorialContext } from "@/app/(app)/layout";
+import { TutorialTrigger } from "@/components/tutorial-overlay";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Inicio", icon: Home },
@@ -42,6 +44,8 @@ export function Sidebar() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  const { restartTutorial } = useTutorialContext();
 
   useFadeInStagger(navRef, ".sidebar-nav-item", { y: 8, stagger: 0.04, duration: 0.35, delay: 0.1 });
   useFadeInStagger(recentRef, ".sidebar-recent-item", { y: 6, stagger: 0.03, duration: 0.3, delay: 0.25 });
@@ -258,6 +262,7 @@ export function Sidebar() {
 
         {/* ── FOOTER ── */}
         <div className={`shrink-0 border-t border-c-border p-[6px_8px] ${collapsed ? "flex flex-col items-center gap-[1px]" : "flex flex-col gap-[1px]"}`}>
+          <TutorialTrigger onRestart={restartTutorial} compact={collapsed} />
           <Link
             href="/integrations"
             onClick={() => setOpen(false)}

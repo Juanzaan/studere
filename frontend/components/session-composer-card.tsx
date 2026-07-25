@@ -204,7 +204,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   }
 
   return (
-    <section ref={cardRef} className="relative rounded-panel border border-c-border bg-c-surface p-5">
+    <section ref={cardRef} data-tutorial="composer" className="relative rounded-panel border border-c-border bg-c-surface p-5">
       {isCreating && (
         <div className="absolute inset-0 rounded-panel bg-c-bg/50 backdrop-blur-[1px] z-10 flex items-center justify-center cursor-not-allowed" />
       )}
