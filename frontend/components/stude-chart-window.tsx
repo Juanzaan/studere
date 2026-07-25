@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GripVertical, Maximize2, Minimize2, X } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart,
@@ -99,6 +99,8 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
   const [pos, setPos] = useState({ x: Math.max(40, window.innerWidth - DEFAULT_W - 80), y: (anchorY ?? 400) + 16 });
   const [size, setSize] = useState({ w: DEFAULT_W, h: DEFAULT_H });
   const [expanded, setExpanded] = useState(false);
+  const [chartAnimated, setChartAnimated] = useState(false);
+  useEffect(() => { setChartAnimated(true); }, []);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number } | null>(null);
 
@@ -163,6 +165,9 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
               nameKey="name"
               onClick={(_, idx) => handleBarClick(data[idx])}
               className="cursor-pointer"
+              isAnimationActive={!chartAnimated}
+              animationDuration={400}
+              animationEasing="ease-out"
             >
               {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -193,6 +198,9 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
                 const p = payload as unknown as { payload?: { fullName?: string } };
                 if (p.payload?.fullName) handleBarClick({ fullName: p.payload.fullName });
               }}}
+              isAnimationActive={!chartAnimated}
+              animationDuration={400}
+              animationEasing="ease-out"
             />
           </LineChart>
         </ResponsiveContainer>
@@ -207,7 +215,7 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
           <XAxis dataKey="name" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }} />
-          <Bar dataKey="relevance" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(entry) => handleBarClick(entry)}>
+          <Bar dataKey="relevance" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(entry) => handleBarClick(entry)} isAnimationActive={!chartAnimated} animationDuration={400} animationEasing="ease-out">
             {data.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
