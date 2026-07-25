@@ -22,10 +22,22 @@ export interface TutorialStep {
   title: string;
   /** Description shown in the tooltip */
   description: string;
+  /**
+   * Override description for mobile — use when the target and purpose change
+   * (e.g. "Presioná ☰ para abrir el menú" instead of "Usá la barra lateral").
+   */
+  mobileDescription?: string;
   /** CSS selector for the element to highlight (omit for center overlay) */
   target?: string;
+  /**
+   * CSS selector for mobile — overrides `target` on narrow viewports.
+   * Use when the desktop target is hidden on mobile (e.g. sidebar → hamburger).
+   */
+  mobileTarget?: string;
   /** Tooltip placement relative to the target. Defaults to "bottom" */
   placement?: TutorialPlacement;
+  /** Tooltip placement on mobile — overrides `placement` on narrow viewports. */
+  mobilePlacement?: TutorialPlacement;
   /**
    * Whether this step blocks interaction with the page behind.
    * - `true`  → backdrop blocks clicks (pasos informativos: bienvenida, cierre)
@@ -75,8 +87,12 @@ export const DEFAULT_TUTORIAL_STEPS: TutorialStep[] = [
     title: "Navegá por la app",
     description:
       "Usá la barra lateral para ir a Inicio, Biblioteca, Próximos, Destacados y Estadísticas. Cada sección te ayuda a organizar tu estudio de forma distinta.",
+    mobileDescription:
+      "Presioná el botón ☰ para abrir el menú de navegación. Desde ahí podés ir a Inicio, Biblioteca, Próximos, Destacados y Estadísticas.",
     target: "#navigation",
+    mobileTarget: "[aria-label='Abrir menú de navegación']",
     placement: "right",
+    mobilePlacement: "bottom",
     blocking: false,
   },
   {
@@ -265,20 +281,29 @@ export function TutorialOverlay({
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // ── Resolve effective target + placement for current viewport ────────
+  const effectiveTarget =
+    isMobile && step.mobileTarget ? step.mobileTarget : step.target;
+  const effectivePlacement =
+    isMobile && step.mobilePlacement ? step.mobilePlacement : step.placement;
+  const effectiveDescription = isMobile && step.mobileDescription
+    ? step.mobileDescription
+    : step.description;
+
   // ── Recalculate spotlight + tooltip position ──────────────────────────
   const recalculate = useCallback(() => {
-    if (!step || step.placement === "center" || !step.target) {
+    if (!effectiveTarget || effectivePlacement === "center") {
       setSpotlight(null);
       return;
     }
 
-    const rect = getTargetRect(step.target);
+    const rect = getTargetRect(effectiveTarget);
     if (rect) {
       setSpotlight(rect);
     } else {
       setSpotlight(null);
     }
-  }, [step]);
+  }, [effectiveTarget, effectivePlacement]);
 
   // Recalculate on step change, scroll, and resize
   useEffect(() => {
@@ -286,7 +311,7 @@ export function TutorialOverlay({
   }, [recalculate, stepIndex, viewport]);
 
   useEffect(() => {
-    if (!step?.target || step.placement === "center") return;
+    if (!effectiveTarget || effectivePlacement === "center") return;
 
     const handleScroll = () => recalculate();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -295,7 +320,7 @@ export function TutorialOverlay({
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, [step, recalculate]);
+  }, [effectiveTarget, effectivePlacement, recalculate]);
 
   // Observe tooltip ref to measure its actual rendered size
   useEffect(() => {
@@ -319,14 +344,14 @@ export function TutorialOverlay({
     const tw = tooltipSize.width || (isMobile ? 280 : 320);
     const th = tooltipSize.height || 200;
 
-    if (step.placement === "center") {
+    if (effectivePlacement === "center") {
       const top = isMobile ? viewport.height * 0.52 : viewport.height * 0.48;
       const left = isMobile ? 16 : viewport.width / 2 - tw / 2;
       setTooltipPos({ top, left, arrow: "none" });
     } else {
       const pos = calcTooltipPosition(
         spotlight,
-        step.placement || "bottom",
+        effectivePlacement || "bottom",
         tw,
         th,
         viewport.width,
@@ -335,7 +360,7 @@ export function TutorialOverlay({
       );
       setTooltipPos(pos);
     }
-  }, [spotlight, step, tooltipSize, viewport, isMobile, mounted]);
+  }, [spotlight, effectivePlacement, tooltipSize, viewport, isMobile, mounted]);
 
   // ── Announce step to screen readers ───────────────────────────────────
   useEffect(() => {
@@ -400,20 +425,8 @@ export function TutorialOverlay({
   }
 
   // ── Don't render until mounted (avoids flash of misplaced tooltip) ────
-  // ── Determine if the target element is actually visible on screen ────
-  // On mobile the sidebar (#navigation) is translated off-screen.
-  // If the target exists but is outside the viewport, fall back to center.
-  const targetVisible =
-    !step.target || step.placement === "center" || !spotlight
-      ? false
-      : spotlight.top >= 0 &&
-        spotlight.left >= 0 &&
-        spotlight.bottom <= viewport.height &&
-        spotlight.right <= viewport.width;
-
-  const effectivePlacement =
-    isMobile && step.target && !targetVisible ? "center" : step.placement;
-  const isCenter = effectivePlacement === "center" || (!step.target && !spotlight);
+  const isCenter =
+    effectivePlacement === "center" || (!effectiveTarget && !spotlight);
 
   const isBlocking = step.blocking ?? (step.placement === "center");
 
@@ -540,7 +553,7 @@ export function TutorialOverlay({
           </h3>
 
           <p className="mt-1.5 text-[12px] leading-relaxed text-c-muted">
-            {step.description}
+            {effectiveDescription}
           </p>
 
           {/* Navigation buttons */}
