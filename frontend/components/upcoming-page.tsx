@@ -51,10 +51,10 @@ export function UpcomingPage() {
         <h3 className="text-[13px] font-medium text-c-text">Conectá tu calendario</h3>
         <p className="mt-1 text-[12px] leading-relaxed text-c-muted">Sincronizá Google Calendar u Outlook para detectar clases futuras.</p>
         <div className="mt-3 space-y-2">
-          <Link href="/integrations" className="block rounded-card border border-c-border bg-c-surface-2 px-4 py-2.5 text-center text-[12px] text-c-muted transition-colors hover:bg-c-surface focus-visible:outline-none">
+          <Link href="/integrations" className="block rounded-card border border-c-border bg-c-surface-2 px-4 py-3.5 sm:py-2.5 text-center text-[13px] sm:text-[12px] text-c-muted transition-colors hover:bg-c-surface focus-visible:outline-none">
             Conectar Google Calendar
           </Link>
-          <Link href="/integrations" className="block rounded-card border border-c-border bg-c-surface-2 px-4 py-2.5 text-center text-[12px] text-c-muted transition-colors hover:bg-c-surface focus-visible:outline-none">
+          <Link href="/integrations" className="block rounded-card border border-c-border bg-c-surface-2 px-4 py-3.5 sm:py-2.5 text-center text-[13px] sm:text-[12px] text-c-muted transition-colors hover:bg-c-surface focus-visible:outline-none">
             Conectar Microsoft Outlook
           </Link>
         </div>

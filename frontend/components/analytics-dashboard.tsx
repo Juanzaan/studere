@@ -158,30 +158,30 @@ export function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div ref={statCardsRef} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
+      <div ref={statCardsRef} className="grid gap-4 grid-cols-2 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</p>
           <p className="text-[20px] font-semibold text-c-text">{totalSessions}</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo de estudio</p>
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo</p>
           <p className="text-[20px] font-semibold text-c-text">{totalMinutes} min</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Precisión en quiz</p>
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Quiz</p>
           <p className="text-[20px] font-semibold text-c-text">{avgQuizScore}%</p>
         </div>
-        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive">
-          <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards repasadas</p>
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 card-interactive flex flex-col justify-between">
+          <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards</p>
           <p className="text-[20px] font-semibold text-c-text">{totalReviews}</p>
-          <p className="text-[10px] text-c-muted">{totalWords.toLocaleString()} palabras procesadas</p>
+          <p className="text-[9px] text-c-muted leading-tight">{totalWords.toLocaleString()} palabras</p>
         </div>
       </div>
 
       <div ref={chartGridRef} className="grid gap-4 xl:grid-cols-2">
         <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Sesiones y repasos · últimos 7 días</h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-48 sm:h-64">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={sessionsByDay}>
@@ -209,7 +209,7 @@ export function AnalyticsDashboard() {
 
         <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Distribución por materia</h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-48 sm:h-64">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -256,7 +256,7 @@ export function AnalyticsDashboard() {
         {recentQuizAttempts.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Evolución de quiz</h2>
-            <div className="mt-4 h-64">
+            <div className="mt-4 h-48 sm:h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={recentQuizAttempts}>
@@ -285,7 +285,7 @@ export function AnalyticsDashboard() {
         {topConcepts.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Conceptos más frecuentes</h2>
-            <div className="mt-4 h-64">
+            <div className="mt-4 h-48 sm:h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topConcepts} layout="vertical">
@@ -318,7 +318,7 @@ export function AnalyticsDashboard() {
         {studyMix.length > 0 && (
           <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Mix de estudio</h2>
-            <div className="mt-4 h-64">
+            <div className="mt-4 h-48 sm:h-64">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
