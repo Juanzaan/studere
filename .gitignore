@@ -84,3 +84,6 @@ logs/
 
 # AI Configuration
 .mcp.json
+
+# Visual verification captures (not for production)
+preview-captures/
