@@ -5,7 +5,8 @@ const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}"
+    "./lib/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -39,7 +40,8 @@ const config: Config = {
         card: "0 20px 60px rgba(15, 23, 42, 0.08)",
         "card-hover": "0 24px 72px rgba(15, 23, 42, 0.12)",
         "card-lift": "0 28px 80px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(124, 58, 237, 0.06)",
-        glow: "0 0 0 1px rgba(124, 58, 237, 0.12), 0 8px 32px rgba(124, 58, 237, 0.08)"
+        glow: "0 0 0 1px rgba(124, 58, 237, 0.12), 0 8px 32px rgba(124, 58, 237, 0.08)",
+        "btn-focus": "0 0 0 3px rgba(124, 58, 237, 0.15)",
       },
       borderRadius: {
         btn: "6px",
@@ -48,35 +50,76 @@ const config: Config = {
         panel: "12px",
         pill: "20px",
         xl2: "1.25rem",
-        "4xl": "1.75rem"
+        "4xl": "1.75rem",
+      },
+      transitionTimingFunction: {
+        "studere": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "studere-bounce": "cubic-bezier(0.34, 1.56, 0.64, 1)",
       },
       keyframes: {
         "fade-in": {
           from: { opacity: "0", transform: "translateY(8px)" },
-          to: { opacity: "1", transform: "translateY(0)" }
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "fade-in-scale": {
           from: { opacity: "0", transform: "scale(0.96)" },
-          to: { opacity: "1", transform: "scale(1)" }
+          to: { opacity: "1", transform: "scale(1)" },
         },
         "slide-in-left": {
           from: { opacity: "0", transform: "translateX(-12px)" },
-          to: { opacity: "1", transform: "translateX(0)" }
+          to: { opacity: "1", transform: "translateX(0)" },
         },
         "slide-in-right": {
           from: { opacity: "0", transform: "translateX(12px)" },
-          to: { opacity: "1", transform: "translateX(0)" }
-        }
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-up": {
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-down": {
+          from: { opacity: "0", transform: "translateY(-8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.92)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "bounce-in": {
+          "0%": { opacity: "0", transform: "scale(0.3)" },
+          "50%": { opacity: "1", transform: "scale(1.05)" },
+          "70%": { transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "skeleton-shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "panel-enter": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "panel-exit": {
+          from: { opacity: "1", transform: "translateY(0)" },
+          to: { opacity: "0", transform: "translateY(-8px)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
         "fade-in-scale": "fade-in-scale 0.25s ease-out",
         "slide-in-left": "slide-in-left 0.3s ease-out",
-        "slide-in-right": "slide-in-right 0.3s ease-out"
-      }
-    }
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-up": "slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+        "slide-down": "slide-down 0.2s ease-out",
+        "scale-in": "scale-in 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
+        "bounce-in": "bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "skeleton-shimmer": "skeleton-shimmer 1.5s linear infinite",
+        "panel-enter": "panel-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+        "panel-exit": "panel-exit 0.2s ease-out",
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

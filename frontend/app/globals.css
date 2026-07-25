@@ -26,6 +26,11 @@
   --c-red: #dc2626;
   --c-red-soft: rgba(220, 38, 38, 0.08);
   --c-red-border: rgba(220, 38, 38, 0.2);
+
+  /* Transition defaults */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-panel: 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dark {
@@ -86,23 +91,32 @@ select {
   font: inherit;
 }
 
+/* ─── Default transitions (performant) ─────────────────────────────────── */
 button,
-a {
+a,
+.card-interactive,
+[class*="transition-"] {
   transition: all 0.15s ease;
 }
 
-/* 404 Page Animations */
-@keyframes pulseWave {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
+/* Semantic transitions for interactive cards/panels */
+.card-interactive {
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal),
+    border-color var(--transition-normal);
 }
 
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 72px rgba(15, 23, 42, 0.12);
+}
+
+.card-interactive:active {
+  transform: translateY(0);
+}
+
+/* ─── Focus-visible ring ────────────────────────────────────────────────── */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -116,6 +130,7 @@ button:active:not(:disabled) {
   transform: scale(0.97);
 }
 
+/* ─── Selection ─────────────────────────────────────────────────────────── */
 ::selection {
   background: rgba(124, 58, 237, 0.15);
   color: #1e1b4b;
@@ -135,6 +150,7 @@ pre code.hljs {
   border-radius: 0.5rem;
 }
 
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -153,7 +169,58 @@ pre code.hljs {
   background: rgba(148, 163, 184, 0.45);
 }
 
-/* Respect prefers-reduced-motion */
+/* ─── 404 Page Animations ───────────────────────────────────────────────── */
+@keyframes pulseWave {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ─── Panel transition classes (used by session detail) ─────────────────── */
+.panel-enter {
+  animation: panel-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.panel-exit {
+  animation: panel-exit 0.15s ease-out both;
+}
+
+/* ─── Skeleton shimmer ──────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--c-surface-2) 25%,
+    var(--c-surface) 50%,
+    var(--c-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s linear infinite;
+  border-radius: 6px;
+}
+
+/* ─── Tap highlight for mobile ──────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .card-interactive:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .card-interactive:active {
+    transform: scale(0.98);
+    transition-duration: 0.05s;
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* ─── Respect prefers-reduced-motion ────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -162,5 +229,10 @@ pre code.hljs {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .card-interactive:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
