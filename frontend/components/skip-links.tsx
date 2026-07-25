@@ -11,13 +11,13 @@ export function SkipLinks() {
     <div className="sr-only focus-within:not-sr-only">
       <Link
         href="#main-content"
-        className="fixed left-4 top-4 z-[9999] rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2"
+        className="fixed left-4 top-4 z-[9999] rounded-btn bg-c-blue px-4 py-2 text-sm font-semibold text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-c-blue-border focus:ring-offset-2"
       >
         Saltar al contenido principal
       </Link>
       <Link
         href="#navigation"
-        className="fixed left-4 top-16 z-[9999] rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2"
+        className="fixed left-4 top-16 z-[9999] rounded-btn bg-c-blue px-4 py-2 text-sm font-semibold text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-c-blue-border focus:ring-offset-2"
       >
         Saltar a la navegación
       </Link>

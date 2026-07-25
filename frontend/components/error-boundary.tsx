@@ -35,26 +35,26 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4 dark:from-slate-900 dark:to-slate-950">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-              <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+        <div className="flex min-h-screen items-center justify-center bg-c-bg p-4">
+          <div className="w-full max-w-md rounded-panel border border-c-border bg-c-surface p-8 text-center shadow-card">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-c-red-soft">
+              <AlertTriangle className="h-8 w-8 text-c-red" />
             </div>
-            
-            <h1 className="mt-6 text-2xl font-bold text-slate-900 dark:text-slate-100">
+
+            <h1 className="mt-6 text-2xl font-bold text-c-text">
               Algo salió mal
             </h1>
-            
-            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+
+            <p className="mt-3 text-sm leading-6 text-c-muted">
               Ocurrió un error inesperado. No te preocupes, tus datos están seguros.
             </p>
 
             {this.state.error && (
-              <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left dark:border-slate-700 dark:bg-slate-800">
-                <summary className="cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <details className="mt-4 rounded-card border border-c-border bg-c-surface-2 p-4 text-left">
+                <summary className="cursor-pointer text-xs font-semibold text-c-muted">
                   Detalles técnicos
                 </summary>
-                <pre className="mt-2 overflow-x-auto text-[11px] text-slate-600 dark:text-slate-300">
+                <pre className="mt-2 overflow-x-auto text-[11px] text-c-text">
                   {this.state.error.message}
                 </pre>
               </details>
@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   this.setState({ hasError: false, error: null });
                   window.location.reload();
                 }}
-                className="flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                className="flex items-center justify-center gap-2 rounded-btn bg-c-blue px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus-visible:outline-none"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Reintentar
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <Link
                 href="/dashboard"
-                className="flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="flex items-center justify-center gap-2 rounded-btn border border-c-border bg-c-surface px-6 py-3 text-sm font-semibold text-c-text transition hover:bg-c-surface-2 focus-visible:outline-none"
               >
                 <Home className="h-4 w-4" />
                 Volver al inicio
@@ -113,13 +113,13 @@ export class PanelErrorBoundary extends Component<PanelProps, PanelState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900 dark:bg-red-950/20">
-          <p className="text-sm text-red-600 dark:text-red-400">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-c-red-border bg-c-red-soft p-8 text-center">
+          <p className="text-sm text-c-red">
             {this.props.panelName} encontró un error inesperado.
           </p>
           <button
             onClick={() => this.setState({ hasError: false })}
-            className="text-xs text-red-500 underline hover:text-red-700"
+            className="text-xs text-c-red underline hover:opacity-80 focus-visible:outline-none"
           >
             Reintentar
           </button>
