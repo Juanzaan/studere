@@ -41,7 +41,12 @@ export function AnalyticsDashboard() {
   const [mounted, setMounted] = useState(false);
   const isDark = useDarkMode();
   const [chartAnimated, setChartAnimated] = useState(false);
-  useEffect(() => { setChartAnimated(true); }, []);
+  useEffect(() => {
+    // Esperar a que la animación de Recharts (400ms) se complete antes de
+    // deshabilitarla, para que no se corte a mitad de camino.
+    const timer = setTimeout(() => setChartAnimated(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   useFadeInStagger(headerRef, ".analytics-header", { y: 16, stagger: 0.06, duration: 0.5 });
   useFadeInStagger(statCardsRef, ".analytics-stat", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2 });

@@ -100,7 +100,11 @@ export function StudeChartWindow({ session, chartData, onClose, onElementClick, 
   const [size, setSize] = useState({ w: DEFAULT_W, h: DEFAULT_H });
   const [expanded, setExpanded] = useState(false);
   const [chartAnimated, setChartAnimated] = useState(false);
-  useEffect(() => { setChartAnimated(true); }, []);
+  useEffect(() => {
+    // Esperar a que la animación de Recharts (400ms) se complete.
+    const timer = setTimeout(() => setChartAnimated(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number } | null>(null);
 
