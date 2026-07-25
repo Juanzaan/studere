@@ -298,12 +298,34 @@ export function TutorialOverlay({
     }
 
     const rect = getTargetRect(effectiveTarget);
-    if (rect) {
-      setSpotlight(rect);
-    } else {
+    if (!rect) {
       setSpotlight(null);
+      return;
     }
-  }, [effectiveTarget, effectivePlacement]);
+
+    // Safety guard: if target is outside the viewport (e.g. hidden sidebar on mobile
+    // without mobileTarget), null the spotlight and let the component fall back to
+    // a center-positioned tooltip with no backdrop.
+    const withinViewport =
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= window.innerHeight &&
+      rect.right <= window.innerWidth;
+
+    if (!withinViewport) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[Tutorial] Step "${step?.id}" target "${effectiveTarget}" is outside viewport, ` +
+          `falling back to center without spotlight. ` +
+          `Consider setting mobileTarget for this step.`,
+        );
+      }
+      setSpotlight(null);
+      return;
+    }
+
+    setSpotlight(rect);
+  }, [effectiveTarget, effectivePlacement, step?.id]);
 
   // Recalculate on step change, scroll, and resize
   useEffect(() => {
