@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
 export function StarredPage() {
+  const headerRef = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState(() => getSessions());
+
+  useFadeInStagger(headerRef, ".starred-header", { y: 16, stagger: 0.06, duration: 0.5 });
   const starred = sessions.filter((session) => session.starred);
 
   useEffect(() => {
@@ -23,9 +27,9 @@ export function StarredPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-[16px] font-semibold text-c-text">Sesiones destacadas</h2>
-        <p className="mt-1 text-[12px] text-c-muted">Acceso rápido a las sesiones que marcaste como importantes.</p>
+      <div ref={headerRef}>
+        <h2 className="starred-header text-[16px] font-semibold text-c-text">Sesiones destacadas</h2>
+        <p className="starred-header mt-1 text-[12px] text-c-muted">Acceso rápido a las sesiones que marcaste como importantes.</p>
       </div>
       <SessionRecordsTable
         sessions={starred}

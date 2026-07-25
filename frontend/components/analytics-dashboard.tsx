@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
@@ -30,11 +31,19 @@ function useDarkMode() {
 }
 
 export function AnalyticsDashboard() {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statCardsRef = useRef<HTMLDivElement>(null);
+  const chartGridRef = useRef<HTMLDivElement>(null);
+
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [flashcardAttempts, setFlashcardAttempts] = useState<FlashcardAttempt[]>([]);
   const [mounted, setMounted] = useState(false);
   const isDark = useDarkMode();
+
+  useFadeInStagger(headerRef, ".analytics-header", { y: 16, stagger: 0.06, duration: 0.5 });
+  useFadeInStagger(statCardsRef, ".analytics-stat", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2 });
+  useFadeInStagger(chartGridRef, ".analytics-chart", { y: 12, stagger: 0.06, duration: 0.45, delay: 0.3 });
 
   useEffect(() => {
     function syncAnalytics() {
@@ -126,37 +135,37 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-panel border border-c-border bg-c-surface p-5">
+      <div ref={headerRef} className="rounded-panel border border-c-border bg-c-surface p-5">
         <div className="space-y-1">
-          <h2 className="text-[14px] font-semibold text-c-text">Estadísticas</h2>
-          <p className="text-[12px] text-c-muted">
+          <h2 className="analytics-header text-[14px] font-semibold text-c-text">Estadísticas</h2>
+          <p className="analytics-header text-[12px] text-c-muted">
             Visualiza tu progreso, rendimiento y patrones de estudio con un dashboard alineado al nuevo workspace.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-card bg-c-surface-2 p-3">
+      <div ref={statCardsRef} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Sesiones</p>
           <p className="text-[20px] font-semibold text-c-text">{totalSessions}</p>
         </div>
-        <div className="rounded-card bg-c-surface-2 p-3">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Tiempo de estudio</p>
           <p className="text-[20px] font-semibold text-c-text">{totalMinutes} min</p>
         </div>
-        <div className="rounded-card bg-c-surface-2 p-3">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Precisión en quiz</p>
           <p className="text-[20px] font-semibold text-c-text">{avgQuizScore}%</p>
         </div>
-        <div className="rounded-card bg-c-surface-2 p-3">
+        <div className="analytics-stat rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
           <p className="text-[10px] uppercase tracking-wide text-c-muted">Cards repasadas</p>
           <p className="text-[20px] font-semibold text-c-text">{totalReviews}</p>
           <p className="text-[10px] text-c-muted">{totalWords.toLocaleString()} palabras procesadas</p>
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-panel border border-c-border bg-c-surface p-4">
+      <div ref={chartGridRef} className="grid gap-4 xl:grid-cols-2">
+        <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Sesiones y repasos · últimos 7 días</h2>
           <div className="mt-4 h-64">
             {mounted ? (
@@ -184,7 +193,7 @@ export function AnalyticsDashboard() {
           </div>
         </div>
 
-        <div className="rounded-panel border border-c-border bg-c-surface p-4">
+        <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
           <h2 className="text-[14px] font-semibold text-c-text">Distribución por materia</h2>
           <div className="mt-4 h-64">
             {mounted ? (
@@ -228,7 +237,7 @@ export function AnalyticsDashboard() {
         </div>
 
         {recentQuizAttempts.length > 0 && (
-          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Evolución de quiz</h2>
             <div className="mt-4 h-64">
               {mounted ? (
@@ -257,7 +266,7 @@ export function AnalyticsDashboard() {
         )}
 
         {topConcepts.length > 0 && (
-          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Conceptos más frecuentes</h2>
             <div className="mt-4 h-64">
               {mounted ? (
@@ -290,7 +299,7 @@ export function AnalyticsDashboard() {
         )}
 
         {studyMix.length > 0 && (
-          <div className="rounded-panel border border-c-border bg-c-surface p-4">
+          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
             <h2 className="text-[14px] font-semibold text-c-text">Mix de estudio</h2>
             <div className="mt-4 h-64">
               {mounted ? (
@@ -321,7 +330,7 @@ export function AnalyticsDashboard() {
       </div>
 
       {totalSessions === 0 && (
-        <div className="rounded-panel border border-dashed border-c-border bg-c-surface p-10 text-center">
+        <div className="analytics-chart rounded-panel border border-dashed border-c-border bg-c-surface p-10 text-center">
           <p className="text-[12px] text-c-muted">Crea sesiones y completa quizzes para ver tus estadísticas.</p>
         </div>
       )}

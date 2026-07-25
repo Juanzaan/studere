@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -60,7 +60,7 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
             <div
               key={session.id}
               data-session-row
-              className="grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-colors last:border-b-0 hover:bg-c-surface-2 md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
+              className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_48px] gap-4 border-b border-c-border px-4 py-3 transition-all duration-200 last:border-b-0 hover:bg-c-surface-2 hover:shadow-[inset_2px_0_0_0_var(--color-blue)] md:grid-cols-[minmax(0,2.8fr)_80px_100px_100px_48px]"
             >
               <Link href={`/sessions/${session.id}`} className="min-w-0">
                 <div className="flex items-center gap-3">
@@ -78,11 +78,17 @@ export const SessionRecordsTable = memo(function SessionRecordsTable({ sessions,
               <div className="hidden items-center text-[11px] text-c-muted md:flex">Tú</div>
               <div className="flex items-center justify-end">
                 <button
-                  onClick={() => onToggleStar?.(session.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-btn transition-colors focus-visible:outline-none"
+                  onClick={(e) => {
+                    const btn = e.currentTarget.querySelector(".star-icon");
+                    if (btn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                      gsap.fromTo(btn, { scale: 1 }, { scale: 1.35, duration: 0.15, ease: "back.out(2)", yoyo: true, repeat: 1 });
+                    }
+                    onToggleStar?.(session.id);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-btn transition-colors hover:scale-110 focus-visible:outline-none active:scale-95"
                   aria-label={session.starred ? "Quitar de destacados" : "Destacar sesión"}
                 >
-                  <Star className={`h-[14px] w-[14px] ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30"}`} />
+                  <Star className={`star-icon h-[14px] w-[14px] transition-colors ${session.starred ? "fill-current text-c-amber" : "text-c-muted opacity-30 group-hover:opacity-60"}`} />
                 </button>
               </div>
             </div>

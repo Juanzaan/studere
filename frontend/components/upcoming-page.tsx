@@ -1,5 +1,9 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
 import { Clock3 } from "lucide-react";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
 const UPCOMING_ITEMS = [
   {
@@ -15,16 +19,24 @@ const UPCOMING_ITEMS = [
 ];
 
 export function UpcomingPage() {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  useFadeInStagger(headerRef, ".upcoming-header", { y: 16, stagger: 0.06, duration: 0.5 });
+  useFadeInStagger(itemsRef, ".upcoming-item", { y: 12, stagger: 0.1, duration: 0.4, delay: 0.2 });
+  useFadeInStagger(calendarRef, ".upcoming-cal", { y: 12, duration: 0.4, delay: 0.35 });
+
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-[16px] font-semibold text-c-text">Próximos eventos</h2>
-        <p className="mt-1 text-[12px] text-c-muted">Agenda de clases, repasos y sesiones online orientada a tu flujo post-clase.</p>
+      <div ref={headerRef}>
+        <h2 className="upcoming-header text-[16px] font-semibold text-c-text">Próximos eventos</h2>
+        <p className="upcoming-header mt-1 text-[12px] text-c-muted">Agenda de clases, repasos y sesiones online orientada a tu flujo post-clase.</p>
       </div>
 
-      <div className="space-y-3">
+      <div ref={itemsRef} className="space-y-3">
         {UPCOMING_ITEMS.map((item) => (
-          <div key={item.title} className="rounded-panel border border-c-border bg-c-surface p-4 transition-colors hover:bg-c-surface-2">
+          <div key={item.title} className="upcoming-item rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-sm">
             <div className="flex flex-wrap items-center gap-2">
               <Clock3 className="h-[12px] w-[12px] text-c-muted" />
               <span className="text-[10px] font-medium uppercase tracking-wide text-c-muted">{item.time}</span>
@@ -35,7 +47,7 @@ export function UpcomingPage() {
         ))}
       </div>
 
-      <div className="rounded-panel border border-c-border bg-c-surface p-4">
+      <div ref={calendarRef} className="upcoming-cal rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-sm">
         <h3 className="text-[13px] font-medium text-c-text">Conectá tu calendario</h3>
         <p className="mt-1 text-[12px] leading-relaxed text-c-muted">Sincronizá Google Calendar u Outlook para detectar clases futuras.</p>
         <div className="mt-3 space-y-2">

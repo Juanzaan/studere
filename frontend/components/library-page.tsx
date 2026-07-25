@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
@@ -15,9 +16,17 @@ const LIB_FILTERS: { key: LibraryFilter; label: string }[] = [
 ];
 
 export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const [sessions, setSessions] = useState(() => getSessions());
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const [libFilter, setLibFilter] = useState<LibraryFilter>("all");
+
+  useFadeInStagger(headerRef, ".lib-header", { y: 16, stagger: 0.06, duration: 0.5 });
+  useFadeInStagger(filtersRef, ".lib-filter", { y: 8, stagger: 0.04, duration: 0.35, delay: 0.15 });
+  useFadeInStagger(searchRef, ".lib-search", { y: 8, duration: 0.4, delay: 0.3 });
   const query = localQuery.trim().toLowerCase();
 
   useEffect(() => {
@@ -47,23 +56,23 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[16px] font-semibold text-c-text">Biblioteca</h2>
+      <div ref={headerRef} className="flex items-center justify-between">
+        <h2 className="lib-header text-[16px] font-semibold text-c-text">Biblioteca</h2>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-[5px] rounded-btn border border-c-blue-border bg-c-blue-soft px-[10px] py-[5px] text-[11px] font-medium text-c-blue transition-colors hover:opacity-90"
+          className="lib-header inline-flex items-center gap-[5px] rounded-btn border border-c-blue-border bg-c-blue-soft px-[10px] py-[5px] text-[11px] font-medium text-c-blue transition-colors hover:opacity-90"
         >
           <Plus className="h-[11px] w-[11px]" />
           Nueva sesión
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div ref={filtersRef} className="flex flex-wrap items-center gap-2">
         {LIB_FILTERS.map((f) => (
           <button
             key={f.key}
             onClick={() => setLibFilter(f.key)}
-            className={`rounded-pill px-3 py-1 text-[11px] transition-colors focus-visible:outline-none ${
+            className={`lib-filter rounded-pill px-3 py-1 text-[11px] transition-colors focus-visible:outline-none ${
               libFilter === f.key
                 ? "border border-c-blue-border bg-c-blue-soft text-c-blue"
                 : "border border-c-border text-c-muted hover:bg-c-surface-2"
@@ -74,13 +83,13 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
         ))}
       </div>
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-[9px] top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-c-muted" />
+      <div ref={searchRef} className="relative">
+        <Search className="lib-search pointer-events-none absolute left-[9px] top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-c-muted" />
         <input
           value={localQuery}
           onChange={(e) => setLocalQuery(e.target.value)}
           placeholder="Buscar sesiones..."
-          className="h-[34px] w-full rounded-input border border-c-border bg-c-surface-2 pl-[28px] pr-3 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:ring-1 focus:ring-c-blue-border"
+          className="lib-search h-[34px] w-full rounded-input border border-c-border bg-c-surface-2 pl-[28px] pr-3 text-[12px] text-c-text outline-none placeholder:text-c-muted focus:ring-1 focus:ring-c-blue-border"
         />
       </div>
 

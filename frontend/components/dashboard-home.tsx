@@ -21,6 +21,8 @@ import { AudioRecorderWidget } from "@/components/audio-recorder-widget";
 import { SessionComposerCard } from "@/components/session-composer-card";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
+const ANIMATION_DEFAULTS = { duration: 0.5, stagger: 0.06, y: 16 };
+
 type ComposerMode = "upload" | "record" | "online" | "url" | "screen";
 type RecordFilter = "recent" | "starred" | "created";
 
@@ -51,7 +53,10 @@ function greetingByHour() {
 export function DashboardHome() {
   const heroRef = useRef<HTMLDivElement>(null);
   const quickActionsRef = useRef<HTMLDivElement>(null);
-  
+  const statCardsRef = useRef<HTMLDivElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
+  const rightColumnRef = useRef<HTMLDivElement>(null);
+
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [quizAttemptsCount, setQuizAttemptsCount] = useState(0);
   const [flashcardAttemptsCount, setFlashcardAttemptsCount] = useState(0);
@@ -61,6 +66,9 @@ export function DashboardHome() {
 
   useFadeInStagger(heroRef, ".anim-item", { y: 20, duration: 0.8 });
   useFadeInStagger(quickActionsRef, "button", { y: 15, stagger: 0.08, duration: 0.5, delay: 0.3 });
+  useFadeInStagger(statCardsRef, ".stat-card", { delay: 0.35, ...ANIMATION_DEFAULTS });
+  useFadeInStagger(filtersRef, ".filter-btn", { delay: 0.45, stagger: 0.04, duration: 0.35, y: 8 });
+  useFadeInStagger(rightColumnRef, ".right-card", { delay: 0.55, ...ANIMATION_DEFAULTS });
 
   useEffect(() => {
     function syncDashboard() {
@@ -150,16 +158,16 @@ export function DashboardHome() {
               <p className="text-[12px] font-medium text-c-text">Resumen de actividad</p>
               <Link href="/analytics" className="text-[11px] text-c-muted transition-colors hover:text-c-text">Ver todo</Link>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-3">
-              <div className="rounded-card bg-c-surface-2 p-3">
+            <div ref={statCardsRef} className="mt-3 grid grid-cols-3 gap-3">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
                 <p className="text-[20px] font-semibold text-c-blue">{sessions.length}</p>
                 <p className="text-[10px] text-c-muted">Sesiones</p>
               </div>
-              <div className="rounded-card bg-c-surface-2 p-3">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
                 <p className="text-[20px] font-semibold text-c-teal">{flashcardsReviewed}</p>
                 <p className="text-[10px] text-c-muted">Flashcards</p>
               </div>
-              <div className="rounded-card bg-c-surface-2 p-3">
+              <div className="stat-card rounded-card bg-c-surface-2 p-3 transition-transform duration-200 hover:scale-[1.02]">
                 <p className="text-[20px] font-semibold text-c-violet">{quizAttemptsCount}</p>
                 <p className="text-[10px] text-c-muted">Quizzes</p>
               </div>
@@ -178,12 +186,12 @@ export function DashboardHome() {
           <section className="rounded-panel border border-c-border bg-c-surface p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-c-border pb-3">
               <p className="text-[12px] font-medium text-c-text">Mis sesiones</p>
-              <div className="flex flex-wrap gap-2">
+              <div ref={filtersRef} className="flex flex-wrap gap-2">
                 {RECORD_FILTERS.map((f) => (
                   <button
                     key={f.key}
                     onClick={() => setRecordFilter(f.key)}
-                    className={`rounded-pill px-3 py-1 text-[11px] transition-colors focus-visible:outline-none ${
+                    className={`filter-btn rounded-pill px-3 py-1 text-[11px] transition-colors focus-visible:outline-none ${
                       recordFilter === f.key
                         ? "border border-c-blue-border bg-c-blue-soft text-c-blue"
                         : "border border-c-border text-c-muted hover:bg-c-surface-2"
@@ -204,8 +212,8 @@ export function DashboardHome() {
         </div>
 
         {/* RIGHT */}
-        <div className="space-y-4">
-          <section className="rounded-panel border border-c-border bg-c-surface p-4">
+        <div ref={rightColumnRef} className="space-y-4">
+          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-250 hover:-translate-y-[1px] hover:shadow-sm">
             <div className="inline-flex items-center gap-[5px] rounded-pill border border-c-blue-border bg-c-blue-soft px-2 py-1 text-[10px] text-c-blue">
               <Sparkles className="h-3 w-3" />
               Stude IA
@@ -225,7 +233,7 @@ export function DashboardHome() {
             </Link>
           </section>
 
-          <section className="rounded-panel border border-c-border bg-c-surface p-4">
+          <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 transition-all duration-250 hover:-translate-y-[1px] hover:shadow-sm">
             <p className="text-[11px] font-medium text-c-text">Plan gratuito</p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-[20px] font-semibold text-c-text">{minutesUsed}</span>

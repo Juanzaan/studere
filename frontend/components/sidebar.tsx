@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart2,
   BookOpen,
@@ -16,6 +16,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 
@@ -35,10 +36,15 @@ function getInitials(title: string): string {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+  const recentRef = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  useFadeInStagger(navRef, ".sidebar-nav-item", { y: 8, stagger: 0.04, duration: 0.35, delay: 0.1 });
+  useFadeInStagger(recentRef, ".sidebar-recent-item", { y: 6, stagger: 0.03, duration: 0.3, delay: 0.25 });
 
   useEffect(() => {
     try {
@@ -158,7 +164,7 @@ export function Sidebar() {
         </div>
 
         {/* ── NAV ITEMS ── */}
-        <nav id="navigation" className="flex shrink-0 flex-col gap-[1px] p-[6px_8px]">
+        <nav ref={navRef} id="navigation" className="flex shrink-0 flex-col gap-[1px] p-[6px_8px]">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -168,7 +174,7 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 title={collapsed ? item.label : undefined}
-                className={`flex items-center rounded-input transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
+                className={`sidebar-nav-item flex items-center rounded-input transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
                   collapsed
                     ? "mx-auto h-[34px] w-[34px] justify-center"
                     : "gap-[9px] px-[10px] py-[7px]"
@@ -191,7 +197,7 @@ export function Sidebar() {
         )}
 
         {/* ── RECIENTES list ── */}
-        <div className="flex-1 overflow-y-auto">
+        <div ref={recentRef} className="flex-1 overflow-y-auto">
           <div className={`flex flex-col gap-[1px] ${collapsed ? "p-[4px]" : "p-[2px_8px_8px]"}`}>
             {collapsed ? (
               recentSessions.slice(0, 4).map((session) => {
@@ -202,7 +208,7 @@ export function Sidebar() {
                     href={`/sessions/${session.id}`}
                     onClick={() => setOpen(false)}
                     title={session.title}
-                    className={`mx-auto flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[9px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
+                    className={`sidebar-recent-item mx-auto flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[9px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
                       isActive
                         ? "border-c-blue-border bg-c-blue-soft text-c-blue"
                         : "border-c-border bg-c-surface-2 text-c-muted hover:bg-c-surface-2"
@@ -213,7 +219,7 @@ export function Sidebar() {
                 );
               })
             ) : recentSessions.length === 0 ? (
-              <div className="rounded-input border border-dashed border-c-border px-3 py-5 text-center text-[11px] text-c-muted">
+              <div className="sidebar-recent-item rounded-input border border-dashed border-c-border px-3 py-5 text-center text-[11px] text-c-muted">
                 Sin sesiones todavía
               </div>
             ) : (
@@ -224,7 +230,7 @@ export function Sidebar() {
                     key={session.id}
                     href={`/sessions/${session.id}`}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-[8px] rounded-input px-[10px] py-[5px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
+                    className={`sidebar-recent-item flex items-center gap-[8px] rounded-input px-[10px] py-[5px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-c-blue ${
                       isActive ? "bg-c-blue-soft" : "hover:bg-c-surface-2"
                     }`}
                   >

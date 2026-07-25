@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Calendar, Chrome, Cloud, MessageSquareShare, Workflow } from "lucide-react";
+import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
 const INTEGRATIONS = [
   {
@@ -43,36 +44,41 @@ const INTEGRATIONS = [
 ];
 
 export function IntegrationsPage() {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const FEATURE_ENABLED = false;
   const [connecting, setConnecting] = useState<string | null>(null);
 
+  useFadeInStagger(headerRef, ".int-header", { y: 16, stagger: 0.06, duration: 0.5 });
+  useFadeInStagger(gridRef, ".int-card", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2 });
+
   function handleConnect(name: string) {
     setConnecting(name);
-    // Simular conexión
     setTimeout(() => {
       setConnecting(null);
-      // En producción: mostrar toast o modal de éxito
     }, 1500);
   }
 
   return (
     <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-7 dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Integraciones</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-        Tu estudio no es un silo: conecta Studere con calendario, archivos, automatizaciones y canales compartidos.
-      </p>
-      {!FEATURE_ENABLED && (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
-          Las integraciones están en desarrollo. Estarán disponibles próximamente.
-        </div>
-      )}
+      <div ref={headerRef}>
+        <h1 className="int-header text-2xl font-semibold text-slate-900 dark:text-slate-100">Integraciones</h1>
+        <p className="int-header mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+          Tu estudio no es un silo: conecta Studere con calendario, archivos, automatizaciones y canales compartidos.
+        </p>
+        {!FEATURE_ENABLED && (
+          <div className="int-header mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+            Las integraciones están en desarrollo. Estarán disponibles próximamente.
+          </div>
+        )}
+      </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div ref={gridRef} className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {INTEGRATIONS.map((integration) => {
           const Icon = integration.icon;
 
           return (
-            <div key={integration.name} className="rounded-[24px] border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card dark:border-slate-700 dark:bg-slate-900">
+            <div key={integration.name} className="int-card rounded-[24px] border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card dark:border-slate-700 dark:bg-slate-900">
               <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${integration.accent}`}>
                 <Icon className="h-5 w-5" />
               </div>
