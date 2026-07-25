@@ -61,6 +61,10 @@ export function useFadeInStagger(
     duration?: number;
     stagger?: number;
     delay?: number;
+    /** Starting scale (1 = no scale). E.g. 0.96 gives a subtle "zoom in" feel. */
+    scale?: number;
+    /** GSAP easing string. Defaults to "power2.out". Use "smooth" for the custom cubic-bezier. */
+    ease?: string;
   } = {},
 ) {
   const isMobile = useIsMobile();
@@ -73,14 +77,15 @@ export function useFadeInStagger(
     const y = options.y ?? cfg(isMobile, ANIMATION_CONFIG.distance.y, ANIMATION_CONFIG.mobile.distance.y);
     gsap.fromTo(
       elements,
-      { autoAlpha: 0, y },
+      { autoAlpha: 0, y, scale: options.scale ?? 1 },
       {
         autoAlpha: 1,
         y: 0,
+        scale: 1,
         duration: options.duration ?? cfg(isMobile, ANIMATION_CONFIG.duration.normal, ANIMATION_CONFIG.mobile.duration.normal),
         stagger: options.stagger ?? cfg(isMobile, ANIMATION_CONFIG.duration.stagger, ANIMATION_CONFIG.mobile.duration.stagger),
         delay: options.delay ?? 0,
-        ease: ANIMATION_CONFIG.ease.out,
+        ease: ANIMATION_CONFIG.ease[options.ease as keyof typeof ANIMATION_CONFIG.ease] ?? options.ease ?? ANIMATION_CONFIG.ease.out,
       },
     );
   }, { scope: containerRef });

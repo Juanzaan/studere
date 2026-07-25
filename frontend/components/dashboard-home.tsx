@@ -66,9 +66,9 @@ export function DashboardHome() {
 
   useFadeInStagger(heroRef, ".anim-item", { y: 20, duration: 0.8 });
   useFadeInStagger(quickActionsRef, "button", { y: 15, stagger: 0.08, duration: 0.5, delay: 0.3 });
-  useFadeInStagger(statCardsRef, ".stat-card", { delay: 0.35, ...ANIMATION_DEFAULTS });
+  useFadeInStagger(statCardsRef, ".stat-card", { delay: 0.35, duration: 0.6, stagger: 0.06, y: 16, scale: 0.96, ease: "smooth" });
   useFadeInStagger(filtersRef, ".filter-btn", { delay: 0.45, stagger: 0.04, duration: 0.35, y: 8 });
-  useFadeInStagger(rightColumnRef, ".right-card", { delay: 0.55, ...ANIMATION_DEFAULTS });
+  useFadeInStagger(rightColumnRef, ".right-card", { delay: 0.55, duration: 0.6, stagger: 0.06, y: 16, scale: 0.96, ease: "smooth" });
 
   useEffect(() => {
     function syncDashboard() {
