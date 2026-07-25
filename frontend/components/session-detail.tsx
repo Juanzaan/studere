@@ -10,6 +10,9 @@ import { createBookmarkFromSegment, createComment, createInsights } from "@/lib/
 import { evaluateExercise } from "@/lib/api";
 import { ActionItem, ChatMessage, StudySession } from "@/lib/types";
 import { useThrottledPersist } from "@/lib/use-throttled-persist";
+import { ANIMATION_CONFIG, prefersReducedMotion } from "@/src/shared/hooks/useAnimations";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
 import { FLASHCARD_INTERVALS, QUIZ_ACCURACY_THRESHOLDS } from "@/lib/constants";
 import { compressImage } from "@/lib/image-compression";
 import { useFocus } from "@/lib/focus-context";
@@ -44,6 +47,18 @@ export function SessionDetail({ session }: { session: StudySession }) {
   const [evaluatingTask, setEvaluatingTask] = useState<string | null>(null);
   const [conceptsWidth, setConceptsWidth] = useState(240);
   const isDragging = useRef(false);
+  const panelContainerRef = useRef<HTMLDivElement>(null);
+  const liveRegionRef = useRef<HTMLDivElement>(null);
+
+  const PANEL_LABELS: Record<FocusPanel, string> = {
+    summary: "Resumen IA",
+    flashcards: "Flashcards",
+    quiz: "Quiz",
+    mindmap: "Mapa Mental",
+    tasks: "Tareas",
+    insights: "Insights",
+    notes: "Mis Notas",
+  };
   const startX = useRef(0);
   const startWidth = useRef(240);
 
@@ -52,6 +67,43 @@ export function SessionDetail({ session }: { session: StudySession }) {
     const timer = setTimeout(() => setConfirmDelete(false), 5000);
     return () => clearTimeout(timer);
   }, [confirmDelete]);
+
+  // ── Panel transition animation ────────────────────────────────────────
+  useGSAP(() => {
+    if (prefersReducedMotion() || !panelContainerRef.current) return;
+    const children = panelContainerRef.current.children;
+    if (!children.length) return;
+
+    gsap.fromTo(
+      children,
+      { autoAlpha: 0, y: 12 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: ANIMATION_CONFIG.duration.normal,
+        stagger: ANIMATION_CONFIG.duration.stagger / 2,
+        ease: ANIMATION_CONFIG.ease.out,
+      },
+    );
+  }, { scope: panelContainerRef, dependencies: [focusPanel] });
+
+  // ── Focus management + scroll reset + a11y announcement ───────────────
+  useEffect(() => {
+    // Reset scroll al tope
+    panelContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Anunciar panel activo via aria-live
+    if (liveRegionRef.current) {
+      liveRegionRef.current.textContent = `Panel activo: ${PANEL_LABELS[focusPanel]}`;
+    }
+
+    // Mover foco al contenedor del panel
+    const timer = setTimeout(() => {
+      panelContainerRef.current?.focus({ preventScroll: true });
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [focusPanel, PANEL_LABELS]);
 
   const filteredConcepts = current.keyConcepts;
 
@@ -352,8 +404,15 @@ export function SessionDetail({ session }: { session: StudySession }) {
             />
           </div>
 
-          {/* Panel content */}
-          <div className="p-4">
+          {/* Panel content with transition */}
+          <div
+            ref={panelContainerRef}
+            key={focusPanel}
+            role="region"
+            aria-label={PANEL_LABELS[focusPanel]}
+            tabIndex={-1}
+            className="p-4 outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 focus-visible:ring-inset"
+          >
             {focusPanel === "summary" && (
               <PanelErrorBoundary panelName="Resumen">
                 <SummaryPanel
@@ -430,6 +489,14 @@ export function SessionDetail({ session }: { session: StudySession }) {
               </PanelErrorBoundary>
             )}
           </div>
+
+          {/* Visually hidden aria-live region for screen readers */}
+          <div
+            ref={liveRegionRef}
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          />
         </div>
       </div>
 
