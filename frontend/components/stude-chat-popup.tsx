@@ -14,12 +14,21 @@ const Md = dynamic(() => import("@/components/md-renderer"), {
   loading: () => <span className="text-[11px] text-c-muted">…</span>,
 });
 
+/**
+ * Props for the StudeChatPopup component.
+ */
 type StudeChatPopupProps = {
+  /** The current study session providing context for AI responses */
   session: StudySession;
+  /** Message history to display */
   chatHistory: ChatMessage[];
+  /** Called when the message history is updated (new message sent/received) */
   onChatUpdate: (messages: ChatMessage[]) => void;
+  /** Called to close/dismiss the popup */
   onClose: () => void;
+  /** Called when the user's message triggers a chart/render request */
   onChartDetected?: (chartData: { type: string; description: string; reply: string }) => void;
+  /** If set, auto-sends this message on mount (for context-triggered chats) */
   initialMessage?: string;
 };
 
@@ -36,6 +45,10 @@ const CHART_KEYWORDS = [
   "dibuja", "esquema", "tabla comparativa",
 ];
 
+/**
+ * Check if a user message requests a chart/graph visualization.
+ * Returns 'bar', 'line', 'pie', 'mindmap', or null based on keyword matching.
+ */
 function detectChartRequest(message: string): string | null {
   const lower = message.toLowerCase();
   for (const kw of CHART_KEYWORDS) {
@@ -50,6 +63,19 @@ function detectChartRequest(message: string): string | null {
   return null;
 }
 
+/**
+ * Draggable, resizable AI chat popup for the Stude assistant.
+ *
+ * Features:
+ * - Context-aware AI chat using session data (title, summary, concepts, transcript)
+ * - Quick prompts from BRAIN_PROMPT_TEMPLATES
+ * - Chart detection: requests for graphs trigger onChartDetected
+ * - Focus trap + Escape to close + return focus on unmount
+ * - Fallback to local heuristic replies (buildBrainReply) when server is unreachable
+ * - Drag by title bar, resize by bottom-right handle
+ *
+ * @param {StudeChatPopupProps} props
+ */
 export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, onChartDetected, initialMessage }: StudeChatPopupProps) {
   const toast = useToastContext();
   const [input, setInput] = useState("");

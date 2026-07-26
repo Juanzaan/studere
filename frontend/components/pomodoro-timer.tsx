@@ -3,14 +3,27 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { POMODORO } from "@/lib/constants";
 
+/**
+ * Pomodoro timer bar — shown during focus mode in session detail.
+ *
+ * Manages timed focus sessions with short/long breaks, browser notifications,
+ * and persistent state via localStorage (survives page refresh).
+ *
+ * Modes: focus (25min), short-break (5min), long-break (15min).
+ * After {@link POMODORO.ROUNDS_BEFORE_LONG_BREAK} focus rounds, suggests a long break.
+ */
+
 type TimerMode = "focus" | "short-break" | "long-break";
 
+/** Props for the PomodoroTimer component. */
 interface PomodoroTimerProps {
+  /** Callback to exit focus mode and return to normal session view. */
   onExit: () => void;
 }
 
 const STORAGE_KEY = "studere.pomodoro-state";
 
+/** Get the total minutes for a given timer mode from POMODORO constants. */
 function modeMinutes(mode: TimerMode): number {
   switch (mode) {
     case "focus":
@@ -24,6 +37,7 @@ function modeMinutes(mode: TimerMode): number {
   }
 }
 
+/** Human-readable label for each timer mode. */
 function modeLabel(mode: TimerMode): string {
   switch (mode) {
     case "focus":
@@ -37,6 +51,7 @@ function modeLabel(mode: TimerMode): string {
   }
 }
 
+/** Return themed Tailwind classes for each timer mode (blue for focus, amber for breaks). */
 function modeColor(mode: TimerMode): { bg: string; text: string; bar: string; border: string; track: string } {
   switch (mode) {
     case "focus":
@@ -67,6 +82,7 @@ interface TimerState {
   endTime?: number;
 }
 
+/** Persist timer state to localStorage. */
 function saveState(state: TimerState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -75,6 +91,7 @@ function saveState(state: TimerState) {
   }
 }
 
+/** Load persisted timer state from localStorage. Returns null if missing or corrupt. */
 function loadState(): TimerState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -85,6 +102,7 @@ function loadState(): TimerState | null {
   }
 }
 
+/** Remove persisted timer state from localStorage. */
 function clearState() {
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -93,12 +111,19 @@ function clearState() {
   }
 }
 
+/** Format seconds as MM:SS with leading zeros. */
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+/**
+ * Pomodoro timer with localStorage persistence and browser notifications.
+ *
+ * @param {PomodoroTimerProps} props
+ * @param {() => void} props.onExit - Callback to exit focus mode
+ */
 export function PomodoroTimer({ onExit }: PomodoroTimerProps) {
   const saved = loadState();
   const initialMode: TimerMode = saved?.mode ?? "focus";

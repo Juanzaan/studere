@@ -8,14 +8,44 @@ import { useScaleBounce } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
+/**
+ * Modal confirmation dialog with GSAP scale-in animation and 3 visual variants.
+ *
+ * Features:
+ * - Overlay backdrop with blur and click-to-dismiss
+ * - Scale-bounce entrance animation (0.8→1) via {@link useScaleBounce}
+ * - Shrink-out exit animation on confirm or cancel
+ * - 3 variants: danger (red), warning (blue), info (blue)
+ *
+ * @example
+ * ```tsx
+ * <ConfirmationDialog
+ *   isOpen={showDelete}
+ *   title="Eliminar sesión"
+ *   message="Esta acción no se puede deshacer."
+ *   variant="danger"
+ *   onConfirm={handleDelete}
+ *   onCancel={() => setShowDelete(false)}
+ * />
+ * ```
+ */
+
 interface ConfirmationDialogProps {
+  /** Whether the dialog is visible */
   isOpen: boolean;
+  /** Dialog heading */
   title: string;
+  /** Explanatory body text */
   message: string;
+  /** Label for the confirm action button. Default: "Confirmar" */
   confirmText?: string;
+  /** Label for the cancel button. Default: "Cancelar" */
   cancelText?: string;
+  /** Visual style variant. Default: "warning" */
   variant?: "danger" | "warning" | "info";
+  /** Called when the user confirms */
   onConfirm: () => void;
+  /** Called when the user cancels or clicks outside */
   onCancel: () => void;
 }
 

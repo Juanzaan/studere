@@ -21,11 +21,15 @@ import { AudioRecorderWidget } from "@/components/audio-recorder-widget";
 import { SessionComposerCard } from "@/components/session-composer-card";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
-const ANIMATION_DEFAULTS = { duration: 0.5, stagger: 0.06, y: 16 };
-
 type ComposerMode = "upload" | "record" | "online" | "url" | "screen";
+
+/** Filter options for the session records table on the dashboard. */
 type RecordFilter = "recent" | "starred" | "created";
 
+/**
+ * Quick-action buttons displayed in the dashboard hero section.
+ * Each defines a creation mode, label, icon, and whether it's the primary action.
+ */
 const QUICK_ACTIONS: Array<{
   mode: ComposerMode;
   label: string;
@@ -43,6 +47,7 @@ const RECORD_FILTERS: { key: RecordFilter; label: string }[] = [
   { key: "created", label: "Hoy" },
 ];
 
+/** Return a time-appropriate greeting based on the current hour. */
 function greetingByHour() {
   const hour = new Date().getHours();
   if (hour < 12) return "Buenos días";
@@ -50,6 +55,19 @@ function greetingByHour() {
   return "Buenas noches";
 }
 
+/**
+ * Main dashboard page — the user's home screen.
+ *
+ * Displays:
+ * - Time-based greeting with quick-action buttons (record, upload)
+ * - Audio recorder or session composer widget (toggled by quick actions)
+ * - Stat cards (sessions, flashcards, quizzes) with stagger animation
+ * - Streak indicator, filterable session records table
+ * - Right column: Stude AI prompt card and plan usage progress bar
+ *
+ * All entry animations use {@link useFadeInStagger} with scale+fade+ease-smooth.
+ * Listens to {@link SESSIONS_UPDATED_EVENT} and {@link ANALYTICS_UPDATED_EVENT}.
+ */
 export function DashboardHome() {
   const heroRef = useRef<HTMLDivElement>(null);
   const quickActionsRef = useRef<HTMLDivElement>(null);
@@ -105,10 +123,12 @@ export function DashboardHome() {
   const streak = Math.min(7, Math.max(1, Math.ceil(sessions.length / 2)));
   const latestSession = sessions[0];
 
+  /** Refresh sessions list from storage. */
   const refreshSessions = useCallback(() => {
     setSessions(getSessions());
   }, []);
 
+  /** Toggle the starred status of a session and refresh the list. */
   const toggleStar = useCallback((sessionId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;

@@ -4,6 +4,17 @@ import { useRef, useState } from "react";
 import { Calendar, Chrome, Cloud, MessageSquareShare, Workflow } from "lucide-react";
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
+/**
+ * Integrations page — showcase of planned third-party integrations.
+ *
+ * Displays 6 integration cards (Google Calendar, Outlook, Drive/Dropbox,
+ * Slack/Discord, Chrome Extension, Automations). Currently all show
+ * "Próximamente" state — actual integration is gated behind
+ * {@link FEATURE_ENABLED} flag.
+ *
+ * Stagger animations with scale+fade+ease-smooth.
+ */
+
 const INTEGRATIONS = [
   {
     name: "Google Calendar",

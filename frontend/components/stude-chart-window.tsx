@@ -8,17 +8,35 @@ import {
 } from "recharts";
 import { StudySession } from "@/lib/types";
 
+/**
+ * Draggable, resizable chart window rendered by Stude chat.
+ *
+ * Renders one of 4 chart types from session data:
+ * - bar / line / pie: Recharts visualization of concept relevance
+ * - mindmap: Interactive tree diagram from session.mindMap
+ *
+ * Features drag by title bar, resize by bottom-right handle,
+ * fullscreen toggle, mount-only animation (CHART_ANIM_DURATION).
+ */
+
+/** Shape of chart data emitted by Stude chat's chart detection. */
 type ChartData = {
   type: "bar" | "line" | "pie" | "mindmap";
   description: string;
   reply: string;
 };
 
+/** Props for the StudeChartWindow component. */
 type StudeChartWindowProps = {
+  /** Current session providing concept and mind map data */
   session: StudySession;
+  /** Chart type and metadata from Stude's chart detection */
   chartData: ChartData;
+  /** Called to close/dismiss the window */
   onClose: () => void;
+  /** Called when user clicks a chart element, passing the label */
   onElementClick?: (label: string) => void;
+  /** Optional Y position anchor (defaults to 400 + 16) */
   anchorY?: number;
 };
 

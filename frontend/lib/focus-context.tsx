@@ -1,5 +1,22 @@
 "use client";
 
+/**
+ * Focus mode context — manages full-screen focus state for session study.
+ *
+ * When focus mode is active, the Pomodoro timer bar is shown and the session
+ * header/sidebar collapse to minimize distractions.
+ *
+ * Exits focus mode on:
+ * - Escape key press
+ * - Navigation away from the session page
+ *
+ * @example
+ * ```tsx
+ * const { isFocused, enterFocus, exitFocus } = useFocus();
+ * if (isFocused) return <PomodoroTimer onExit={exitFocus} />;
+ * ```
+ */
+
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
@@ -15,6 +32,10 @@ const FocusContext = createContext<FocusContextValue>({
   exitFocus: () => {},
 });
 
+/**
+ * Focus mode context provider.
+ * Wraps the session detail view to enable/disable focus mode.
+ */
 export function FocusProvider({ children }: { children: ReactNode }) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -43,4 +64,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access focus mode state and controls.
+ * Must be used within a {@link FocusProvider}.
+ */
 export const useFocus = () => useContext(FocusContext);

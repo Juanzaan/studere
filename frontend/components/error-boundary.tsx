@@ -14,6 +14,10 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Top-level error boundary — catches rendering errors and shows a themed fallback.
+ * Supports retry and navigation back to dashboard.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -99,6 +103,11 @@ interface PanelState {
   error?: Error;
 }
 
+/**
+ * Granular panel error boundary — isolates errors to a single panel.
+ * Shows panel-specific error message with retry button.
+ * Used within session detail (SummaryPanel, TasksPanel, InsightsPanel, Chat).
+ */
 export class PanelErrorBoundary extends Component<PanelProps, PanelState> {
   state: PanelState = { hasError: false };
 

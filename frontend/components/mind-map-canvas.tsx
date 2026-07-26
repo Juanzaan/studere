@@ -30,7 +30,11 @@ function accentFor(accent?: string) {
   return ACCENT_STYLES[accent ?? "violet"] ?? ACCENT_STYLES.violet;
 }
 
-/* ─── custom node component ─── */
+/**
+ * Custom ReactFlow node component for mind map nodes.
+ * Renders with accent-colored background, border, and text, with target/source Handles.
+ * Root nodes are slightly larger (13px vs 11px text).
+ */
 function MindMapNodeComponent({ data }: { data: { label: string; accent?: string; isRoot?: boolean } }) {
   const style = accentFor(data.accent);
 
@@ -56,6 +60,17 @@ const V_GAP = 110;
 
 type LayoutResult = { nodes: Node[]; edges: Edge[]; width: number };
 
+/**
+ * Recursively compute ReactFlow node/edge positions from a tree of {@link MindMapNode}.
+ * Uses a centered tree layout: children are spread horizontally beneath their parent.
+ * Root edges are animated; all edges use accent color via CSS variable.
+ *
+ * @param node - Current tree node to lay out
+ * @param x - Target X position for this node
+ * @param y - Target Y position for this node
+ * @param depth - Current depth (0 = root)
+ * @returns LayoutResult with positioned nodes, connecting edges, and subtree width
+ */
 function layoutTree(node: MindMapNode, x: number, y: number, depth: number): LayoutResult {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -109,10 +124,23 @@ function layoutTree(node: MindMapNode, x: number, y: number, depth: number): Lay
 }
 
 /* ─── main component ─── */
+
+/** Props for the MindMapCanvas component. */
 type MindMapCanvasProps = {
+  /** Root node of the mind map tree structure */
   mindMap: MindMapNode;
 };
 
+/**
+ * Interactive mind map viewer using ReactFlow.
+ *
+ * Converts a tree of {@link MindMapNode} into positioned ReactFlow nodes/edges
+ * via {@link layoutTree}. Supports fullscreen mode with MiniMap, fit-to-view,
+ * and zoom controls. Aria-labels are injected into ReactFlow Control buttons
+ * via MutationObserver for accessibility.
+ *
+ * @param {MindMapCanvasProps} props
+ */
 export function MindMapCanvas({ mindMap }: MindMapCanvasProps) {
   const [fullscreen, setFullscreen] = useState(false);
 

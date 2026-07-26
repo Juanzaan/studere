@@ -1,9 +1,20 @@
-// Constantes de la aplicación para evitar magic numbers
+/**
+ * Application constants — single source of truth for configuration values.
+ *
+ * Centralizes magic numbers for:
+ * - Plan limits (FREE_PLAN_MINUTES)
+ * - Spaced repetition intervals (FLASHCARD_INTERVALS)
+ * - Quiz accuracy thresholds (QUIZ_ACCURACY_THRESHOLDS)
+ * - localStorage storage limits (STORAGE_LIMITS)
+ * - Audio processing limits and estimates (AUDIO_LIMITS, PROCESSING_TIME_ESTIMATES)
+ * - Pomodoro timer configuration (POMODORO)
+ * - Backend URL resolution (BACKEND_URL)
+ */
 
-// Plan de minutos gratis
+/** Free plan monthly minute limit for audio processing. */
 export const FREE_PLAN_MINUTES = 120;
 
-// Intervalo de spaced repetition para flashcards (días)
+/** Spaced repetition intervals for flashcards in days (SM-2 inspired). */
 export const FLASHCARD_INTERVALS = {
   again: 0,
   hard: 1,
@@ -11,25 +22,25 @@ export const FLASHCARD_INTERVALS = {
   easy: 7,
 } as const;
 
-// Umbrales de accuracy para quiz
+/** Accuracy thresholds for quiz performance classification. */
 export const QUIZ_ACCURACY_THRESHOLDS = {
   excellent: 70,
   good: 50,
 } as const;
 
-// Límites de localStorage
+/** localStorage storage limits to prevent quota errors. */
 export const STORAGE_LIMITS = {
   maxImageSizeMB: 5,
   maxTotalSizeMB: 10,
 } as const;
 
-// Configuración de throttling
+/** Throttle interval (ms) for debounced session persistence writes. */
 export const PERSIST_THROTTLE_MS = 500;
 
-// Configuración de chunking de audio
+/** Chunk size (MB) for splitting large audio files before server-side processing. */
 export const AUDIO_CHUNK_SIZE_MB = 25;
 
-// Límites de tamaño de audio
+/** Audio file size limits and routing thresholds. */
 export const AUDIO_LIMITS = {
   /** Archivos <10MB: procesamiento client-side rápido */
   CLIENT_SIDE_MAX_MB: 10,
@@ -43,7 +54,7 @@ export const AUDIO_LIMITS = {
   MAX_CLIENT_SIDE_DURATION_ESTIMATE_MIN: 30,
 } as const;
 
-// Estimaciones de tiempo de procesamiento
+/** Estimated processing times for different audio file sizes, used for user-facing progress messages. */
 export const PROCESSING_TIME_ESTIMATES = {
   /** Client-side: ~1-3 minutos para archivos <24MB */
   CLIENT_SIDE_MINUTES: { min: 1, max: 3 },
@@ -53,7 +64,7 @@ export const PROCESSING_TIME_ESTIMATES = {
   SERVER_SIDE_LARGE_MINUTES: { min: 15, max: 30 },
 } as const;
 
-// Configuración de Pomodoro
+/** Pomodoro timer default durations and round configuration. */
 export const POMODORO = {
   FOCUS_MINUTES: 25,
   SHORT_BREAK_MINUTES: 5,
@@ -61,7 +72,11 @@ export const POMODORO = {
   ROUNDS_BEFORE_LONG_BREAK: 4,
 } as const;
 
-// Backend URL - Force correct port
+/**
+ * Resolved backend URL.
+ * Checks NEXT_PUBLIC_BACKEND_URL, then NEXT_PUBLIC_API_URL, then falls back
+ * to http://localhost:7071 for local development.
+ */
 export const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_URL ||

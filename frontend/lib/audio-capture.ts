@@ -1,8 +1,25 @@
+/**
+ * Browser audio capture via MediaRecorder API.
+ *
+ * Provides a simple state-machine interface:
+ * - {@link startAudioCapture}: Request mic access and start recording
+ * - {@link stopAudioCapture}: Stop recording and return the audio blob
+ * - {@link cancelAudioCapture}: Cancel without returning data
+ * - {@link isRecording}: Check if currently recording
+ *
+ * Automatically selects the best supported MIME type (opus, ogg, mp4).
+ */
+
+/** State of the audio capture system. */
 export type AudioCaptureState = "idle" | "recording" | "stopped" | "error";
 
+/** Result of a completed audio capture, containing the blob and metadata. */
 export type AudioCaptureResult = {
+  /** The recorded audio blob */
   blob: Blob;
+  /** Duration in seconds */
   durationSeconds: number;
+  /** MIME type of the recording (e.g. "audio/webm;codecs=opus") */
   mimeType: string;
 };
 
@@ -20,6 +37,13 @@ function pickMimeType(): string {
   return "audio/webm";
 }
 
+/**
+ * Request microphone access and begin recording.
+ * Selects the best supported audio MIME type automatically.
+ *
+ * @returns The active MediaStream (useful for UI feedback like volume meters)
+ * @throws If microphone access is denied or unavailable
+ */
 export async function startAudioCapture(): Promise<MediaStream> {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const mimeType = pickMimeType();
@@ -38,6 +62,13 @@ export async function startAudioCapture(): Promise<MediaStream> {
   return stream;
 }
 
+/**
+ * Stop the current recording and return the captured audio.
+ * Stops all media tracks and resolves with the audio blob.
+ *
+ * @returns Promise resolving with the recorded audio and metadata
+ * @throws If no active recording exists
+ */
 export function stopAudioCapture(): Promise<AudioCaptureResult> {
   return new Promise((resolve, reject) => {
     if (!mediaRecorder || mediaRecorder.state === "inactive") {
@@ -69,10 +100,12 @@ export function stopAudioCapture(): Promise<AudioCaptureResult> {
   });
 }
 
+/** Check if audio is currently being recorded. */
 export function isRecording(): boolean {
   return mediaRecorder !== null && mediaRecorder.state === "recording";
 }
 
+/** Cancel the current recording without saving the audio data. */
 export function cancelAudioCapture(): void {
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
     mediaRecorder.stop();

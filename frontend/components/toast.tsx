@@ -8,17 +8,37 @@ import { useSlideIn } from "@/src/shared/hooks/useAnimations";
 
 gsap.registerPlugin(useGSAP);
 
+/** Toast notification variant types. */
 export type ToastType = "success" | "error" | "info" | "warning";
 
+/** Props for an individual Toast notification. */
 export interface ToastProps {
+  /** Unique identifier for this toast instance */
   id: string;
+  /** Visual variant (determines icon and color theme) */
   type: ToastType;
+  /** Bold title text */
   title: string;
+  /** Optional secondary message */
   message?: string;
+  /** Auto-dismiss duration in ms. Default: 5000 */
   duration?: number;
+  /** Callback to remove this toast from the stack */
   onClose: (id: string) => void;
 }
 
+/**
+ * Individual toast notification with slide-in animation, progress bar,
+ * and auto-dismiss.
+ *
+ * Features:
+ * - Slide in from the right (400px offset) using GSAP
+ * - Progress bar that shrinks over `duration` then auto-closes
+ * - Close button with shrink-out animation
+ * - Themed icon and border per type (teal/red/amber/blue)
+ *
+ * @param {ToastProps} props
+ */
 export function Toast({ id, type, title, message, duration = 5000, onClose }: ToastProps) {
   const toastRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -131,7 +151,10 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
   );
 }
 
-// Toast container
+/**
+ * Toast container — fixed-position stack in the bottom-right corner.
+ * Renders children (toast notifications) with gap and padding.
+ */
 export function ToastContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="pointer-events-none fixed bottom-0 right-0 z-50 flex flex-col gap-3 p-4 sm:p-6">

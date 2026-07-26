@@ -1,3 +1,21 @@
+/**
+ * Throttled persistence hook — debounces session writes to localStorage.
+ *
+ * Accumulates rapid state changes and writes the latest snapshot after
+ * `delay` ms of inactivity. Flushes pending writes on unmount to avoid
+ * data loss.
+ *
+ * @param sessionId - ID of the session to persist
+ * @param delay - Throttle delay in ms (default: 500)
+ * @returns A function to call with the latest session state
+ *
+ * @example
+ * ```tsx
+ * const persist = useThrottledPersist(session.id, 300);
+ * persist(currentSession); // will flush after 300ms of inactivity
+ * ```
+ */
+
 import { useRef, useCallback, useEffect } from "react";
 import { StudySession } from "@/lib/types";
 import { patchSession } from "@/lib/storage";

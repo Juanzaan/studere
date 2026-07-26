@@ -3,6 +3,16 @@
 import { memo } from "react";
 import { Check, Sparkles, Loader2 } from "lucide-react";
 
+/**
+ * Skeleton loading screen for AI generation phases (transcribing / generating).
+ *
+ * Shows a progress tracker with step indicators, a skeleton session layout
+ * mimicking the session detail view (title, tabs, 2-column content), and
+ * contextual status messages.
+ *
+ * Memoized with React.memo for performance during rapid re-renders.
+ */
+
 /* ─── SkeletonBlock: a single shimmer rectangle ─── */
 function SkeletonBlock({
   className = "",
@@ -55,9 +65,11 @@ function ProgressStep({
   );
 }
 
-/* ─── Props ─── */
+/** Props for the SessionSkeleton component. */
 export type SessionSkeletonProps = {
+  /** Current AI processing phase — determines the progress step highlighted */
   phase: "transcribing" | "generating";
+  /** Optional progress message shown below the main status line */
   progressMsg?: string;
 };
 

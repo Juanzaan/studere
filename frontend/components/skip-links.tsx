@@ -3,8 +3,13 @@
 import Link from "next/link";
 
 /**
- * Skip links para navegación rápida con teclado
- * WCAG 2.1 Level A (2.4.1 Bypass Blocks)
+ * Skip links for keyboard navigation — WCAG 2.1 Level A (2.4.1 Bypass Blocks).
+ *
+ * Renders two hidden links that become visible on focus:
+ * 1. "Saltar al contenido principal" → `#main-content`
+ * 2. "Saltar a la navegación" → `#navigation`
+ *
+ * Using `sr-only focus-within:not-sr-only` pattern for visibility.
  */
 export function SkipLinks() {
   return (

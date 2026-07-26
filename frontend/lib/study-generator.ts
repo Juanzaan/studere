@@ -1,3 +1,16 @@
+/**
+ * Local study session generator — creates complete study packages without AI.
+ *
+ * Builds sessions from {@link SessionDraftInput} by:
+ * - Generating a plausible transcript from notes/input
+ * - Extracting key concepts via word frequency analysis
+ * - Creating flashcards, quiz questions, action items, mind maps, and insights
+ * - Producing a fallback transcript when no notes are provided
+ *
+ * Used as the local generation path (without Azure OpenAI). The AI generation
+ * path in `api.ts` replaces these outputs when available.
+ */
+
 import { SessionDraftInput, StudySession } from "@/lib/types";
 import { createActionItems, createInsights, createMindMap, createWelcomeChat } from "@/lib/session-utils";
 
@@ -142,6 +155,17 @@ function extractConcepts(sentences: string[]) {
       ];
 }
 
+/**
+ * Generate flashcard candidates from concepts and transcript sentences.
+ * Uses template patterns (definition, importance, application) per concept
+ * and comprehension templates per sentence. Deduplicates against existing questions.
+ *
+ * @param concepts - Extracted key concepts with descriptions
+ * @param sentences - Transcript sentences to draw from
+ * @param excludeQuestions - Set of existing question strings to avoid duplicates
+ * @param sentenceOffset - Starting index offset for sentence iteration
+ * @returns Array of {question, answer} card objects, max 18
+ */
 export function generateFlashcards(
   concepts: ReturnType<typeof extractConcepts>,
   sentences: string[] = [],
@@ -251,6 +275,16 @@ function generateQuiz(summary: string, concepts: ReturnType<typeof extractConcep
   return items.slice(0, 12);
 }
 
+/**
+ * Create a complete {@link StudySession} from draft input.
+ *
+ * Generates transcript, summary, concepts, flashcards, quiz, action items,
+ * mind map, insights, and welcome chat message. All fields are derived
+ * locally without AI.
+ *
+ * @param input - Draft input (title, course, notes, fileName, fileType, etc.)
+ * @returns A fully populated StudySession ready for storage
+ */
 export function createStudySession(input: SessionDraftInput): StudySession {
   const baseText = input.notes?.trim() || buildFallbackTranscript(input.title, input.course, input.fileName);
   const transcript = buildTranscript(baseText);

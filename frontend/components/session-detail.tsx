@@ -31,6 +31,22 @@ import {
   completionRate,
 } from "@/components/session-detail-helpers";
 
+/**
+ * Main session detail view — the core study workspace.
+ *
+ * Manages a two-column layout (concepts sidebar + content panels) with:
+ * - 7 focus panels: Summary, Flashcards, Quiz, Mind Map, Tasks, Insights, Notes
+ * - Animated panel transitions via GSAP
+ * - Pomodoro timer integration (focus mode)
+ * - Exercise submission with AI evaluation (text + image)
+ * - Flashcard spaced repetition (confidence-based intervals)
+ * - Bookmarking, commenting, and flashcard generation from transcript segments
+ * - Aria-live region for screen reader panel announcements
+ * - Resizable concepts sidebar with drag handle
+ *
+ * @param {Object} props
+ * @param {StudySession} props.session - The complete study session data to render
+ */
 export function SessionDetail({ session }: { session: StudySession }) {
   const router = useRouter();
   const toast = useToastContext();
@@ -108,11 +124,20 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
   const filteredConcepts = current.keyConcepts;
 
+  /**
+   * Optimistic update — updates UI immediately, persists to localStorage via throttled write.
+   * Does NOT recompute derived fields (completionRate, insights).
+   */
   function persist(nextSession: StudySession) {
     setCurrent(nextSession); // UI update inmediato (optimistic)
     throttledPersist(nextSession); // localStorage throttled
   }
 
+  /**
+   * Optimistic update with derived field recalculation.
+   * Recomputes completionRate and insights before persisting.
+   * Use for state changes that affect study metrics.
+   */
   function persistWithDerived(nextSession: StudySession) {
     const withDerived: StudySession = {
       ...nextSession,
@@ -125,23 +150,28 @@ export function SessionDetail({ session }: { session: StudySession }) {
     persist(withDerived);
   }
 
+  /** Toggle the session's starred/favorite status. */
   function toggleStarred() {
     persist({ ...current, starred: !current.starred });
   }
 
+  /** Delete the session and navigate back to dashboard. */
   function handleDelete() {
     deleteSession(current.id);
     router.push("/dashboard");
   }
 
+  /** Export the session content as a Markdown file download. */
   function exportMd() {
     triggerDownload(current.id + ".md", sessionToMarkdown(current), "text/markdown;charset=utf-8");
   }
 
+  /** Export flashcards as a CSV file download. */
   function exportCsv() {
     triggerDownload(current.id + "-flashcards.csv", flashcardsToCsv(current), "text/csv;charset=utf-8");
   }
 
+  /** Toggle an action item between pending and completed. */
   function toggleTask(id: string) {
     persistWithDerived({
       ...current,
@@ -151,6 +181,13 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /**
+   * Submit an exercise to AI for evaluation.
+   * Shows optimistic submission state, handles success/failure feedback via toast.
+   * @param taskId - Action item ID to evaluate
+   * @param answerType - 'text' for written answers, 'image' for photo upload
+   * @param content - The answer content (text string or base64 data URL for images)
+   */
   async function submitExercise(taskId: string, answerType: "text" | "image", content: string) {
     setEvaluatingTask(taskId);
     const task = current.actionItems.find((t) => t.id === taskId);
@@ -202,6 +239,10 @@ export function SessionDetail({ session }: { session: StudySession }) {
     }
   }
 
+  /**
+   * Handle image file upload for exercise evaluation.
+   * Compresses the image before submission, falls back to original if compression fails.
+   */
   async function handleImageUpload(taskId: string, file: File) {
     try {
       const compressedDataUrl = await compressImage(file, 1200, 1200, 0.8);
@@ -221,6 +262,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
     }
   }
 
+  /** Toggle a bookmark on a transcript segment. */
   function toggleBookmark(segmentId: string, label: string) {
     const exists = current.bookmarks.some((bookmark) => bookmark.segmentId === segmentId);
     persist({
@@ -231,6 +273,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /** Add a comment to the session, optionally anchored to a specific transcript segment. */
   function addComment(text: string, segmentId?: string) {
     persist({
       ...current,
@@ -238,6 +281,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /** Create a flashcard from a transcript segment's text content. */
   function addFlashcardFromSegment(text: string) {
     persist({
       ...current,
@@ -252,6 +296,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
     setFocusPanel("flashcards");
   }
 
+  /** Generate additional flashcards from existing concepts and transcript sentences. */
   function handleGenerateMoreFlashcards() {
     const existingQuestions = new Set(current.flashcards.map((f) => f.question));
     const sentences = current.transcript.map((s) => s.text);
@@ -268,6 +313,10 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /**
+   * Record confidence rating for a flashcard, updating its spaced repetition interval.
+   * Uses FLASHCARD_INTERVALS constants to compute next review date.
+   */
   function handleFlashcardConfidence(cardIndex: number, confidence: import("@/lib/types").Flashcard["confidence"]) {
     const now = new Date();
     const interval = FLASHCARD_INTERVALS[confidence || "good"] || FLASHCARD_INTERVALS.good;
@@ -280,15 +329,21 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /** Persist updated chat history from Stude chat popup. */
   function handleChatUpdate(messages: ChatMessage[]) {
     persist({ ...current, chatHistory: messages });
   }
 
+  /** Open the Stude chat popup with a pre-filled message from a transcript segment or insight. */
   function handleOpenChatWith(message: string) {
     setPendingChatMessage(message);
     setShowChat(true);
   }
 
+  /**
+   * Record quiz completion result and update study metrics.
+   * Computes accuracy percentage and increments review count.
+   */
   function handleQuizComplete(correct: number, total: number) {
     persistWithDerived({
       ...current,
@@ -301,6 +356,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /** Record a flashcard review session and auto-complete the first pending action item. */
   function handleFlashcardReview(reviewed: number) {
     persistWithDerived({
       ...current,
@@ -315,6 +371,11 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
+  /**
+   * Start drag-to-resize for the concepts sidebar.
+   * Clamps width between 160px and 400px.
+   * Sets `col-resize` cursor globally during drag.
+   */
   function handleMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
     startX.current = e.clientX;

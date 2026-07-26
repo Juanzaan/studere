@@ -13,12 +13,29 @@ const Md = dynamic(() => import("@/components/md-renderer"), {
 
 const OPTION_LETTERS = ["A", "B", "C", "D"] as const;
 
+/**
+ * Props for the QuizViewer component.
+ */
 type QuizViewerProps = {
+  /** Array of quiz questions with options and explanations */
   quiz: QuizItem[];
+  /** Session ID for saving attempt analytics */
   sessionId: string;
+  /** Called when all questions have been answered */
   onQuizComplete?: (correct: number, total: number) => void;
 };
 
+/**
+ * Interactive quiz viewer with A/B/C/D multiple choice, instant feedback,
+ * and scoring. Supports both option-based quizzes and a legacy fallback
+ * (shows explanation as text when no options are provided).
+ *
+ * Renders a progress bar (`role="progressbar"`), a score summary with
+ * contextual message on completion, and per-question explanations
+ * revealed after answering.
+ *
+ * @param {QuizViewerProps} props
+ */
 export function QuizViewer({ quiz, sessionId, onQuizComplete }: QuizViewerProps) {
   // answers[i] = index of chosen option, or undefined if unanswered
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());

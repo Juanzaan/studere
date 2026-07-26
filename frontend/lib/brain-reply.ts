@@ -1,13 +1,33 @@
+/**
+ * Local heuristic AI brain (Stude) — generates contextual replies without server calls.
+ *
+ * Provides 6 prompt templates and a routing engine that matches user messages
+ * to reply builders: summary, exam prep, confusing concepts, task suggestions,
+ * cross-session connections, Socratic deep-dive, concept explanations, quiz/flashcard
+ * practice, and transcript segment lookup.
+ *
+ * Used as fallback when the Azure OpenAI chat endpoint is unreachable.
+ */
+
 import { StudySession } from "@/lib/types";
 
+/** Extract the first sentence from a text block. */
 function firstSentence(value: string) {
   return value.split(/(?<=[.!?])\s+/)[0]?.trim() || value.trim();
 }
 
+/** Split a summary into paragraphs by double newlines. */
 function summaryParagraphs(summary: string): string[] {
   return summary.split(/\n\n+/).filter(Boolean);
 }
 
+/**
+ * A quick-prompt template displayed as buttons above Stude chat input.
+ * @property id - Unique identifier (e.g. "summary", "confusing")
+ * @property label - Short button label (e.g. "Resumen clave")
+ * @property prompt - Full prompt sent to the AI when clicked
+ * @property icon - Lucide icon name for the button
+ */
 export type BrainPromptTemplate = {
   id: string;
   label: string;
@@ -259,6 +279,18 @@ function buildCrossSessionContext(sessions: StudySession[], currentSession: Stud
   return parts.join("\n");
 }
 
+/**
+ * Main entry point for local (fallback) brain replies.
+ *
+ * Matches the user's message against keyword patterns and routes to the
+ * appropriate reply builder function. If no pattern matches, falls back
+ * to {@link buildDeepSummary}.
+ *
+ * @param session - The current study session providing context
+ * @param message - The user's chat message
+ * @param allSessions - Optional full session list for cross-session connections
+ * @returns A markdown-formatted reply string
+ */
 export function buildBrainReply(session: StudySession, message: string, allSessions?: StudySession[]) {
   const normalized = message.toLowerCase();
 

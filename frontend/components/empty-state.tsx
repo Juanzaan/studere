@@ -8,17 +8,36 @@ import { useFadeInStagger, useScaleBounce } from "@/src/shared/hooks/useAnimatio
 
 gsap.registerPlugin(useGSAP);
 
+/**
+ * Empty state placeholder with GSAP particle animations.
+ *
+ * Displays an icon, title, description, and optional CTA button.
+ * Features floating gradient particles, icon bounce-in on mount,
+ * and a subtle pulse loop. Can be disabled via `animated={false}`
+ * for performance or reduced-motion scenarios.
+ */
+
 interface EmptyStateProps {
+  /** Lucide icon component to display */
   icon: LucideIcon;
+  /** Primary heading text */
   title: string;
+  /** Explanatory description */
   description: string;
+  /** Optional call-to-action button */
   action?: {
     label: string;
     onClick: () => void;
   };
+  /** Whether to animate particles and icon on mount. Default: true */
   animated?: boolean;
 }
 
+/**
+ * Empty state placeholder with particles, icon bounce, and optional action.
+ *
+ * @param {EmptyStateProps} props
+ */
 export function EmptyState({ 
   icon: Icon, 
   title, 

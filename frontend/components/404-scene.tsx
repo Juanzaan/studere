@@ -3,6 +3,21 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Text, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 
+/**
+ * 3D animated 404 scene using Three.js / React Three Fiber.
+ *
+ * Tells a mini-story through particle phases:
+ * 1. "showing404" — large "404" text displayed
+ * 2. "fragmenting" — 404 particles explode and scatter
+ * 3. "formingPerson" — particles reassemble into a humanoid shape
+ * 4. "walking" — the figure walks toward a door with procedural animation
+ * 5. "crashed" — figure crashes into the door
+ * 6. "sitting" — figure sits with idle breathing animation
+ *
+ * Uses instanced mesh for performance (300 particles) with Three.js.
+ */
+
+/** Single particle in the 3D particle system. */
 interface Particle3D {
   position: THREE.Vector3;
   target: THREE.Vector3;
@@ -11,6 +26,7 @@ interface Particle3D {
   opacity: number;
 }
 
+/** Narrative phases the 404 scene transitions through over ~5 seconds. */
 type NarrativePhase = 'showing404' | 'fragmenting' | 'formingPerson' | 'walking' | 'crashed' | 'sitting';
 
 function ParticleSystem({ phase, onPhaseChange }: { phase: NarrativePhase; onPhaseChange: (phase: NarrativePhase) => void }) {
@@ -331,6 +347,14 @@ function Door({ phase }: { phase: NarrativePhase }) {
   );
 }
 
+/**
+ * 3D 404 scene root — renders Three.js canvas with camera, lights,
+ * optional 404 text, and the particle system + door when not showing404.
+ *
+ * @param {Object} props
+ * @param {NarrativePhase} props.phase - Current narrative phase
+ * @param {(phase: NarrativePhase) => void} props.onPhaseChange - Callback when phase transitions
+ */
 export default function Scene3D({ phase, onPhaseChange }: { phase: NarrativePhase; onPhaseChange: (phase: NarrativePhase) => void }) {
   return (
     <Canvas>

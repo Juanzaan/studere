@@ -1,3 +1,15 @@
+/**
+ * Session utility functions for creating and managing study session content.
+ *
+ * Provides factory functions for:
+ * - Action items (with exercise prompts generated from session content)
+ * - Mind map tree structures (with accent colors for ReactFlow)
+ * - Insights/metrics cards for the dashboard
+ * - Welcome chat messages for Stude
+ * - Bookmarks, comments, and chat messages
+ * - Re-exports from {@link session-normalizer} and {@link brain-reply}
+ */
+
 import {
   ActionItem,
   Bookmark,
@@ -34,6 +46,15 @@ function summarizeForChat(session: Pick<StudySession, "summary" | "title" | "cou
   return summaryParagraphs(session.summary).slice(0, 2).join(" ");
 }
 
+/**
+ * Generate action items (tasks) from session content.
+ * Creates up to 3 items: general review, key concept explanation, and
+ * comparison or quiz practice. Each includes an exercise prompt
+ * for AI evaluation.
+ *
+ * @param session - Session data (id, summary, keyConcepts, quiz, transcript)
+ * @returns Array of ActionItems with exercise prompts
+ */
 export function createActionItems(session: Pick<StudySession, "id" | "summary" | "keyConcepts" | "quiz" | "transcript">): ActionItem[] {
   const concept = session.keyConcepts[0];
   const secondConcept = session.keyConcepts[1];
@@ -101,6 +122,14 @@ function mapAccent(index: number): MindMapNode["accent"] {
   return "amber";
 }
 
+/**
+ * Build a hierarchical mind map tree from session content.
+ * Structure: Root → [Summary, Concepts, Practice] → child nodes with accents.
+ * Each concept gets a description child node.
+ *
+ * @param session - Session data (id, title, summary, keyConcepts, quiz)
+ * @returns Root MindMapNode with nested children
+ */
 export function createMindMap(session: Pick<StudySession, "id" | "title" | "summary" | "keyConcepts" | "quiz">): MindMapNode {
   return {
     id: stableId("mindmap", session.id),
@@ -148,6 +177,14 @@ export function createMindMap(session: Pick<StudySession, "id" | "title" | "summ
   };
 }
 
+/**
+ * Generate insight/metric cards for the dashboard and session detail.
+ * Returns 4 insights: coverage, concept density, quiz accuracy, readiness.
+ * Each has a tone (good/neutral/warning) based on current values.
+ *
+ * @param session - Session data (keyConcepts, stats, studyMetrics, quiz, summary)
+ * @returns Array of 4 SessionInsight objects
+ */
 export function createInsights(session: Pick<StudySession, "keyConcepts" | "stats" | "studyMetrics" | "quiz" | "summary">): SessionInsight[] {
   return [
     {
@@ -181,6 +218,13 @@ export function createInsights(session: Pick<StudySession, "keyConcepts" | "stat
   ];
 }
 
+/**
+ * Create the initial welcome message from Stude when opening a session's chat.
+ * Includes session title, course, and a summary snippet.
+ *
+ * @param session - Session data (id, title, course, summary)
+ * @returns Array with a single assistant welcome message
+ */
 export function createWelcomeChat(session: Pick<StudySession, "id" | "title" | "course" | "summary">): ChatMessage[] {
   return [
     {
@@ -192,6 +236,14 @@ export function createWelcomeChat(session: Pick<StudySession, "id" | "title" | "
   ];
 }
 
+/**
+ * Factory for a single ChatMessage with auto-generated timestamp.
+ *
+ * @param id - Message ID (should be unique, e.g. `user-${Date.now()}`)
+ * @param role - Message role ('user' | 'assistant')
+ * @param content - Message body text
+ * @returns A ChatMessage object
+ */
 export function createChatMessage(id: string, role: ChatMessage["role"], content: string): ChatMessage {
   return {
     id,
@@ -201,6 +253,14 @@ export function createChatMessage(id: string, role: ChatMessage["role"], content
   };
 }
 
+/**
+ * Create a bookmark anchored to a specific transcript segment.
+ *
+ * @param sessionId - Parent session ID
+ * @param segmentId - Target transcript segment ID
+ * @param label - User-visible label for the bookmark
+ * @returns A Bookmark object
+ */
 export function createBookmarkFromSegment(sessionId: string, segmentId: string, label: string): Bookmark {
   return {
     id: stableId("bookmark", `${sessionId}-${segmentId}-${label}`),
@@ -210,6 +270,14 @@ export function createBookmarkFromSegment(sessionId: string, segmentId: string, 
   };
 }
 
+/**
+ * Create a comment on a session, optionally linked to a transcript segment.
+ *
+ * @param sessionId - Parent session ID
+ * @param text - Comment body
+ * @param segmentId - Optional transcript segment ID to anchor the comment
+ * @returns A SessionComment object
+ */
 export function createComment(sessionId: string, text: string, segmentId?: string): SessionComment {
   return {
     id: stableId("comment", `${sessionId}-${segmentId || "general"}-${Date.now()}`),

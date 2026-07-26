@@ -4,7 +4,7 @@ Plataforma de estudio post-clase que transforma grabaciones, notas y transcripci
 
 ## Funcionalidades
 
-- **Dashboard** con acciones rápidas, onboarding y sesiones recientes
+- **Dashboard** con acciones rápidas, onboarding, filtros y sesiones recientes
 - **Grabación de audio** (micrófono) y **captura de pantalla** directo desde el navegador
 - **Transcripción real** con Azure OpenAI Whisper (chunking automático para archivos grandes)
 - **Generación con IA** de resumen Markdown, conceptos clave, flashcards, quiz múltiple opción, mapa mental, tareas con ejercicios e insights
@@ -15,42 +15,48 @@ Plataforma de estudio post-clase que transforma grabaciones, notas y transcripci
 - **Mapa mental** interactivo con ReactFlow
 - **Gráficos** (bar, line, pie) generados desde el chat
 - **Analytics** con métricas de estudio, quizzes y flashcards
+- **Tour interactivo** con spotlight, personaje animado y navegación por teclado
+- **Skeleton screens** para estados de carga de IA (transcribiendo / generando)
+- **Animaciones unificadas** con GSAP (entrada escalonada, fade + scale, easing suave)
 - **Exportación** a Markdown y CSV
 - **Biblioteca**, **sesiones destacadas** y **próximos eventos**
+- **Modo oscuro** con detección de preferencia del sistema
+- **Responsive design** — sidebar hamburguesa, layout adaptable, targets táctiles
+- **Accesibilidad** — WCAG AA, HTML semántico, roles ARIA, navegación por teclado
 - **i18n completo** en español
 
 ## Stack
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | Next.js 14, TypeScript, Tailwind CSS, Recharts, ReactFlow |
+| Frontend | Next.js 14, TypeScript (strict), Tailwind CSS, GSAP, ReactFlow, Recharts |
 | Backend | Azure Functions (Node.js) |
 | IA | Azure OpenAI — GPT-4.1-mini (generación, chat, evaluación) + Whisper (transcripción) |
 | Storage | localStorage (sesiones), analytics custom |
 
+## Testing
+
+| Tipo | Cantidad |
+|---|---|
+| Unit tests (Vitest) | 311 tests, 14 suites |
+| E2E (Playwright) | 8 spec files, 21 critical-flow tests |
+| Cobertura | Componentes, storage, audio, API, navegación, temas, mobile |
+
 ## Cómo ejecutarlo
 
 ```bash
-# Frontend
 cd frontend
 npm install
 npm run dev
 ```
 
-```bash
-# Backend (Azure Functions)
-cd backend
-npm install
-func start
-```
-
-Frontend en `http://localhost:3000` · Backend en `http://localhost:7080`
+Frontend en `http://localhost:3000` · Backend en `http://localhost:7071`
 
 ## Variables de entorno
 
 ### Frontend (`frontend/.env.local`)
 ```
-NEXT_PUBLIC_BACKEND_URL=http://localhost:7080
+NEXT_PUBLIC_BACKEND_URL=http://localhost:7071
 ```
 
 ### Backend (`backend/local.settings.json`)
@@ -66,8 +72,13 @@ AZURE_OPENAI_WHISPER_DEPLOYMENT=...
 ```
 frontend/
   app/           → Rutas Next.js (dashboard, library, sessions, analytics, etc.)
-  components/    → 21 componentes React
+  components/    → 32 componentes React
   lib/           → Utilidades, tipos, API client, storage, generadores
+  src/
+    domains/     → Módulos de dominio específico
+    shared/      → Hooks y utilidades compartidas (animaciones, etc.)
+    tests/       → 14 suites de tests unitarios
+  e2e/           → 8 specs de Playwright
 backend/
   GenerateStudySession/  → Genera paquete de estudio con IA
   StudeChat/             → Chat contextual con IA

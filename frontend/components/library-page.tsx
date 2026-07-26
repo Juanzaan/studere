@@ -7,14 +7,29 @@ import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
+/**
+ * Library page — browse, search, and filter all study sessions.
+ *
+ * Features:
+ * - 3 filter modes: Recientes (all), Destacadas (starred), Esta semana
+ * - Text search across title, course, file name, and summary
+ * - Real-time sync with {@link SESSIONS_UPDATED_EVENT}
+ * - Stagger entry animations for header, filters, and search input
+ */
+
 type LibraryFilter = "all" | "starred" | "week";
 
+/** Filter buttons for the library page. */
 const LIB_FILTERS: { key: LibraryFilter; label: string }[] = [
   { key: "all", label: "Recientes" },
   { key: "starred", label: "Destacadas" },
   { key: "week", label: "Esta semana" },
 ];
 
+/**
+ * @param {Object} props
+ * @param {string} [props.initialQuery=""] - Initial search query from URL parameter
+ */
 export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
   const headerRef = useRef<HTMLDivElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);

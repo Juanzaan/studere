@@ -7,6 +7,18 @@ import { getStoredTheme, setTheme, type Theme } from "@/lib/theme";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 
+/**
+ * Application top bar — sticky header with global search, theme toggle,
+ * notifications, user profile, and quick links.
+ *
+ * Features:
+ * - Global search (Ctrl+K to focus) that navigates to exact session match or
+ *   library search results
+ * - Theme toggle (light/dark) persisted via {@link setTheme}
+ * - Stude badge and "Iniciar prueba" CTA (desktop only)
+ * - Notification bell and user profile button
+ * - Memoized with React.memo for performance
+ */
 export const AppTopbar = memo(function AppTopbar() {
   const router = useRouter();
   const pathname = usePathname();

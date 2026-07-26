@@ -11,20 +11,38 @@ import { IllustrationScene } from "@/components/illustration-scene";
 
 gsap.registerPlugin(useGSAP);
 
+/**
+ * Reusable session records table with empty state, star toggle, and
+ * responsive column visibility.
+ *
+ * Desktop: full table with Sesión, Duración, Fecha, Creador, Fav columns.
+ * Mobile: compact view showing session + inline meta · date on a single row.
+ * Empty state: renders {@link IllustrationScene} with contextual title/description.
+ * Star button: GSAP scale-bounce animation on click.
+ *
+ * Memoized with React.memo for performance (used in Dashboard, Library, Starred).
+ */
+
 const AVATAR_COLORS = [
   "border-c-blue-border bg-c-blue-soft text-c-blue",
   "border-c-teal-border bg-c-teal-soft text-c-teal",
   "border-c-violet-border bg-c-violet-soft text-c-violet",
 ] as const;
 
+/** Extract the first 2 characters of a session title for avatar display. */
 function getInitials(title: string): string {
   return title.trim().slice(0, 2).toUpperCase();
 }
 
+/** Props for the SessionRecordsTable component. */
 type SessionRecordsTableProps = {
+  /** Sessions to display in the table */
   sessions: StudySession[];
+  /** Title shown when the list is empty */
   emptyTitle: string;
+  /** Description shown when the list is empty */
   emptyDescription: string;
+  /** Called when the star button is clicked for a session */
   onToggleStar?: (sessionId: string) => void;
 };
 

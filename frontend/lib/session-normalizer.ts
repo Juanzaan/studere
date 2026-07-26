@@ -1,3 +1,18 @@
+/**
+ * Session normalizer — validates, cleans, and backfills study session data.
+ *
+ * On read, every session passes through {@link normalizeSession} which:
+ * - Normalizes transcript segments (id, speaker, timestamp fallbacks)
+ * - Filters concepts (min 2-word terms, 15-word descriptions, no fragments, no duplicates)
+ * - Deduplicates flashcards (>70% question overlap = duplicate)
+ * - Validates quiz questions (min 3 options, valid correct index, 20-word explanations)
+ * - Validates action items (non-empty titles, min 5 words)
+ * - Backfills missing fields with smart defaults (action items, mind map, chat, insights)
+ * - Recomputes studyMetrics from current data
+ *
+ * Logs warnings to console for each rejection to aid debugging.
+ */
+
 import { StudySession, TranscriptSegment, Concept, Flashcard, QuizItem, ActionItem } from "@/lib/types";
 import { createActionItems, createMindMap, createInsights, createWelcomeChat } from "@/lib/session-utils";
 
@@ -118,6 +133,17 @@ function validateTasks(items: ActionItem[]): ActionItem[] {
   return valid;
 }
 
+/**
+ * Normalize and validate a session on read.
+ *
+ * Applies all filters (concepts, flashcards, quiz, tasks) and backfills
+ * missing derived fields (actionItems, mindMap, bookmarks, comments,
+ * chatHistory, stats, studyMetrics, insights). Ensures backward compatibility
+ * with older session formats (e.g. summary as string[] → string).
+ *
+ * @param raw - Raw session data (possibly from localStorage)
+ * @returns A fully normalized, validated StudySession
+ */
 export function normalizeSession(raw: StudySession): StudySession {
   const transcript = (raw.transcript || []).map(normalizeTranscriptSegment);
   // Backward compat: old sessions stored summary as string[], new ones as string

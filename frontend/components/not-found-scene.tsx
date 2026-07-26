@@ -82,6 +82,13 @@ function Scene() {
   );
 }
 
+/**
+ * Full-viewport 404 page with floating 3D text using React Three Fiber.
+ *
+ * Features a rotating "404" text element with hover effects (color change,
+ * cursor pointer). Clicking the text navigates to `/dashboard`.
+ * Includes auto-rotation via OrbitControls and floating animation via drei Float.
+ */
 export function NotFoundScene() {
   return (
     <div className="relative flex min-h-screen overflow-hidden bg-black">

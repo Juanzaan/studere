@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Clock3 } from "lucide-react";
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 
+/**
+ * Upcoming events page — agenda of classes, reviews, and online sessions.
+ *
+ * Currently displays static mock items with calendar connection links
+ * (Google Calendar and Outlook) pointing to the Integrations page.
+ * Stagger animations for header, event items, and calendar section.
+ */
+
 const UPCOMING_ITEMS = [
   {
     title: "Repaso de Parcial I",

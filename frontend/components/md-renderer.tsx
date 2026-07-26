@@ -15,9 +15,24 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+/**
+ * Full-featured Markdown renderer with KaTeX math, GitHub Flavored Markdown,
+ * code syntax highlighting, and custom callout boxes.
+ *
+ * Supported callouts (via `> **label:** text` syntax):
+ * - `> **Tip:**` / `> **Consejo:**` → emerald callout with Lightbulb icon
+ * - `> **Warning:**` / `> **Atención:**` → amber callout with AlertTriangle
+ * - `> **Important:**` / `> **Importante:**` → blue callout with Info icon
+ * - `> **Exam:**` / `> **Examen:**` → violet callout with GraduationCap icon
+ *
+ * Uses react-markdown with remark-math, remark-gfm, rehype-katex, rehype-highlight.
+ */
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Recursively extract plain text from a React node tree. */
 function extractText(node: React.ReactNode): string {
   if (typeof node === "string") return node;
   if (Array.isArray(node)) return node.map(extractText).join("");

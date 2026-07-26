@@ -17,6 +17,14 @@ import { SessionSkeleton } from "@/components/session-skeleton";
 
 gsap.registerPlugin(useGSAP);
 
+/**
+ * Available session creation modes.
+ * - upload: Upload audio/video/text file for transcription
+ * - record: Live microphone recording
+ * - online: Class in progress (Meet/Zoom/Teams) with context and link
+ * - url: Transcribe from a remote URL (YouTube, Drive, etc.)
+ * - screen: Screen recording for tutorials and demos
+ */
 type ComposerMode = "upload" | "record" | "online" | "url" | "screen";
 
 const MODE_COPY: Record<ComposerMode, { label: string; hint: string; icon: typeof Upload; templateId: StudySession["templateId"] }> = {
@@ -60,11 +68,28 @@ async function readOptionalText(file: File | null) {
   return file.text();
 }
 
+/**
+ * Props for the SessionComposerCard component.
+ */
 type SessionComposerCardProps = {
+  /** Which creation mode to display (determines icon, hint text, and template) */
   mode: ComposerMode;
+  /** Optional callback fired after a session is successfully created */
   onCreated?: () => void;
 };
 
+/**
+ * Session creation form card.
+ *
+ * Supports 5 creation modes (upload, record, online, url, screen).
+ * When AI is enabled, transcribes audio/video files and generates study content
+ * via Azure OpenAI. Falls back to local content generation if AI fails.
+ * Shows a {@link SessionSkeleton} during the transcribing/generating phases.
+ *
+ * @param {SessionComposerCardProps} props
+ * @param {ComposerMode} props.mode - Creation mode
+ * @param {() => void} [props.onCreated] - Callback after successful creation
+ */
 export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProps) {
   const router = useRouter();
   const toast = useToastContext();

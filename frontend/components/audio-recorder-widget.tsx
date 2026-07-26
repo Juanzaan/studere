@@ -11,6 +11,14 @@ import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
 import { useToastContext } from "@/components/toast-provider";
 import { SessionSkeleton } from "@/components/session-skeleton";
 
+/**
+ * Audio recorder widget — records from the browser mic, transcribes with
+ * Azure Whisper, and creates a fully generated study session.
+ *
+ * State machine: idle → recording → transcribing → generating → success
+ * Shows a {@link SessionSkeleton} during processing phases.
+ * Falls back to local content generation if the AI endpoint fails.
+ */
 export function AudioRecorderWidget() {
   const router = useRouter();
   const toast = useToastContext();

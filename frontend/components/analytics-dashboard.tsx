@@ -8,6 +8,19 @@ import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
 import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
 
+/**
+ * Analytics dashboard — visualizes study progress, performance, and patterns.
+ *
+ * Shows stat cards (sessions, time, quiz score, flashcards reviewed) and
+ * up to 5 Recharts charts: sessions/reviews area chart, course distribution
+ * pie, quiz evolution area, concept frequency bar, and study mix donut.
+ *
+ * All entry animations use {@link useFadeInStagger} with scale+fade+ease-smooth.
+ * Charts animate once on mount (controlled by {@link CHART_ANIM_DURATION}).
+ *
+ * Adapted for mobile: charts stack vertically, grid collapses to single column.
+ */
+
 // ── Chart animation config ───────────────────────────────────────────────
 // animationDuration (Recharts) debe coincidir con el delay del setTimeout
 // que desactiva isAnimationActive luego del mount.
@@ -24,6 +37,7 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+/** Detect system-level dark mode preference via media query. */
 function useDarkMode() {
   const [isDark, setIsDark] = useState(false);
   useEffect(() => {
@@ -36,6 +50,14 @@ function useDarkMode() {
   return isDark;
 }
 
+/**
+ * Analytics dashboard page — visualizes study progress, performance, and patterns.
+ *
+ * Displays stat cards and up to 5 Recharts charts (sessions/reviews, course distribution,
+ * quiz evolution, concept frequency, study mix). Charts animate once on mount.
+ * All sections use {@link useFadeInStagger} with scale+fade+ease-smooth.
+ * Responsive: charts stack vertically on mobile.
+ */
 export function AnalyticsDashboard() {
   const headerRef = useRef<HTMLDivElement>(null);
   const statCardsRef = useRef<HTMLDListElement>(null);

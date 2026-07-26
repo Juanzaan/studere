@@ -25,11 +25,13 @@ Upload an audio recording, paste your notes, or drop a transcript. Studere sends
 
 ## Stack
 
-**Frontend** — Next.js 14, TypeScript, Tailwind CSS, React Flow, Recharts, GSAP
+**Frontend** — Next.js 14, TypeScript (strict mode), Tailwind CSS, GSAP, React Flow, Recharts
 
 **Backend** — Azure Functions (Node.js 18), Azure OpenAI (GPT-4o-mini + Whisper), Azure Blob Storage, FFmpeg
 
-**Testing** — Playwright (39 E2E tests), Vitest, MSW
+**Testing** — Playwright (8 E2E suites, 21 critical-flow tests), Vitest (311 unit tests, 14 suites)
+
+**Accessibility** — WCAG AA contrast, semantic HTML (table, dl), aria roles/labels, keyboard navigation, screen reader tested
 
 ---
 
@@ -41,7 +43,34 @@ Upload an audio recording, paste your notes, or drop a transcript. Studere sends
 
 - **Local-first** — all session data lives in localStorage. No user accounts, no database. Azure Functions handle only AI processing.
 
+- **Unified animation system** — GSAP animations centralized in reusable hooks (`useFadeInStagger`) with configurable stagger, duration, scale, and easing. Apple/Framer-style transitions (scale 0.96→1, smooth cubic-bezier easing, 500-600ms duration). Respects `prefers-reduced-motion`.
+
+- **Mobile-responsive** — all pages adapt to narrow viewports: sidebar hamburger drawer, stacked layouts, collapsible tables, touch-friendly targets.
+
+- **Accessibility-first** — semantic HTML elements, WCAG AA color contrast, `aria-live` regions, `role` attributes, keyboard navigation, focus management.
+
 - **Structured backend** — each Azure Function stays thin (CORS + validation + orchestration). Shared logic lives in `backend/shared/`: OpenAI client, cache, utils, audio pipeline, blob storage, study session config.
+
+---
+
+## Features
+
+- **Dashboard** with stat cards, quick actions, filter tabs, and stagger-entry animations
+- **Audio recording** (microphone) and **screen capture** directly from the browser
+- **Real transcription** with Azure OpenAI Whisper (auto-chunking for large files)
+- **AI generation** of Markdown summaries, key concepts, flashcards, multiple-choice quizzes, mind maps, exercises, and insights
+- **Stude Chat** — contextual AI tutor per session (Azure OpenAI GPT-4.1-mini)
+- **Exercise evaluation** — AI grading of text and photo responses
+- **Spaced repetition** flashcards (De nuevo / Difícil / Bien / Fácil)
+- **Interactive quizzes** with A/B/C/D, scoring, and explanations
+- **Mind maps** with ReactFlow
+- **Analytics** with study metrics, charts (bar, line, pie), and progress tracking
+- **Interactive guided tour** — TutorialOverlay with spotlight, character animation, and keyboard navigation
+- **Skeleton loading screens** for AI generation (2s+ operations)
+- **Export** to Markdown and CSV
+- **Library**, **starred sessions**, and **upcoming events**
+- **Dark mode** with system preference detection
+- **Full i18n** in Spanish
 
 ---
 
@@ -115,14 +144,22 @@ Open `http://localhost:3000`.
 ```bash
 cd frontend
 
-# E2E (Chromium)
+# Unit tests (311 tests, 14 files)
+npm run test
+
+# E2E (all browsers)
+npm run test:e2e
+
+# E2E (Chromium only, faster)
 npx playwright test --project=chromium
 
-# Unit tests
-npm run test
+# Specific test file
+npx playwright test critical-flows
 ```
 
-39 E2E tests covering audio transcription flow, AI generation flow, quiz, flashcards, library, and session detail.
+**Coverage highlights:**
+- **Unit:** SessionSkeleton (13), TutorialOverlay (22), SessionComposerCard (16), + storage, audio, utils
+- **E2E:** Navigation, theme toggle, session CRUD, search, library filters, StudeChat, mobile, integrations, dark mode persistence, audio transcription, AI generation, flashcard flow, quiz flow, session detail
 
 ---
 
@@ -158,9 +195,13 @@ ALLOWED_ORIGIN=https://your-app.vercel.app
 studere/
 ├── frontend/
 │   ├── app/(app)/          # Routes: dashboard, library, sessions, analytics
-│   ├── components/         # UI components and session panels
+│   ├── components/         # 32 UI components and session panels
 │   ├── lib/                # API client, storage, audio pipeline, types
-│   └── e2e/                # Playwright tests
+│   ├── src/
+│   │   ├── domains/        # Domain-specific modules
+│   │   ├── shared/         # Shared hooks & utilities (useAnimations, useFadeInStagger)
+│   │   └── tests/          # 14 test suites, 311 unit tests
+│   └── e2e/                # 8 Playwright spec files
 │
 └── backend/
     ├── GenerateStudySession/   # Study package generation + quality check

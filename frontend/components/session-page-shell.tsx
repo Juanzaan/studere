@@ -7,6 +7,17 @@ import { getSessionById } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 import { SessionDetail } from "@/components/session-detail";
 
+/**
+ * Session detail page shell — handles loading, not-found, and ready states.
+ *
+ * Renders:
+ * - A loading spinner while the session is being fetched
+ * - A "Sesión no encontrada" view with navigation back to dashboard if session is null
+ * - The full {@link SessionDetail} component when the session is loaded
+ *
+ * @param {Object} props
+ * @param {string} props.sessionId - ID of the session to load
+ */
 export function SessionPageShell({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<StudySession | null | undefined>(undefined);
 

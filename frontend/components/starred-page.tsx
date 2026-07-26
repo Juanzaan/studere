@@ -5,6 +5,13 @@ import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { SessionRecordsTable } from "@/components/session-records-table";
 
+/**
+ * Starred sessions page — quick access to all favorited sessions.
+ *
+ * Filters sessions where `starred === true`. Syncs reactively via
+ * {@link SESSIONS_UPDATED_EVENT}. Shows a contextual empty state
+ * with instructions when no sessions are starred.
+ */
 export function StarredPage() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState(() => getSessions());

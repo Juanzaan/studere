@@ -12,11 +12,19 @@ const Md = dynamic(() => import("@/components/md-renderer"), {
   loading: () => <span className="text-[11px] text-c-muted">…</span>,
 });
 
+/**
+ * Props for the FlashcardViewer component.
+ */
 type FlashcardViewerProps = {
+  /** Array of flashcard objects to display */
   flashcards: Flashcard[];
+  /** Session ID for saving attempt analytics */
   sessionId?: string;
+  /** Called when all cards in the deck have been reviewed */
   onReviewComplete?: (reviewed: number) => void;
+  /** Called to trigger generation of additional flashcards */
   onGenerateMore?: () => void;
+  /** Called when the user rates their confidence on a specific card */
   onConfidence?: (cardIndex: number, confidence: Flashcard["confidence"]) => void;
 };
 
@@ -27,6 +35,15 @@ const CONFIDENCE_BUTTONS: Array<{ value: NonNullable<Flashcard["confidence"]>; l
   { value: "easy", label: "Fácil", color: "border-c-teal-border bg-c-teal-soft text-c-teal" },
 ];
 
+/**
+ * Interactive flashcard viewer with flip animation (GSAP), spaced repetition buttons,
+ * and slide navigation. Supports keyboard-accessible flip via click.
+ *
+ * Renders a progress bar (`role="progressbar"`), confidence rating buttons
+ * (De nuevo / Difícil / Bien / Fácil) when flipped, and a completion summary.
+ *
+ * @param {FlashcardViewerProps} props
+ */
 export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGenerateMore, onConfidence }: FlashcardViewerProps) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);

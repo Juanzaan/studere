@@ -3,11 +3,23 @@
 import { useState } from "react";
 import { StudySession } from "@/lib/types";
 
+/**
+ * Notes panel — free-form textarea for personal notes and saved comments/bookmarks.
+ *
+ * Text auto-saves on blur via {@link onAddComment}. Shows existing comments
+ * and bookmarks below the editor.
+ */
+
 interface NotesPanelProps {
+  /** Current session data */
   session: StudySession;
+  /** Save a comment/note */
   onAddComment: (text: string) => void;
 }
 
+/**
+ * @param {NotesPanelProps} props
+ */
 export function NotesPanel({ session, onAddComment }: NotesPanelProps) {
   const [userNotes, setUserNotes] = useState("");
 

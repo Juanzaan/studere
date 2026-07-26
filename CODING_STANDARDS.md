@@ -1,7 +1,7 @@
 # Studere — Coding Standards & Architecture Guide
 
 **Project:** Studere - AI-Powered Study Assistant  
-**Updated:** 2026-07-03  
+**Updated:** 2026-07-25  
 **Maintainer:** [@Juanzaan](https://github.com/Juanzaan)
 
 ---
@@ -18,7 +18,7 @@
 
 **Target users:** University and high-school students reviewing post-class content.
 
-**Current state:** Production-ready MVP with optimizations completed.
+**Current state:** Production-ready MVP with accessibility audit completed, mobile responsiveness, and comprehensive test suite.
 
 ---
 
@@ -30,7 +30,7 @@
 - **UI:** React 18.3.1, TailwindCSS 3.4.7
 - **Animations:** GSAP 3.14.2
 - **Visualizations:** React Flow, Recharts, KaTeX
-- **Testing:** Vitest, Playwright (39 E2E tests)
+- **Testing:** Vitest (311 tests, 14 suites), Playwright (8 E2E specs)
 
 ### Backend
 - **Runtime:** Node.js 18 LTS
@@ -59,13 +59,13 @@
 ```
 frontend/
 ├── app/                  # Next.js routes
-├── components/           # React components (~30)
+├── components/           # 32 React components
 ├── lib/                  # Utilities, API, storage
 ├── src/
 │   ├── domains/         # Domain-specific modules
-│   ├── shared/          # Shared hooks & utilities
-│   └── tests/           # Test suites
-└── e2e/                 # Playwright tests
+│   ├── shared/          # Shared hooks & utilities (useAnimations, useFadeInStagger)
+│   └── tests/           # 14 test suites, 311 tests
+└── e2e/                 # 8 Playwright spec files
 ```
 
 ### Backend Structure
@@ -122,6 +122,11 @@ backend/
 8. Log errors — `structuredLog()` backend, `console.error()` frontend
 9. Cache AI responses — use `cache.get()/set()`
 10. Respect limits — Audio 200MB max, Transcript 200k chars
+11. **Use CSS variables** — never hardcode colors (use `--c-text`, `--c-bg`, `--c-surface`, etc.)
+12. **Check contrast** — all new color combinations must pass WCAG AA (≥4.5:1 for text, ≥3:1 for large text)
+13. **Add aria-labels** — every interactive element without visible text needs `aria-label`
+14. **Test mobile first** — check 375px viewport before implementing desktop layout
+15. **Wrap `useFadeInStagger`** — use the shared hook for component entry animations
 
 ### NEVER DO
 1. Don't break API contracts — frontend expects specific response shapes
@@ -134,10 +139,22 @@ backend/
 8. Don't use module-level mutable singletons — use React state/refs
 9. Don't write localStorage without quota handling — use `canUseStorage()`
 10. Don't use decodeAudioData() for routing — check size/duration first
+11. Don't hardcode colors — use CSS variables from globals.css
+12. Don't skip mobile breakpoints — all layouts must work at 375px
+13. Don't ignore `prefers-reduced-motion` — wrap GSAP animations with `!prefersReducedMotion`
+14. Don't use `<div>` for tabular data — use semantic `<table>` with `<th>`/`<td>`
 
 ---
 
 ## 6. DESIGN SYSTEM
+
+### Colors
+Use CSS variables (defined in `globals.css`):
+- `--c-bg`, `--c-surface`, `--c-surface-2`, `--c-text`, `--c-muted`
+- `--c-blue` (primary), `--c-teal` (success), `--c-violet` (secondary), `--c-amber` (warnings)
+- `--c-red`, `--c-green`, `--c-border`, `--c-ring`
+
+All combinations pass WCAG AA (≥4.5:1) in both light and dark modes.
 
 ### Typography Scale
 - **10px** — labels, badges, timestamps
@@ -158,45 +175,106 @@ Use only: 4, 8, 10, 12, 14, 16, 20, 24px
 - **12px** — panels
 - **20px** — pills
 
-### Colors
-Use CSS variables (defined in globals.css):
-- `--color-bg`, `--color-surface`, `--color-text`
-- `--color-blue` (primary), `--color-teal` (success)
-- `--color-violet` (secondary), `--color-amber` (warnings)
+---
+
+## 7. ANIMATION STANDARDS
+
+### Shared Hook: `useFadeInStagger`
+All component entry animations should use `useFadeInStagger` from `src/shared/hooks/useAnimations.ts`:
+
+```typescript
+const { scope, enter } = useFadeInStagger({
+  stagger: 0.08,          // delay between each element (seconds)
+  duration: 0.5,          // animation duration (seconds)
+  scale: 0.96,            // initial scale (0.96→1 for Apple-style feel)
+  ease: "power2.out"      // easing function
+  // OR use the custom cubic-bezier for smoother feel:
+  // ease: "cubic-bezier(0.22, 1, 0.36, 1)"
+});
+```
+
+- Always respect `prefers-reduced-motion` (hook handles this automatically)
+- Duration: 500-600ms for fluid feel (not the default 300ms)
+- Scale: 0.95-0.96 → 1 combined with fade for "zoom-in" sensation
 
 ---
 
-## 7. PERFORMANCE TARGETS
+## 8. ACCESSIBILITY STANDARDS
+
+### Mandatory for every component
+1. **Semantic HTML** — use `<nav>`, `<main>`, `<aside>`, `<button>`, `<table>`, `<dl>`, etc.
+2. **Color contrast** — all text/background combos ≥4.5:1 (AA)
+3. **ARIA labels** — `aria-label` on all icon-only buttons
+4. **Focus indicators** — visible focus rings (Tailwind's `focus-visible:ring-2`)
+5. **Keyboard navigation** — all interactive elements reachable by Tab
+6. `aria-pressed` — toggle buttons (filters, theme) must indicate state
+7. `aria-live` — dynamic content regions (chat messages, loading states)
+8. `role="progressbar"` — progress indicators with `aria-valuenow/min/max`
+9. `role="img" + aria-label` — chart containers (Recharts)
+10. `prefers-reduced-motion` — all GSAP animations must respect this
+
+### Testing a11y
+- Run `npx playwright test accessibility-audit --project=chromium`
+- Verify keyboard nav: Tab through all interactive elements
+- Check contrast with browser DevTools
+
+---
+
+## 9. PERFORMANCE TARGETS
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| Bundle size | 890 KB | <1 MB |
+| Bundle size | <1 MB | <1 MB |
 | First Contentful Paint | 1.4s | <2s |
 | Backend latency | 2s | <3s |
 | Error rate | 0.5% | <1% |
 
 ---
 
-## 8. TESTING
+## 10. TESTING
 
-### E2E Coverage (Playwright)
-- Audio transcription flow
-- AI generation flow
-- Quiz interaction
-- Flashcard spaced repetition
-- Library & search
-- Session detail views
+### Unit Tests (Vitest — 311 tests, 14 suites)
+- **SessionSkeleton:** 13 tests — render modes (transcribing/generating/idle), a11y, responsive, progress phases
+- **TutorialOverlay:** 22 tests — keyboard nav, blocking, aria-modal, mobile, aria-live, persistence
+- **SessionComposerCard:** 16 tests — form validation, AI toggle, submit flows, error handling, callbacks
+- **Storage:** localStorage quota, read/write, error recovery
+- **Audio chunker:** Chunk size, format, edge cases
+- **Session normalizer:** Data transformation, version migration, field defaults
+- **API client:** Request building, error handling, timeout
+- **Local storage guard:** Quota detection, safe fallbacks
+
+### E2E Tests (Playwright — 8 spec files)
+- **Critical flows (21 tests):** Navigation, theme toggle, session table, library filters, session detail panels, StudeChat, mobile hamburger, search, integrations, upcoming, dark persistence
+- **Audio transcription flow**
+- **AI generation flow**
+- **Flashcard spaced repetition**
+- **Quiz interaction**
+- **Session detail views**
+- **Session CRUD flow**
 
 **Target:** 90%+ critical flow coverage
 
-### Unit Tests (Vitest)
-- Utilities & pure functions
-- API interactions (with MSW mocks)
-- Storage operations
+---
+
+## 11. MOBILE RESPONSIVENESS
+
+### Breakpoints
+- **375px** — minimum supported (iPhone SE)
+- **640px** — sm (large phones)
+- **768px** — md (tablets)
+- **1024px** — lg (desktop)
+
+### Rules
+- Sidebar collapses to hamburger drawer below 768px
+- Session table converts to horizontal scroll on <768px
+- Analytics charts stack vertically on mobile
+- Topbar collapses to compact layout (icon + title)
+- All touch targets ≥44x44px
+- Tutorial overlay uses `mobileTarget`/`mobilePlacement` overrides
 
 ---
 
-## 9. DEPLOYMENT
+## 12. DEPLOYMENT
 
 ### Frontend (Vercel)
 ```bash
@@ -220,42 +298,52 @@ func azure functionapp publish your-function-app-name
 
 ---
 
-## 10. CURRENT STATUS
+## 13. CURRENT STATUS
 
 ### ✅ Complete
 - Audio/video transcription (dual pipeline)
-- AI study session generation
-- Interactive quiz & flashcards
+- AI study session generation with quality check
+- Interactive quiz & flashcards with spaced repetition
 - Mind map editor
 - Contextual AI chat (Stude)
 - Exercise evaluation with AI feedback
 - Export to PDF/Markdown/CSV
-- Dark mode
-- LocalStorage persistence
-- 39 E2E tests passing
+- Dark mode with system preference
+- localStorage persistence with quota handling
+- **Unified GSAP animation system** (Phases 1-5)
+- **Interactive tutorial overlay** with spotlight + keyboard
+- **Skeleton loading screens** for AI generation
+- **Mobile-responsive layout** across all pages
+- **Accessibility audit** — WCAG AA contrast, semantic HTML, ARIA roles/attributes
+- **Color contrast WCAG AA** — all text/background combinations pass ≥4.5:1
+- **311 unit tests + 21 critical-flow E2E tests** passing
 
 ### Known Issues
 None — all critical issues resolved.
 
 ### Planned (Long-term)
 - Authentication & cloud sync
-- Mobile app
+- Mobile app (React Native)
 - Live class integration
 - URL transcription
+- Additional i18n languages
 
 ---
 
-## 11. GETTING HELP
+## 14. GETTING HELP
 
 **Architecture questions?** → See section 4  
 **Code style?** → See section 3  
-**Performance issues?** → Check section 7  
-**Testing?** → See section 8  
-**Deployment?** → See section 9
+**Animation standards?** → See section 7  
+**Accessibility?** → See section 8  
+**Performance issues?** → Check section 9  
+**Testing?** → See section 10  
+**Mobile?** → See section 11  
+**Deployment?** → See section 12
 
 ---
 
-## 12. QUICK START FOR DEVELOPERS
+## 15. QUICK START FOR DEVELOPERS
 
 ```bash
 # Frontend
@@ -264,11 +352,14 @@ cd frontend && npm install && npm run dev
 # Backend
 cd backend && npm install && func start
 
-# Tests
+# Unit tests
+cd frontend && npm run test
+
+# E2E tests
 cd frontend && npm run test:e2e
 
 # TypeScript check
-npm run typecheck
+cd frontend && npx tsc --noEmit
 ```
 
 Frontend: `http://localhost:3000`  
@@ -276,5 +367,5 @@ Backend: `http://localhost:7071`
 
 ---
 
-**Last Updated:** 2026-07-03  
+**Last Updated:** 2026-07-25  
 **License:** MIT © [Juan Pablo Zanolli](https://github.com/Juanzaan)

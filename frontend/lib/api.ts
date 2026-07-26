@@ -2,19 +2,40 @@ import type { Concept, Flashcard, QuizItem, ActionItem, MindMapNode, SessionInsi
 import { chunkAudioFile } from "@/lib/audio-chunker";
 import { BACKEND_URL, AUDIO_LIMITS } from "@/lib/constants";
 
+/**
+ * API client for Azure OpenAI backend endpoints.
+ *
+ * Provides:
+ * - {@link transcribeAudio}: Dual-path audio transcription (client-side for <10MB,
+ *   server-side with FFmpeg for larger files)
+ * - {@link generateStudySession}: AI study package generation (summary, concepts,
+ *   flashcards, quiz, mind map)
+ * - {@link evaluateExercise}: Exercise grading with AI feedback
+ * - {@link sendStudeChat}: Contextual AI tutor chat
+ * - {@link fileToBase64}: File-to-base64 encoding with Web Worker for large files
+ */
+
 // ---------------------------------------------------------------------------
 // Audio transcription (Whisper) — handles large files via chunking
 // ---------------------------------------------------------------------------
+
+/** Result from a Whisper transcription request. */
 export type TranscriptionResult = {
+  /** Transcribed text content */
   text: string;
+  /** Detected language code (e.g. "es", "en") */
   language: string;
+  /** Duration in seconds, or null if not available */
   duration: number | null;
 };
 
-// ---------------------------------------------------------------------------
-// fileToBase64 — exported for testing; uses fast sync path for small files
-// and a Web Worker for files >= 1MB.
-// ---------------------------------------------------------------------------
+/**
+ * Convert a File to a base64 string.
+ * Uses a fast sync path for files <1MB and a Web Worker for larger files
+ * to avoid blocking the main thread.
+ *
+ * Exported for testing — mocked in unit tests via {@link TranscribeChunkOptions}.
+ */
 export async function fileToBase64(file: File): Promise<string> {
   // Para archivos pequeños (<1MB), usar método síncrono rápido
   if (file.size < 1024 * 1024) {
@@ -51,6 +72,9 @@ export async function fileToBase64(file: File): Promise<string> {
   });
 }
 
+/**
+ * Options for transcribing a single audio chunk.
+ */
 export type TranscribeChunkOptions = {
   /** Override for fileToBase64 — used to mock the Web Worker path in tests */
   fileToBase64?: typeof fileToBase64;
@@ -93,6 +117,9 @@ async function transcribeChunk(
   }
 }
 
+/**
+ * Options for the full audio transcription pipeline.
+ */
 export type TranscribeAudioOptions = {
   /** Override for fileToBase64 — used to mock the Web Worker path in tests */
   fileToBase64?: typeof fileToBase64;
@@ -104,6 +131,19 @@ export type TranscribeAudioOptions = {
   ) => Promise<TranscriptionResult>;
 };
 
+/**
+ * Transcribe an audio/video file using Azure OpenAI Whisper.
+ *
+ * Routes to server-side processing if the file exceeds client-side limits
+ * (10MB or estimated 30 min duration). For smaller files, splits into chunks
+ * and transcribes each chunk sequentially.
+ *
+ * @param file - Audio/video file to transcribe
+ * @param language - Optional language hint (e.g. "es", "en")
+ * @param onProgress - Progress callback (called with status messages)
+ * @param options - Optional overrides (for testing: mock fileToBase64 or server-side)
+ * @returns TranscriptionResult with text, detected language, and duration
+ */
 export async function transcribeAudio(
   file: File,
   language?: string,
@@ -160,6 +200,9 @@ export async function transcribeAudio(
   };
 }
 
+/**
+ * Complete AI-generated study package returned by {@link generateStudySession}.
+ */
 export type AIStudyPackage = {
   summary: string;
   keyConcepts: Concept[];
@@ -171,6 +214,7 @@ export type AIStudyPackage = {
   detectedAssets?: Array<{ type: string; description: string; suggestedFormat?: string }>;
 };
 
+/** Request body for the study session generation endpoint. */
 export type GenerateStudySessionRequest = {
   transcript: string;
   language?: string;
@@ -180,6 +224,14 @@ export type GenerateStudySessionRequest = {
   extras?: Record<string, unknown>;
 };
 
+/**
+ * Generate a complete AI study package (summary, concepts, flashcards, quiz,
+ * mind map, action items, insights) from a transcript.
+ *
+ * @param request - Transcript and generation options
+ * @returns AIStudyPackage with all generated materials
+ * @throws If the server returns an error or unparseable response
+ */
 export async function generateStudySession(
   request: GenerateStudySessionRequest,
 ): Promise<AIStudyPackage> {
@@ -222,6 +274,7 @@ export async function generateStudySession(
 // ---------------------------------------------------------------------------
 // Exercise evaluation (Stude AI corrects student answers)
 // ---------------------------------------------------------------------------
+/** Request body for the exercise evaluation endpoint. */
 export type EvaluateExerciseRequest = {
   exercise: string;
   studentAnswer: string;
@@ -229,6 +282,13 @@ export type EvaluateExerciseRequest = {
   context?: string;
 };
 
+/**
+ * Submit a student's answer to an exercise for AI evaluation.
+ * Supports text and image (base64) answers.
+ *
+ * @param request - Exercise details and student answer
+ * @returns ExerciseFeedback with grade and explanation
+ */
 export async function evaluateExercise(
   request: EvaluateExerciseRequest,
 ): Promise<ExerciseFeedback> {
@@ -260,6 +320,7 @@ export async function evaluateExercise(
 // ---------------------------------------------------------------------------
 // Stude Chat (real AI conversation)
 // ---------------------------------------------------------------------------
+/** Request body for the Stude AI chat endpoint. */
 export type StudeChatRequest = {
   message: string;
   sessionContext?: {
@@ -272,6 +333,13 @@ export type StudeChatRequest = {
   chatHistory?: Array<{ role: string; content: string }>;
 };
 
+/**
+ * Send a message to the Stude AI tutor with session context.
+ * The AI responds with contextual help based on the session's content.
+ *
+ * @param request - Message, session context, and optional chat history
+ * @returns The AI's reply text
+ */
 export async function sendStudeChat(
   request: StudeChatRequest,
 ): Promise<string> {

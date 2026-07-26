@@ -22,6 +22,21 @@ import { StudySession } from "@/lib/types";
 import { useTutorialContext } from "@/app/(app)/layout";
 import { TutorialTrigger } from "@/components/tutorial-overlay";
 
+/**
+ * Main navigation sidebar — responsive with collapsible desktop mode and
+ * drawer overlay on mobile.
+ *
+ * Desktop: sticky full-height sidebar with nav items, recent sessions list
+ * with search, collapsible (toggle with chevron button, saved to localStorage).
+ *
+ * Mobile: hamburger button opens a slide-in drawer with backdrop.
+ *
+ * Nav items: Inicio, Biblioteca, Próximos, Destacados, Estadísticas.
+ * Footer: TutorialTrigger and Integrations link.
+ *
+ * Uses {@link useFadeInStagger} for nav items and recent list animations.
+ */
+
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Inicio", icon: Home },
   { href: "/library", label: "Biblioteca", icon: BookOpen },
@@ -30,12 +45,24 @@ const NAV_ITEMS = [
   { href: "/analytics", label: "Estadísticas", icon: BarChart2 },
 ] as const;
 
+/** localStorage key for sidebar collapsed state. */
 const SIDEBAR_STORAGE_KEY = "studere.sidebar.collapsed";
 
+/** Extract the first 2 uppercase characters from a session title for avatar initials. */
 function getInitials(title: string): string {
   return title.trim().slice(0, 2).toUpperCase();
 }
 
+/**
+ * Main navigation sidebar — responsive collapsible drawer.
+ *
+ * Desktop: sticky full-height sidebar. Mobile: hamburger-triggered overlay.
+ * Features nav items, recent sessions with search, collapsible toggle,
+ * tutorial trigger, and integrations link.
+ *
+ * Uses {@link useFadeInStagger} for staggered entry animations.
+ * Syncs reactively with session storage events.
+ */
 export function Sidebar() {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);

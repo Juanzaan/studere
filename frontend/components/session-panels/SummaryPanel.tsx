@@ -23,11 +23,27 @@ const Md = dynamic(() => import("@/components/md-renderer"), {
   loading: () => <span className="text-[11px] text-c-muted">Cargando…</span>,
 });
 
+/**
+ * Summary panel — displays the AI-generated Markdown summary and the full
+ * collapsible transcript with per-segment actions.
+ *
+ * Features:
+ * - Renders summary via {@link Md} (Markdown + KaTeX + callouts)
+ * - Collapsible transcript with search/filter
+ * - Per-segment actions: copy, bookmark, comment, create flashcard, ask Stude
+ * - Shows source file metadata (type, duration, word count)
+ */
+
 interface SummaryPanelProps {
+  /** Current session data */
   session: StudySession;
+  /** Toggle bookmark on a transcript segment */
   onToggleBookmark: (segmentId: string, label: string) => void;
+  /** Add a comment, optionally anchored to a segment */
   onAddComment: (text: string, segmentId?: string) => void;
+  /** Create a flashcard from a segment's text */
   onAddFlashcard: (text: string) => void;
+  /** Open Stude chat with a pre-filled message about a segment */
   onOpenChat: (message: string) => void;
 }
 

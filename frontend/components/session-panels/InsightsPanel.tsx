@@ -10,10 +10,24 @@ function stripMarkdown(text: string): string {
     .trim();
 }
 
+/**
+ * Insights panel — displays key metrics and observations about the session.
+ *
+ * Each insight renders a label/value pair with a tone badge
+ * (good = teal, warning = amber, neutral = muted) and a Markdown-stripped
+ * description.
+ *
+ * Shows a placeholder when no insights exist.
+ */
+
 interface InsightsPanelProps {
+  /** Current session data */
   session: StudySession;
 }
 
+/**
+ * @param {InsightsPanelProps} props
+ */
 export function InsightsPanel({ session }: InsightsPanelProps) {
   if (session.insights.length === 0) {
     return (
