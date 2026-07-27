@@ -19,7 +19,7 @@ import {
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
-import { useTutorialContext } from "@/app/(app)/layout";
+import { useTutorialContext } from "@/lib/tutorial-context";
 import { TutorialTrigger } from "@/components/tutorial-overlay";
 
 /**

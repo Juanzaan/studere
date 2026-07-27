@@ -1,32 +1,19 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppTopbar } from "@/components/app-topbar";
 import { Sidebar } from "@/components/sidebar";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SkipLinks } from "@/components/skip-links";
 import { ToastProvider } from "@/components/toast-provider";
 import { FocusProvider, useFocus } from "@/lib/focus-context";
+import TutorialContext, { useTutorialContext } from "@/lib/tutorial-context";
 import {
   TutorialOverlay,
   DEFAULT_TUTORIAL_STEPS,
   isTutorialCompleted,
 } from "@/components/tutorial-overlay";
-
-// ─── Tutorial restart context ──────────────────────────────────────────────
-
-interface TutorialContextValue {
-  restartTutorial: () => void;
-}
-
-const TutorialContext = createContext<TutorialContextValue>({
-  restartTutorial: () => {},
-});
-
-export function useTutorialContext() {
-  return useContext(TutorialContext);
-}
 
 // ─── Layout variants ──────────────────────────────────────────────────────
 
