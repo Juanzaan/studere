@@ -2,252 +2,235 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  
-  /* Design System Colors */
-  --c-bg: #f7f5f0;
-  --c-surface: #ffffff;
-  --c-surface-2: #f0eeea;
-  --c-border: rgba(0, 0, 0, 0.08);
-  --c-text: #1e1b2e;
-  --c-muted: #686f7d;
-  --c-blue: #3b5fc0;
-  --c-blue-soft: rgba(59, 95, 192, 0.08);
-  --c-blue-border: rgba(59, 95, 192, 0.2);
-  --c-teal: #0c857a;
-  --c-teal-soft: rgba(13, 148, 136, 0.08);
-  --c-teal-border: rgba(13, 148, 136, 0.2);
-  --c-violet: #7c3aed;
-  --c-violet-soft: rgba(124, 58, 237, 0.08);
-  --c-violet-border: rgba(124, 58, 237, 0.2);
-  --c-amber: #b36205;
-  --c-amber-soft: rgba(217, 119, 6, 0.1);
-  --c-red: #dc2626;
-  --c-red-soft: rgba(220, 38, 38, 0.08);
-  --c-red-border: rgba(220, 38, 38, 0.2);
-
-  /* Transition defaults */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.2s ease;
-  --transition-panel: 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+/* ── Scrollbar oculto para la columna de conceptos ───────────────────── */
+.conceptos-scroll {
+  scrollbar-width: none; /* Firefox */
+}
+.conceptos-scroll::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / Edge */
 }
 
-.dark {
-  /* Design System Colors - Dark Mode */
-  --c-bg: #0e1117;
-  --c-surface: #151b27;
-  --c-surface-2: #1c2235;
-  --c-border: rgba(255, 255, 255, 0.07);
-  --c-text: #e2e8f0;
-  --c-muted: #8892a4;
-  --c-blue: #466de0;
-  --c-blue-soft: rgba(79, 124, 255, 0.1);
-  --c-blue-border: rgba(79, 124, 255, 0.25);
-  --c-teal: #2dd4aa;
-  --c-teal-soft: rgba(45, 212, 170, 0.1);
-  --c-teal-border: rgba(45, 212, 170, 0.25);
-  --c-violet: #a78bfa;
-  --c-violet-soft: rgba(167, 139, 250, 0.1);
-  --c-violet-border: rgba(167, 139, 250, 0.25);
-  --c-amber: #fbbf24;
-  --c-amber-soft: rgba(251, 191, 36, 0.1);
-  --c-red: #f87171;
-  --c-red-soft: rgba(248, 113, 113, 0.1);
-  --c-red-border: rgba(248, 113, 113, 0.25);
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--c-bg);
-  color: var(--c-text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.dark body {
-  background: var(--c-bg);
-  color: var(--c-text);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-/* ─── Default transitions (performant) ─────────────────────────────────── */
-button,
-a,
-.card-interactive,
-[class*="transition-"] {
-  transition: all 0.15s ease;
-}
-
-/* Semantic transitions for interactive cards/panels */
-.card-interactive {
-  transition:
-    transform var(--transition-normal),
-    box-shadow var(--transition-normal),
-    border-color var(--transition-normal);
-}
-
-.card-interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 72px rgba(15, 23, 42, 0.12);
-}
-
-.card-interactive:active {
-  transform: translateY(0);
-}
-
-/* ─── Chart containers: suppress default black focus outline ───────────── */
+/* ── Focus ring override for ECharts charts ──────────────────────────── */
 .echarts-for-react:focus {
   outline: none;
 }
 .echarts-for-react:focus-visible {
   outline: 2px solid rgba(124, 58, 237, 0.5);
-  outline-offset: -2px;
-  border-radius: 8px;
-}
-.recharts-wrapper:focus,
-.recharts-surface:focus,
-.recharts-legend-item:focus {
-  outline: none;
-}
-
-/* ─── Focus-visible ring ────────────────────────────────────────────────── */
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid rgba(124, 58, 237, 0.5);
   outline-offset: 2px;
-  border-radius: 12px;
 }
 
-button:active:not(:disabled) {
-  transform: scale(0.97);
+/* ── Base ----- */
+:root {
+  --c-bg: #f8fafc;
+  --c-surface: #ffffff;
+  --c-surface-2: #f1f5f9;
+  --c-text: #0f172a;
+  --c-muted: #64748b;
+  --c-border: #e2e8f0;
+  --c-ring: #3b5fc0;
+
+  /* accents */
+  --c-blue: #3b5fc0;
+  --c-blue-soft: #eef2ff;
+  --c-blue-border: #c7d2fe;
+  --c-teal: #0c857a;
+  --c-teal-soft: #eefcf9;
+  --c-teal-border: #a7f3d0;
+  --c-violet: #7c3aed;
+  --c-violet-soft: #f3f0ff;
+  --c-violet-border: #ddd6fe;
+  --c-amber: #b36205;
+  --c-amber-soft: #fffbeb;
+  --c-amber-border: #fde68a;
+  --c-red: #dc2626;
+  --c-red-soft: #fef2f2;
+  --c-red-border: #fecaca;
+  --c-green: #16a34a;
+  --c-green-soft: #f0fdf4;
+  --c-green-border: #bbf7d0;
 }
 
-/* ─── Selection ─────────────────────────────────────────────────────────── */
+.dark {
+  --c-bg: #0b0e14;
+  --c-surface: #131a26;
+  --c-surface-2: #1b2536;
+  --c-text: #f1f5f9;
+  --c-muted: #8896a6;
+  --c-border: #263044;
+  --c-ring: #5b7dd4;
+
+  --c-blue: #5b7dd4;
+  --c-blue-soft: #1a2440;
+  --c-blue-border: #2d3b6e;
+  --c-teal: #2dd4bf;
+  --c-teal-soft: #0f1f26;
+  --c-teal-border: #115f52;
+  --c-violet: #a78bfa;
+  --c-violet-soft: #1f1535;
+  --c-violet-border: #4c1d95;
+  --c-amber: #fbbf24;
+  --c-amber-soft: #241f0f;
+  --c-amber-border: #783f04;
+  --c-red: #f87171;
+  --c-red-soft: #2d1515;
+  --c-red-border: #7f1d1d;
+  --c-green: #4ade80;
+  --c-green-soft: #132616;
+  --c-green-border: #166534;
+}
+
+/* ── Paper theme (landing page only) ── */
+:root.paper-theme {
+  --paper-bg: #F3EEDF;
+  --paper-card: #FBF8EF;
+  --paper-ink: #1E2733;
+  --paper-ink-soft: #5B6472;
+  --paper-marker: #FFD34D;
+  --paper-moss: #3F6B4A;
+  --paper-crimson: #C1272D;
+  --paper-border: rgba(30, 39, 51, 0.14);
+  --paper-border-soft: rgba(30, 39, 51, 0.09);
+  --paper-shadow: rgba(30, 39, 51, 0.08);
+}
+
+.paper-theme body,
+.paper-bg {
+  background-color: var(--paper-bg);
+}
+
+.paper-card-bg {
+  background-color: var(--paper-card);
+}
+
+.paper-ink {
+  color: var(--paper-ink);
+}
+
+.paper-ink-soft {
+  color: var(--paper-ink-soft);
+}
+
+.paper-marker-bg {
+  background-color: var(--paper-marker);
+}
+
+.paper-moss {
+  color: var(--paper-moss);
+}
+
+.paper-crimson {
+  color: var(--paper-crimson);
+}
+
+.paper-border {
+  border-color: var(--paper-border);
+}
+
+/* ── Body ----- */
+body {
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Animations ----- */
+/* ── Landing page drift animations ── */
+@keyframes drift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(20px, -30px) rotate(5deg); }
+  66% { transform: translate(-15px, -15px) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.animate-drift {
+  animation: drift 20s ease-in-out infinite;
+}
+
+@keyframes drift-slow {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(30px, -20px); }
+  50% { transform: translate(-10px, -40px); }
+  75% { transform: translate(20px, -10px); }
+  100% { transform: translate(0, 0); }
+}
+.animate-drift-slow {
+  animation: drift-slow 25s ease-in-out infinite;
+}
+
+@keyframes drift-reverse {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-20px, 30px); }
+  50% { transform: translate(15px, 10px); }
+  75% { transform: translate(-30px, 20px); }
+  100% { transform: translate(0, 0); }
+}
+.animate-drift-reverse {
+  animation: drift-reverse 22s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease-out;
+}
+
+/* ── Selection ----- */
 ::selection {
-  background: rgba(124, 58, 237, 0.15);
-  color: #1e1b4b;
+  background-color: var(--c-blue-soft);
+  color: var(--c-blue);
 }
 
-.dark ::selection {
-  background: rgba(124, 58, 237, 0.25);
-  color: #e9d5ff;
+/* ── Focus ring for all interactive elements ----- */
+*:focus-visible {
+  outline: 2px solid var(--c-ring);
+  outline-offset: 2px;
 }
 
-/* Code block base styles for dark mode */
-.dark pre code.hljs {
-  background: transparent;
+/* ── Smooth scrolling ── */
+html {
+  scroll-behavior: smooth;
 }
 
-pre code.hljs {
-  border-radius: 0.5rem;
-}
-
-/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+/* ── Scrollbar styling ----- */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
-  border-radius: 999px;
+  background: var(--c-border);
+  border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.45);
+  background: var(--c-muted);
 }
 
-/* ─── 404 Page Animations ───────────────────────────────────────────────── */
-@keyframes pulseWave {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-border) transparent;
 }
 
-/* ─── Panel transition classes (used by session detail) ─────────────────── */
-.panel-enter {
-  animation: panel-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.panel-exit {
-  animation: panel-exit 0.15s ease-out both;
-}
-
-/* ─── Skeleton shimmer ──────────────────────────────────────────────────── */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--c-surface-2) 25%,
-    var(--c-surface) 50%,
-    var(--c-surface-2) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s linear infinite;
-  border-radius: 6px;
-}
-
-/* ─── Tap highlight for mobile ──────────────────────────────────────────── */
-@media (hover: none) and (pointer: coarse) {
-  .card-interactive:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .card-interactive:active {
-    transform: scale(0.98);
-    transition-duration: 0.05s;
-  }
-
-  button:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-}
-
-/* ─── Respect prefers-reduced-motion ────────────────────────────────────── */
+/* ── Respect prefers-reduced-motion ── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .card-interactive:hover {
-    transform: none;
-    box-shadow: none;
   }
 }

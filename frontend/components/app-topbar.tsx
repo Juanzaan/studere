@@ -2,7 +2,8 @@
 
 import { memo, FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Crown, Moon, Search, Sparkles, Sun, UserCircle2 } from "lucide-react";
+import { Show, UserButton } from "@clerk/nextjs";
+import { Bell, Crown, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { getStoredTheme, setTheme, type Theme } from "@/lib/theme";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
@@ -120,16 +121,16 @@ export const AppTopbar = memo(function AppTopbar() {
         >
           <Bell className="h-[16px] w-[16px] sm:h-[14px] sm:w-[14px]" />
         </button>
-        <button
-          className="flex items-center gap-[6px] rounded-full border border-c-border bg-c-surface-2 px-[10px] py-[6px] transition-colors hover:bg-c-surface-2 focus-visible:outline-none sm:px-[8px] sm:py-[4px]"
-          aria-label="Perfil de usuario"
-        >
-          <div className="hidden text-right sm:block">
-            <p className="text-[12px] sm:text-[11px] font-medium text-c-text">JP</p>
-            <p className="text-[10px] text-c-muted">Plan Pro</p>
-          </div>
-          <UserCircle2 className="h-[22px] w-[22px] sm:h-[20px] sm:w-[20px] text-c-muted" />
-        </button>
+        <Show when="signed-in">
+          <UserButton
+            appearance={{
+              elements: {
+                userButtonAvatarBox: "h-[22px] w-[22px] sm:h-[20px] sm:w-[20px]",
+                userButtonTrigger: "focus-visible:outline-none",
+              },
+            }}
+          />
+        </Show>
       </div>
     </header>
   );

@@ -16,3 +16,6 @@ tsconfig.tsbuildinfo
 .temp/
 .turbo/
 core
+
+# clerk configuration (can include secrets)
+/.clerk/

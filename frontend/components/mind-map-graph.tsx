@@ -69,25 +69,32 @@ function treeToGraph(
   const nodes: any[] = [];
   const links: any[] = [];
   const addedIds = new Set<string>();
+  /** Track nodes by normalised name so keyConcepts can attach
+   *  descriptions to existing tree nodes instead of duplicating them. */
+  const byName = new Map<string, any>();
+
+  function norm(name: string) {
+    return name.trim().toLowerCase();
+  }
 
   // ── 1. Root node (central hub) ─────────────────────────────────
-  nodes.push({
+  const rootNode: any = {
     id: mindMap.id,
     name: mindMap.label,
     symbolSize: 48,
     category: 0,
     itemStyle: { color: CATEGORY_COLORS[0] },
     label: { show: true, position: "bottom", fontSize: 14, fontWeight: 700 },
-    // Keep accent info for hover highlighting
     _accent: mindMap.accent,
-  });
+  };
+  nodes.push(rootNode);
+  byName.set(norm(mindMap.label), rootNode);
   addedIds.add(mindMap.id);
 
   // ── 2. Walk tree children ──────────────────────────────────────
   function walk(node: MindMapNode, parentId: string) {
     if (!node.children) return;
 
-    // Add each child as a node connected to parent
     const childIds = node.children.map((c) => c.id);
     node.children.forEach((child) => {
       if (!addedIds.has(child.id)) {
@@ -95,7 +102,7 @@ function treeToGraph(
           ? ["violet", "blue", "green", "amber"].indexOf(child.accent) + 1
           : 1;
         const cat = Math.max(0, Math.min(catIndex, CATEGORY_COLORS.length - 1));
-        nodes.push({
+        const childNode: any = {
           id: child.id,
           name: child.label,
           symbolSize: 32,
@@ -103,11 +110,12 @@ function treeToGraph(
           itemStyle: { color: CATEGORY_COLORS[cat] },
           label: { show: true, position: "bottom", fontSize: 11, fontWeight: 500 },
           _accent: child.accent,
-        });
+        };
+        nodes.push(childNode);
+        byName.set(norm(child.label), childNode);
         addedIds.add(child.id);
       }
 
-      // Edge parent → child
       links.push({
         source: parentId,
         target: child.id,
@@ -115,11 +123,10 @@ function treeToGraph(
         lineStyle: { width: 1.5, curveness: 0.2 },
       });
 
-      // Recurse into grandchildren
       walk(child, child.id);
     });
 
-    // Connect siblings (shared parent → they're related)
+    // Connect siblings
     for (let i = 0; i < childIds.length; i++) {
       for (let j = i + 1; j < childIds.length; j++) {
         links.push({
@@ -134,8 +141,18 @@ function treeToGraph(
 
   walk(mindMap, mindMap.id);
 
-  // ── 3. Add keyConcepts as additional nodes ─────────────────────
+  // ── 3. Add keyConcepts (deduplicated) ───────────────────────────
   keyConcepts.forEach((kc, i) => {
+    const kcKey = norm(kc.term);
+    const existing = byName.get(kcKey);
+
+    if (existing) {
+      // Node already in the tree — attach description so click tooltip works
+      existing.description = kc.description;
+      return;
+    }
+
+    // New node
     const kcId = `concept-${i}`;
     if (!addedIds.has(kcId)) {
       nodes.push({
@@ -147,9 +164,9 @@ function treeToGraph(
         itemStyle: { color: CATEGORY_COLORS[2] },
         label: { show: true, position: "bottom", fontSize: 10, fontWeight: 400 },
       });
+      byName.set(kcKey, nodes[nodes.length - 1]);
       addedIds.add(kcId);
 
-      // Edge: root → concept
       links.push({
         source: mindMap.id,
         target: kcId,
@@ -252,7 +269,8 @@ export function MindMapGraph({ mindMap, keyConcepts = [] }: MindMapGraphProps) {
         padding: [10, 14],
         textStyle: { color: colors.text, fontSize: 12 },
         formatter: (params: any) => {
-          if (!params || !params.data) return "";
+          // Only show tooltip on nodes, never on edges (would show raw IDs)
+          if (!params || !params.data || params.dataType !== "node") return "";
           const name = params.name || "";
           const desc = params.data.description || "";
           let html = `<div style="font-weight:600;font-size:13px;margin-bottom:4px">${name}</div>`;
@@ -268,12 +286,12 @@ export function MindMapGraph({ mindMap, keyConcepts = [] }: MindMapGraphProps) {
           force: {
             repulsion: 600,
             edgeLength: [80, 200],
-            layoutAnimation: true,
-            friction: 0.08,
-            gravity: 0.05,
+            layoutAnimation: false,
+            friction: 0.65,
+            gravity: 0.1,
           },
           roam: true,
-          draggable: true,
+          draggable: false,
           data: nodes,
           links: links,
           categories: [
@@ -300,9 +318,9 @@ export function MindMapGraph({ mindMap, keyConcepts = [] }: MindMapGraphProps) {
             focus: "adjacency" as const,
             lineStyle: { width: 2.5, opacity: 0.8 },
             itemStyle: {
-              shadowBlur: 10,
+              shadowBlur: 2,
               shadowOffsetX: 0,
-              shadowColor: "rgba(0,0,0,0.3)",
+              shadowColor: "rgba(0,0,0,0.15)",
             },
           },
           blur: {

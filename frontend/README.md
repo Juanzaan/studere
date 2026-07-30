@@ -22,7 +22,7 @@
 
 <br/>
 
-Studere transforma grabaciones de clases, notas y transcripciones en material de estudio interactivo usando Azure OpenAI. **Sin cuentas, sin base de datos, sin servidor persistente — todo en localStorage.**
+Studere transforma grabaciones de clases, notas y transcripciones en material de estudio interactivo usando Azure OpenAI. **Cuenta con autenticación Clerk, landing page temática 'papel añejo' con animaciones scroll-driven, y 5 herramientas de estudio: transcripción, resumen, flashcards, mapas mentales y tutor IA.**
 
 ---
 
@@ -46,6 +46,19 @@ Studere transforma grabaciones de clases, notas y transcripciones en material de
 
 ---
 
+## 🏠 Landing Page
+
+La landing page utiliza una **paleta temática 'papel añejo'** con tonos cálidos (\`#C9B99A\`, \`#D8C9AD\`, \`#2C1810\`) y tipografía serif (Fraunces + Space Mono).
+
+- **Scroll storytelling** — 5 herramientas que aparecen como papeles sobre un escritorio, cada una con entrada animada (scale + translate3d + rotate)
+- **Elementos decorativos** — cinta washi, clips metálicos, esquinas dobladas, sombras de papel
+- **Auth pages** — sign-in/sign-up con Clerk usando la misma paleta
+- **Hero animado** — waveform de transcripción + flashcard preview con stack shadows
+- **Stats animados** — contadores con IntersectionObserver
+- **Testimonios** — sticky notes estilo papel con estrellas
+
+---
+
 ## 🛠️ Stack
 
 | Capa | Tecnología |
@@ -59,6 +72,7 @@ Studere transforma grabaciones de clases, notas y transcripciones en material de
 | **3D** | Three.js, @react-three/fiber, @react-three/drei (illustration scenes) |
 | **Testing unitario** | Vitest 4.1 + @testing-library/react + happy-dom + MSW |
 | **Testing E2E** | Playwright 1.58 + @axe-core/playwright (a11y) |
+| **Auth** | Clerk (Google OAuth, email, Sesiones protegidas) |
 | **Backend** | Azure Functions (Node.js 18) — solo para procesamiento IA |
 
 ---
