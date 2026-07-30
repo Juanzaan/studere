@@ -44,12 +44,12 @@ export const QuizViewer = dynamic(
   }
 );
 
-/** Lazy-loaded MindMapCanvas (ReactFlow, SSR disabled). */
+/** Lazy-loaded MindMapGraph (ECharts force-directed graph, SSR disabled). */
 export const MindMapCanvas = dynamic(
-  () => import("@/components/mind-map-canvas").then(mod => ({ default: mod.MindMapCanvas })),
+  () => import("@/components/mind-map-graph").then(mod => ({ default: mod.MindMapGraph })),
   { 
     ssr: false,
-    loading: () => <ComponentLoader message="Cargando mapa mental..." />
+    loading: () => <ComponentLoader message="Cargando grafo conceptual..." />
   }
 );
 

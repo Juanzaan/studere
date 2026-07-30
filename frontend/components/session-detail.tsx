@@ -506,7 +506,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
             )}
 
             {focusPanel === "mindmap" && (
-              <MindMapCanvas mindMap={current.mindMap} />
+              <MindMapCanvas mindMap={current.mindMap} keyConcepts={current.keyConcepts} />
             )}
 
             {focusPanel === "tasks" && (

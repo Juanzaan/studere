@@ -97,7 +97,7 @@ export function DashboardHome() {
       setSessions(sessions);
       setQuizAttemptsCount(quizAttempts.length);
       setFlashcardAttemptsCount(flashcardAttempts.length);
-      setFlashcardsReviewed(flashcardAttempts.reduce((sum, attempt) => sum + attempt.reviewed, 0));
+      setFlashcardsReviewed(flashcardAttempts.reduce((sum, attempt) => sum + (attempt.reviewed ?? 0), 0));
     }
 
     syncDashboard();
@@ -113,12 +113,12 @@ export function DashboardHome() {
     if (recordFilter === "starred") return sessions.filter((session) => session.starred);
     if (recordFilter === "created") {
       const todayPrefix = new Date().toISOString().split("T")[0];
-      return sessions.filter((session) => session.createdAt.startsWith(todayPrefix));
+      return sessions.filter((session) => session.createdAt?.startsWith(todayPrefix));
     }
     return sessions;
   }, [recordFilter, sessions]);
 
-  const totalMinutes = sessions.reduce((sum, session) => sum + session.stats.estimatedDurationMinutes, 0);
+  const totalMinutes = sessions.reduce((sum, session) => sum + (session.stats?.estimatedDurationMinutes ?? 0), 0);
   const minutesUsed = Math.min(FREE_PLAN_MINUTES, totalMinutes);
   const streak = Math.min(7, Math.max(1, Math.ceil(sessions.length / 2)));
   const latestSession = sessions[0];

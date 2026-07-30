@@ -1,85 +1,53 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useFadeInStagger } from "@/src/shared/hooks/useAnimations";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { ANALYTICS_UPDATED_EVENT, getQuizAttempts, getFlashcardAttempts } from "@/lib/analytics-storage";
-import { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
+import type { StudySession, QuizAttempt, FlashcardAttempt } from "@/lib/types";
+
+/**
+ * Lazy-loaded Recharts panel — renders all analytics charts.
+ *
+ * The ~130 kB Recharts bundle is split into a separate chunk via
+ * {@link next/dynamic} with `ssr: false`, so it only loads when the
+ * analytics page is actually visited.
+ */
+const AnalyticsCharts = dynamic(
+  () => import("@/components/analytics-charts").then((mod) => mod.AnalyticsCharts),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-80 items-center justify-center rounded-panel border border-c-border bg-c-surface">
+        <span className="text-[12px] text-c-muted">Cargando gráficos...</span>
+      </div>
+    ),
+  }
+);
 
 /**
  * Analytics dashboard — visualizes study progress, performance, and patterns.
  *
  * Shows stat cards (sessions, time, quiz score, flashcards reviewed) and
- * up to 5 Recharts charts: sessions/reviews area chart, course distribution
- * pie, quiz evolution area, concept frequency bar, and study mix donut.
+ * up to 5 Recharts charts via the lazily-loaded {@link AnalyticsCharts}.
  *
  * All entry animations use {@link useFadeInStagger} with scale+fade+ease-smooth.
- * Charts animate once on mount (controlled by {@link CHART_ANIM_DURATION}).
  *
  * Adapted for mobile: charts stack vertically, grid collapses to single column.
- */
-
-// ── Chart animation config ───────────────────────────────────────────────
-// animationDuration (Recharts) debe coincidir con el delay del setTimeout
-// que desactiva isAnimationActive luego del mount.
-const CHART_ANIM_DURATION = 400;
-const CHART_ANIM_DISABLE_DELAY = CHART_ANIM_DURATION + 200; // 200ms buffer post-animación
-
-// ── Chart colors using CSS custom properties for theming ──────────────────
-const CHART_COLORS = [
-  "var(--color-blue)",
-  "var(--color-teal)",
-  "var(--color-violet)",
-  "var(--color-amber)",
-  "#ef4444",
-  "#ec4899",
-];
-
-/** Detect system-level dark mode preference via media query. */
-function useDarkMode() {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setIsDark(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDark;
-}
-
-/**
- * Analytics dashboard page — visualizes study progress, performance, and patterns.
- *
- * Displays stat cards and up to 5 Recharts charts (sessions/reviews, course distribution,
- * quiz evolution, concept frequency, study mix). Charts animate once on mount.
- * All sections use {@link useFadeInStagger} with scale+fade+ease-smooth.
- * Responsive: charts stack vertically on mobile.
  */
 export function AnalyticsDashboard() {
   const headerRef = useRef<HTMLDivElement>(null);
   const statCardsRef = useRef<HTMLDListElement>(null);
-  const chartGridRef = useRef<HTMLDivElement>(null);
 
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [flashcardAttempts, setFlashcardAttempts] = useState<FlashcardAttempt[]>([]);
   const [mounted, setMounted] = useState(false);
-  const isDark = useDarkMode();
-  const [chartAnimated, setChartAnimated] = useState(false);
-  useEffect(() => {
-    // ⚠️ Este timeout deriva de CHART_ANIM_DISABLE_DELAY. Si cambiás
-    //    animationDuration en los <Area>/<Bar>/<Pie>, actualizá también
-    //    la constante arriba. (ver CHART_ANIM_DURATION)
-    const timer = setTimeout(() => setChartAnimated(true), CHART_ANIM_DISABLE_DELAY);
-    return () => clearTimeout(timer);
-  }, []);
 
   useFadeInStagger(headerRef, ".analytics-header", { y: 16, stagger: 0.06, duration: 0.5, scale: 0.96, ease: "smooth" });
   useFadeInStagger(statCardsRef, ".analytics-stat", { y: 12, stagger: 0.05, duration: 0.4, delay: 0.2, scale: 0.96, ease: "smooth" });
-  useFadeInStagger(chartGridRef, ".analytics-chart", { y: 12, stagger: 0.06, duration: 0.45, delay: 0.3, scale: 0.96, ease: "smooth" });
 
   useEffect(() => {
     function syncAnalytics() {
@@ -108,6 +76,16 @@ export function AnalyticsDashboard() {
     };
   }, []);
 
+  // ── Derived data for stat cards ───────────────────────────────
+  const totalSessions = sessions.length;
+  const totalMinutes = sessions.reduce((sum, s) => sum + (s.stats?.estimatedDurationMinutes ?? 0), 0);
+  const totalWords = sessions.reduce((sum, s) => sum + (s.stats?.wordCount ?? 0), 0);
+  const avgQuizScore = quizAttempts.length > 0
+    ? Math.round((quizAttempts.reduce((sum, a) => sum + ((a.correct ?? 0) / (a.total || 1)), 0) / quizAttempts.length) * 100)
+    : 0;
+  const totalReviews = flashcardAttempts.reduce((sum, attempt) => sum + (attempt.reviewed ?? 0), 0);
+
+  // ── Derived data for charts (passed to AnalyticsCharts) ───────
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -116,8 +94,8 @@ export function AnalyticsDashboard() {
 
   const sessionsByDay = last7Days.map((date) => ({
     date: new Date(date).toLocaleDateString("es-AR", { weekday: "short", day: "numeric" }),
-    sesiones: sessions.filter((s) => s.createdAt.startsWith(date)).length,
-    repasos: flashcardAttempts.filter((attempt) => attempt.timestamp.startsWith(date)).length,
+    sesiones: sessions.filter((s) => s.createdAt?.startsWith(date)).length,
+    repasos: flashcardAttempts.filter((attempt) => attempt.timestamp?.startsWith(date)).length,
   }));
 
   const courseMap = new Map<string, number>();
@@ -135,17 +113,9 @@ export function AnalyticsDashboard() {
     porcentaje: Math.round((a.correct / a.total) * 100),
   }));
 
-  const totalSessions = sessions.length;
-  const totalMinutes = sessions.reduce((sum, s) => sum + s.stats.estimatedDurationMinutes, 0);
-  const totalWords = sessions.reduce((sum, s) => sum + s.stats.wordCount, 0);
-  const avgQuizScore = quizAttempts.length > 0
-    ? Math.round((quizAttempts.reduce((sum, a) => sum + (a.correct / a.total), 0) / quizAttempts.length) * 100)
-    : 0;
-  const totalReviews = flashcardAttempts.reduce((sum, attempt) => sum + attempt.reviewed, 0);
-
   const conceptFreq = new Map<string, number>();
   sessions.forEach((s) => {
-    s.keyConcepts.forEach((c) => {
+    (s.keyConcepts ?? []).forEach((c) => {
       conceptFreq.set(c.term, (conceptFreq.get(c.term) || 0) + 1);
     });
   });
@@ -159,15 +129,6 @@ export function AnalyticsDashboard() {
     { name: "Repasos de flashcards", value: flashcardAttempts.length },
     { name: "Sesiones creadas", value: sessions.length },
   ].filter((item) => item.value > 0);
-
-  function chartPlaceholder(hint?: string) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center rounded-panel border border-dashed border-c-border bg-c-surface px-4 text-center">
-        <p className="text-[12px] text-c-muted">Aún no hay suficientes datos</p>
-        {hint && <p className="mt-1 text-[12px] text-c-muted">{hint}</p>}
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -200,178 +161,18 @@ export function AnalyticsDashboard() {
         </div>
       </dl>
 
-      <div ref={chartGridRef} className="grid gap-4 xl:grid-cols-2">
-        <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
-          <h2 className="text-[14px] font-semibold text-c-text">Sesiones y repasos · últimos 7 días</h2>
-          <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de sesiones y repasos en los últimos 7 días">
-            {mounted ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={sessionsByDay}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                      border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                      borderRadius: "12px",
-                    }}
-                    labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                    itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
-                  />
-                  <Area type="monotone" dataKey="sesiones" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
-                  <Area type="monotone" dataKey="repasos" stroke="var(--color-teal)" fill="var(--color-teal-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              chartPlaceholder("Creá sesiones para ver tu actividad semanal.")
-            )}
-          </div>
-        </div>
-
-        <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
-          <h2 className="text-[14px] font-semibold text-c-text">Distribución por materia</h2>
-          <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico circular de distribución de sesiones por materia">
-            {mounted ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={sessionsByCourse}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    isAnimationActive={!chartAnimated}
-                    animationDuration={CHART_ANIM_DURATION}
-                    animationEasing="ease-out"
-                  >
-                    {sessionsByCourse.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                      border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                      borderRadius: "12px",
-                    }}
-                    labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                    itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
-                    formatter={(value, name) => [`${value} sesión(es)`, name]}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    iconType="circle"
-                    iconSize={8}
-                    wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              chartPlaceholder("Agregá el nombre de la materia al crear sesiones.")
-            )}
-          </div>
-        </div>
-
-        {recentQuizAttempts.length > 0 && (
-          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
-            <h2 className="text-[14px] font-semibold text-c-text">Evolución de quiz</h2>
-            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de evolución de resultados en quizzes">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={recentQuizAttempts}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="intento" stroke="#94a3b8" fontSize={12} />
-                    <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 100]} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                        borderRadius: "12px",
-                      }}
-                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
-                    />
-                    <Area type="monotone" dataKey="porcentaje" stroke="var(--color-blue)" fill="var(--color-blue-soft)" strokeWidth={2} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                chartPlaceholder("Completá quizzes para ver tu evolución.")
-              )}
-            </div>
-          </div>
-        )}
-
-        {topConcepts.length > 0 && (
-          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
-            <h2 className="text-[14px] font-semibold text-c-text">Conceptos más frecuentes</h2>
-            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico de barras de conceptos más frecuentes">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topConcepts} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis type="number" stroke="#94a3b8" fontSize={12} />
-                    <YAxis dataKey="term" type="category" stroke="#94a3b8" tick={{ fontSize: 10 }} width={120} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                        borderRadius: "12px",
-                      }}
-                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
-                    />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out">
-                      {topConcepts.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                chartPlaceholder("Los conceptos aparecen a medida que creás sesiones.")
-              )}
-            </div>
-          </div>
-        )}
-
-        {studyMix.length > 0 && (
-          <div className="analytics-chart rounded-panel border border-c-border bg-c-surface p-4">
-            <h2 className="text-[14px] font-semibold text-c-text">Mix de estudio</h2>
-            <div className="mt-4 h-48 sm:h-64" role="img" aria-label="Gráfico circular de mix de estudio">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={studyMix} cx="50%" cy="50%" innerRadius={52} outerRadius={84} dataKey="value" isAnimationActive={!chartAnimated} animationDuration={CHART_ANIM_DURATION} animationEasing="ease-out">
-                      {studyMix.map((_, index) => (
-                        <Cell key={`mix-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                        borderRadius: "12px",
-                      }}
-                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                      itemStyle={{ color: isDark ? "#cbd5e1" : "#475569" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                chartPlaceholder("Probá quizzes y flashcards para ver tu mix de estudio.")
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {totalSessions === 0 && (
-        <div className="analytics-chart rounded-panel border border-dashed border-c-border bg-c-surface p-10 text-center">
-          <p className="text-[12px] text-c-muted">Crea sesiones y completa quizzes para ver tus estadísticas.</p>
-        </div>
+      {mounted && (
+        <AnalyticsCharts
+          sessions={sessions}
+          quizAttempts={quizAttempts}
+          flashcardAttempts={flashcardAttempts}
+          sessionsByDay={sessionsByDay}
+          sessionsByCourse={sessionsByCourse}
+          recentQuizAttempts={recentQuizAttempts}
+          topConcepts={topConcepts}
+          studyMix={studyMix}
+          totalSessions={totalSessions}
+        />
       )}
     </div>
   );

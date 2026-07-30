@@ -116,6 +116,21 @@ a,
   transform: translateY(0);
 }
 
+/* ─── Chart containers: suppress default black focus outline ───────────── */
+.echarts-for-react:focus {
+  outline: none;
+}
+.echarts-for-react:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.5);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-legend-item:focus {
+  outline: none;
+}
+
 /* ─── Focus-visible ring ────────────────────────────────────────────────── */
 button:focus-visible,
 a:focus-visible,
