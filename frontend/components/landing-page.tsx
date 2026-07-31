@@ -321,7 +321,8 @@ function ChatDemo() {
   );
 }
 
-const DEMOS = [WaveformDemo, SummaryDemo, FlashcardDemo, MindmapDemo, QuizDemo, ChatDemo];
+/* Ring demos only — QuizDemo lives in DemoTabs */
+const RING_DEMOS = [WaveformDemo, SummaryDemo, FlashcardDemo, MindmapDemo, ChatDemo];
 
 /* ═══════════════════════════════════════════════════════════════════════
    QUIZ DEMO (for demo tabs)
@@ -428,7 +429,20 @@ function RingSection() {
   const rotY = progress * -260;
   const scale = 0.65 + progress * 0.4;
 
-  const ActiveDemo = DEMOS[activeTool];
+  const ActiveDemo = RING_DEMOS[activeTool];
+  const [flyingCard, setFlyingCard] = useState<number | null>(null);
+  const prevTool = useRef(activeTool);
+
+  /* Trigger card flight when activeTool changes */
+  useEffect(() => {
+    if (activeTool !== prevTool.current && !showIntro && !isMobile) {
+      setFlyingCard(prevTool.current);
+      const t = setTimeout(() => setFlyingCard(null), 750);
+      prevTool.current = activeTool;
+      return () => clearTimeout(t);
+    }
+    prevTool.current = activeTool;
+  }, [activeTool, showIntro, isMobile]);
 
   /* ── Reduced motion fallback: static grid ── */
   if (reducedMotion) {
@@ -484,6 +498,20 @@ function RingSection() {
             </div>
           )}
         </div>
+
+        {/* ── Flying Card (desktop only) ── */}
+        {flyingCard !== null && !isMobile && (
+          <div className="absolute left-1/2 top-1/2 z-30 pointer-events-none"
+            style={{
+              transform: "translate(-50%, -50%)",
+              animation: "cardFlight 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards",
+            }}>
+            <div className="flex h-14 w-24 items-center justify-center rounded-lg border text-sm font-bold"
+              style={{ fontFamily: F.mono, backgroundColor: P.card, borderColor: P.bdr, color: P.ink, boxShadow: `0 8px 24px ${P.sh}` }}>
+              {TOOLS[flyingCard].num}
+            </div>
+          </div>
+        )}
 
         {/* ── Right: Active Panel ── */}
         <div className="absolute right-0 top-0 hidden h-full w-[45%] items-center justify-center pr-8 lg:flex">
@@ -796,9 +824,9 @@ export function LandingPage() {
 function DemoTabs() {
   const [tab, setTab] = useState(0);
   const labels = ["Resumen", "Flashcards", "Mapa mental", "Quiz"];
-  /* Map tab index to correct demo: Resumen→Summary, Flashcards→Flashcard, Mapa→Mindmap, Quiz→Quiz */
-  const TAB_DEMO_MAP = [1, 2, 3, 4];
-  const Demo = DEMOS[TAB_DEMO_MAP[tab]];
+  /* Direct mapping — no index juggling */
+  const TAB_DEMOS = [SummaryDemo, FlashcardDemo, MindmapDemo, QuizDemo];
+  const Demo = TAB_DEMOS[tab];
 
   return (
     <section id="demo-tabs" className="relative z-10 pb-16 pt-8">
