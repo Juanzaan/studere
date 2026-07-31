@@ -321,7 +321,59 @@ function ChatDemo() {
   );
 }
 
-const DEMOS = [WaveformDemo, SummaryDemo, FlashcardDemo, MindmapDemo, ChatDemo];
+const DEMOS = [WaveformDemo, SummaryDemo, FlashcardDemo, MindmapDemo, QuizDemo, ChatDemo];
+
+/* ═══════════════════════════════════════════════════════════════════════
+   QUIZ DEMO (for demo tabs)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function QuizDemo() {
+  const [step, setStep] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => { setSelected(null); setStep((s) => (s >= 2 ? 0 : s + 1)); }, 3000);
+    return () => clearTimeout(t);
+  }, [step]);
+  const qs = [
+    { q: "¿Cuál organela produce la energía de la célula?", opts: ["Núcleo", "Mitocondria", "Ribosoma"], correct: 1 },
+    { q: "¿Qué molécula almacena la información genética?", opts: ["ATP", "ARN", "ADN"], correct: 2 },
+    { q: "¿Qué regula el intercambio de la célula?", opts: ["Mitocondria", "Ribosoma", "Membrana"], correct: 2 },
+  ];
+  const cur = qs[step];
+  return (
+    <div className="flex flex-col gap-3 py-2">
+      <div className="rounded-lg border p-4" style={{ borderColor: P.bdr, backgroundColor: P.card }}>
+        <div className="mb-1 flex items-center gap-2">
+          <span className="text-[8px] tracking-wider" style={{ fontFamily: F.mono, color: P.soft }}>PREGUNTA {step + 1}/3</span>
+          <div className="ml-auto flex gap-1">{qs.map((_, i) => <span key={i} className="h-1 w-4 rounded-full" style={{ backgroundColor: i === step ? P.moss : P.bdr }} />)}</div>
+        </div>
+        <p className="mb-3 text-sm font-medium leading-relaxed" style={{ fontFamily: F.fra, color: P.ink }}>{cur.q}</p>
+        <div className="space-y-1.5">
+          {cur.opts.map((o, i) => {
+            const isSelected = selected === i;
+            const isCorrect = i === cur.correct && selected !== null;
+            const isWrong = isSelected && i !== cur.correct;
+            return (
+              <button key={i} onClick={() => selected === null && setSelected(i)} className="flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-all duration-200"
+                style={{
+                  borderColor: isCorrect ? P.moss : isWrong ? P.crimson : P.bdrS,
+                  backgroundColor: isCorrect ? `${P.moss}10` : isWrong ? `${P.crimson}10` : P.bg,
+                  color: P.ink,
+                  cursor: selected === null ? "pointer" : "default",
+                }}>
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[8px]"
+                  style={{ borderColor: isCorrect ? P.moss : isWrong ? P.crimson : P.bdr, backgroundColor: isCorrect ? P.moss : "transparent", color: isCorrect ? P.card : P.soft }}>
+                  {isCorrect ? <Check className="h-2.5 w-2.5" /> : String.fromCharCode(65 + i)}
+                </span>
+                {o}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════════════════════════════════
    RING SECTION (the key piece)
@@ -378,13 +430,22 @@ function RingSection() {
 
   const ActiveDemo = DEMOS[activeTool];
 
-  /* ── Reduced motion fallback ── */
+  /* ── Reduced motion fallback: static grid ── */
   if (reducedMotion) {
     return (
       <section className="py-16" style={{ backgroundColor: P.ringBg }}>
         <SectionHead eyebrow="TODO SALE DE LA MISMA GRABACIÓN">
           <span style={{ color: P.card }}>Cinco herramientas, una grabación</span>
         </SectionHead>
+        <div className="mx-auto grid max-w-5xl gap-4 px-4 sm:grid-cols-2 lg:grid-cols-3 sm:px-6">
+          {TOOLS.map((t) => (
+            <div key={t.id} className="rounded-xl border p-5" style={{ borderColor: `${P.card}30`, backgroundColor: P.card }}>
+              <span className="mb-2 block text-[9px] tracking-widest" style={{ fontFamily: F.mono, color: P.moss }}>{t.tag}</span>
+              <h3 className="text-base font-medium" style={{ fontFamily: F.fra, color: P.ink }}>{t.title}</h3>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: P.soft }}>{t.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
@@ -454,11 +515,30 @@ function RingSection() {
           </div>
         </div>
 
-        {/* ── Bottom labels (mobile / all) ── */}
+        {/* ── Mobile: compact panel below ring ── */}
+        {isMobile && !showIntro && !showAll && (
+          <div className="absolute bottom-16 left-0 right-0 px-4">
+            <div key={activeTool} className="animate-fade-in-up mx-auto max-w-xs rounded-xl border p-4" style={{ borderColor: `${P.card}20`, backgroundColor: `${P.card}15`, backdropFilter: "blur(8px)" }}>
+              <div className="mb-2 flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-sm text-xs font-bold" style={{ fontFamily: F.mono, backgroundColor: P.ink, color: P.card }}>{TOOLS[activeTool].num}</span>
+                <div>
+                  <span className="text-[8px] tracking-[0.12em] block" style={{ fontFamily: F.mono, color: `${P.card}80` }}>{TOOLS[activeTool].num} / 05</span>
+                  <h3 className="text-sm font-medium" style={{ fontFamily: F.fra, color: P.card }}>{TOOLS[activeTool].title}</h3>
+                </div>
+              </div>
+              <p className="text-[11px] leading-relaxed mb-3" style={{ color: `${P.card}B0` }}>{TOOLS[activeTool].desc}</p>
+              <div className="rounded-lg border p-3" style={{ borderColor: `${P.card}15`, backgroundColor: `${P.card}08` }}>
+                <ActiveDemo />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Bottom labels ── */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 sm:px-8">
           <div className="mx-auto flex max-w-3xl items-center justify-between">
             {TOOLS.map((t, i) => {
-              const active = showAll || isActive(i) || (showAll && i <= activeTool);
+              const active = showAll || isActive(i);
               return (
                 <div key={t.id} className="flex flex-col items-center gap-1 transition-all duration-500" style={{ opacity: active ? 1 : 0.35, transform: active ? "translateY(0)" : "translateY(4px)" }}>
                   <span className="text-[8px] tracking-wider" style={{ fontFamily: F.mono, color: `${P.card}80` }}>{t.num} / 05</span>
@@ -716,7 +796,7 @@ export function LandingPage() {
 function DemoTabs() {
   const [tab, setTab] = useState(0);
   const labels = ["Resumen", "Flashcards", "Mapa mental", "Quiz"];
-  /* Map tab index to correct demo: Resumen→Summary, Flashcards→Flashcard, Mapa→Mindmap, Quiz→Chat */
+  /* Map tab index to correct demo: Resumen→Summary, Flashcards→Flashcard, Mapa→Mindmap, Quiz→Quiz */
   const TAB_DEMO_MAP = [1, 2, 3, 4];
   const Demo = DEMOS[TAB_DEMO_MAP[tab]];
 

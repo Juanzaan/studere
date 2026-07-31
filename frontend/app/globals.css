@@ -112,7 +112,6 @@ html::-webkit-scrollbar-thumb:hover {
   z-index: 9999;
   pointer-events: none;
   will-change: width;
-  transition: width 0.1s linear;
 }
 .paper-theme #scrollProgress { background: #2C1810; }
 
