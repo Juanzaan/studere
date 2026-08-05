@@ -4,6 +4,7 @@
  */
 
 const { jsonResponse, getRequestId, structuredLog, isValidSessionId, isValidBase64 } = require("../shared/utils");
+const { authenticate } = require("../shared/auth");
 const { saveChunk, getSessionMeta, saveSessionMeta, listChunks } = require('../shared/blob-storage');
 
 const MAX_CHUNK_SIZE_MB = 10;
@@ -17,6 +18,12 @@ module.exports = async function (context, req) {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     jsonResponse(context, 204, "", requestId);
+    return;
+  }
+
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
     return;
   }
 

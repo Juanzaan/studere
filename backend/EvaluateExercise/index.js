@@ -11,6 +11,7 @@
  */
 
 const { getClient, getDeployment } = require("../shared/openai-client");
+const { authenticate } = require("../shared/auth");
 const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, isDataUrlImage } = require("../shared/utils");
 
 const MAX_IMAGE_SIZE_MB = 10;
@@ -87,6 +88,12 @@ module.exports = async function (context, req) {
     return;
   }
 
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
+    return;
+  }
+
   const client = getClient();
   const deployment = getDeployment();
   
@@ -132,6 +139,15 @@ module.exports = async function (context, req) {
     { role: "system", content: SYSTEM_PROMPT },
   ];
 
+  // Session context may arrive as an object (title/summary/concepts) — it
+  // must be serialized or the LLM only sees "[object Object]". Capped to
+  // avoid unbounded prompt growth.
+  const serializedContext =
+    typeof sessionContext === "string"
+      ? sessionContext.slice(0, 4000)
+      : JSON.stringify(sessionContext).slice(0, 4000);
+  const contextBlock = serializedContext || "N/A";
+
   // Build user message — for images, include as vision content
   if (isImage) {
     messages.push({
@@ -139,7 +155,7 @@ module.exports = async function (context, req) {
       content: [
         {
           type: "text",
-          text: `Exercise: ${exercise}\n\nSession context: ${sessionContext || "N/A"}\n\nThe student submitted a photo of their handwritten answer (shown below). Evaluate it.`,
+          text: `Exercise: ${exercise}\n\nSession context: ${contextBlock}\n\nThe student submitted a photo of their handwritten answer (shown below). Evaluate it.`,
         },
         {
           type: "image_url",
@@ -150,7 +166,7 @@ module.exports = async function (context, req) {
   } else {
     messages.push({
       role: "user",
-      content: `Exercise: ${exercise}\n\nSession context: ${sessionContext || "N/A"}\n\nStudent's answer:\n${studentAnswer}\n\nEvaluate the answer.`,
+      content: `Exercise: ${exercise}\n\nSession context: ${contextBlock}\n\nStudent's answer:\n${studentAnswer}\n\nEvaluate the answer.`,
     });
   }
 

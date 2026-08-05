@@ -9,7 +9,7 @@ const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
 const { structuredLog, withTimeout, retryWithBackoff, isValidSessionId } = require("./utils");
 const { getClient, getWhisperDeployment } = require("./openai-client");
-const { downloadChunk, listChunks, deleteSession } = require('./blob-storage');
+const { downloadChunk, listChunks, getSessionMeta, saveSessionMeta, deleteSession } = require('./blob-storage');
 
 // FFmpeg is downloaded from Azure Blob Storage on first use and cached in %TEMP%.
 // This bypasses func CLI binary exclusions and Azure Files execution restrictions.
@@ -88,13 +88,17 @@ const SEGMENT_DURATION_SECONDS = 240; // 4 minutos por segmento
 const MAX_SEGMENT_SIZE_MB = 24; // Límite de Whisper
 
 /**
- * Concatenate all chunks into a single buffer
+ * Concatenate all chunks into a single buffer.
+ * Iterates the ACTUAL listed blob names so a missing chunk in the middle
+ * surfaces as a CHUNK_NOT_FOUND error instead of a silent truncation.
  */
-async function concatenateChunks(sessionId, totalChunks) {
+async function concatenateChunks(sessionId, chunkNames) {
   const buffers = [];
 
-  for (let i = 0; i < totalChunks; i++) {
-    const chunkBuffer = await downloadChunk(sessionId, i);
+  for (const name of chunkNames) {
+    const match = name.match(/chunk_(\d+)\.bin$/);
+    const index = match ? parseInt(match[1], 10) : 0;
+    const chunkBuffer = await downloadChunk(sessionId, index);
     buffers.push(chunkBuffer);
   }
 
@@ -244,23 +248,54 @@ async function processAudio(sessionId, language, context, requestId) {
     throw new Error('Invalid sessionId');
   }
 
-  const tempDir = path.join('/tmp', sessionId);
+  const tempDir = path.join(os.tmpdir(), sessionId);
 
   try {
     structuredLog(context, "info", "Starting audio processing", { sessionId }, requestId);
 
-    // 1. List chunks from blob storage
-    const chunks = await listChunks(sessionId);
-    const totalChunks = chunks.length;
+    // 0. Verify session metadata: completeness + double-processing guard.
+    //    meta.complete is set by UploadAudioChunk once ALL chunks arrived,
+    //    and meta.processing prevents two concurrent ProcessAudio calls
+    //    from double-transcribing (and from racing the blob cleanup).
+    const meta = await getSessionMeta(sessionId);
+    if (!meta || meta.complete !== true) {
+      const expected = meta?.totalChunks ?? 'unknown';
+      const err = new Error(
+        `Session upload is incomplete (${expected} chunks expected). Upload all chunks before processing.`
+      );
+      err.statusCode = 409;
+      throw err;
+    }
+    if (meta.processing) {
+      const err = new Error('Audio processing is already in progress for this session. Try again shortly.');
+      err.statusCode = 409;
+      throw err;
+    }
+    await saveSessionMeta(sessionId, {
+      ...meta,
+      processing: true,
+      processingStartedAt: new Date().toISOString(),
+    });
 
-    if (totalChunks === 0) {
+    // 1. List chunks from blob storage
+    const chunkNames = await listChunks(sessionId);
+
+    if (chunkNames.length === 0) {
       throw new Error('No chunks found for session');
     }
 
-    structuredLog(context, "info", "Concatenating chunks", { totalChunks }, requestId);
+    if (chunkNames.length !== meta.totalChunks) {
+      const err = new Error(
+        `Missing chunks: expected ${meta.totalChunks}, found ${chunkNames.length}. Re-upload the missing chunks.`
+      );
+      err.statusCode = 409;
+      throw err;
+    }
+
+    structuredLog(context, "info", "Concatenating chunks", { totalChunks: chunkNames.length }, requestId);
 
     // 2. Download and concatenate chunks
-    const fullAudioBuffer = await concatenateChunks(sessionId, totalChunks);
+    const fullAudioBuffer = await concatenateChunks(sessionId, chunkNames);
     const totalSizeMB = (fullAudioBuffer.length / 1024 / 1024).toFixed(2);
 
     structuredLog(context, "info", "Audio concatenated", { totalSizeMB }, requestId);
@@ -345,6 +380,20 @@ async function processAudio(sessionId, language, context, requestId) {
       segments: segments.length,
       totalSizeMB: parseFloat(totalSizeMB)
     };
+  } catch (error) {
+    // Reset the processing flag so a retry (after fixing the underlying
+    // issue) does not stay blocked on a stale guard.
+    try {
+      const meta = await getSessionMeta(sessionId);
+      if (meta && meta.processing) {
+        delete meta.processing;
+        delete meta.processingStartedAt;
+        await saveSessionMeta(sessionId, meta);
+      }
+    } catch (_) {
+      // Meta cleanup is best-effort
+    }
+    throw error;
   } finally {
     // Cleanup temp directory
     try {

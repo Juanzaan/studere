@@ -13,6 +13,7 @@
 
 const { getClient, getDeployment, isConfigured } = require("../shared/openai-client");
 const cache = require("../shared/cache");
+const { authenticate } = require("../shared/auth");
 const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
 const {
   OUTPUT_SCHEMA, SYSTEM_PROMPT, FALLBACK_SYSTEM, normalizeOutput,
@@ -242,6 +243,12 @@ module.exports = async function (context, req) {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     jsonResponse(context, 204, "", requestId);
+    return;
+  }
+
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
     return;
   }
 

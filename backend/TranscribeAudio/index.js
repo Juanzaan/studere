@@ -11,6 +11,7 @@
 
 const { getClient, getWhisperDeployment } = require("../shared/openai-client");
 const cache = require("../shared/cache");
+const { authenticate } = require("../shared/auth");
 const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff, buildCacheKey, isValidBase64 } = require("../shared/utils");
 
 const MAX_AUDIO_SIZE_MB = 25;
@@ -24,6 +25,12 @@ module.exports = async function (context, req) {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     jsonResponse(context, 204, "", requestId);
+    return;
+  }
+
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
     return;
   }
 
@@ -49,8 +56,11 @@ module.exports = async function (context, req) {
     return;
   }
 
-  if (language !== undefined && (typeof language !== "string" || !/^[a-z]{2,3}(-[A-Z]{2})?$/.test(language))) {
-    jsonResponse(context, 400, { error: "language must be a BCP-47 code like 'es' or 'en-US'." }, requestId);
+  // "auto" is a sentinel meaning "let Whisper detect" (handled below);
+  // BCP-47 allows numeric regions (es-419, zh-Hans, sr-Latn, en-us...).
+  const BCP47_PATTERN = /^[a-z]{2,8}(-[A-Za-z0-9]{2,8})*$/;
+  if (language !== undefined && (typeof language !== "string" || (language !== "auto" && !BCP47_PATTERN.test(language)))) {
+    jsonResponse(context, 400, { error: "language must be 'auto' or a BCP-47 code like 'es', 'es-419' or 'en-US'." }, requestId);
     return;
   }
 

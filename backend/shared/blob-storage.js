@@ -134,8 +134,17 @@ async function downloadChunk(sessionId, chunkIndex) {
   const blobName = `${sessionId}/chunk_${String(chunkIndex).padStart(5, '0')}.bin`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-  const downloadResponse = await blockBlobClient.download(0);
-  return await streamToBuffer(downloadResponse.readableStreamBody);
+  try {
+    const downloadResponse = await blockBlobClient.download(0);
+    return await streamToBuffer(downloadResponse.readableStreamBody);
+  } catch (error) {
+    if (error.statusCode === 404) {
+      const notFound = new Error(`Chunk ${chunkIndex} not found for session ${sessionId}`);
+      notFound.code = 'CHUNK_NOT_FOUND';
+      throw notFound;
+    }
+    throw error;
+  }
 }
 
 /**

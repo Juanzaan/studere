@@ -4,6 +4,7 @@
  */
 
 const { jsonResponse, getRequestId, structuredLog, isValidSessionId } = require("../shared/utils");
+const { authenticate } = require("../shared/auth");
 const { processAudio } = require("../shared/audio-pipeline");
 
 module.exports = async function (context, req) {
@@ -12,6 +13,12 @@ module.exports = async function (context, req) {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     jsonResponse(context, 204, "", requestId);
+    return;
+  }
+
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
     return;
   }
 
@@ -40,8 +47,8 @@ module.exports = async function (context, req) {
       sessionId
     }, requestId);
 
-    jsonResponse(context, 500, {
-      error: "Audio processing failed"
+    jsonResponse(context, error.statusCode || 500, {
+      error: error.statusCode ? error.message : "Audio processing failed"
     }, requestId);
   }
 };

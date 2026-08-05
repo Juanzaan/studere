@@ -111,6 +111,9 @@ function structuredLog(context, level, message, meta = {}, requestId = null) {
  * @returns {Promise} - Promise that rejects on timeout
  */
 function withTimeout(promise, timeoutMs, errorMessage = "Operation timed out") {
+  // Attach a no-op catch so the losing promise can never become an
+  // unhandledRejection (Node treats those as fatal).
+  promise.catch(() => {});
   return Promise.race([
     promise,
     new Promise((_, reject) =>
@@ -135,8 +138,10 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
     } catch (error) {
       lastError = error;
       
-      // Don't retry on certain errors
-      if (error.code === "content_filter" || error.status === 400) {
+      // Don't retry on certain errors (Azure OpenAI SDK surfaces HTTP status
+      // via `statusCode` on RestError; other layers may use `status`)
+      const status = error.statusCode ?? error.status ?? error.response?.status;
+      if (error.code === "content_filter" || (typeof status === "number" && status < 500)) {
         throw error;
       }
       
@@ -152,14 +157,23 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
 }
 
 /**
- * Build SHA-256 cache key from input parts
+ * Build SHA-256 cache key from input parts.
+ * Streams string parts into the hash directly so large payloads
+ * (base64 audio, long transcripts) are never materialized as a
+ * full JSON copy just to be hashed.
  * @param {...any} parts - Parts to hash
  * @returns {string} - SHA-256 hex hash
  */
 function buildCacheKey(...parts) {
-  return crypto.createHash('sha256')
-    .update(JSON.stringify(parts))
-    .digest('hex');
+  const hash = crypto.createHash('sha256');
+  for (const part of parts) {
+    if (typeof part === 'string') {
+      hash.update(part);
+    } else {
+      hash.update(JSON.stringify(part));
+    }
+  }
+  return hash.digest('hex');
 }
 
 /**

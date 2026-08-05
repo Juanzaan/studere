@@ -12,6 +12,7 @@
 
 const { getClient, getDeployment } = require("../shared/openai-client");
 const cache = require("../shared/cache");
+const { authenticate } = require("../shared/auth");
 const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
 
 const SYSTEM_PROMPT = `You are Stude, a warm, sharp, Spanish-speaking academic tutor inside the Studere platform. You help high-school and university students review, understand, and master the material from their study sessions. You are not a generic chatbot — you are their personal tutor who knows exactly what was covered in class.
@@ -70,6 +71,12 @@ module.exports = async function (context, req) {
     return;
   }
 
+  const auth = await authenticate(req);
+  if (!auth.ok) {
+    jsonResponse(context, auth.status, { error: auth.error }, requestId);
+    return;
+  }
+
   const client = getClient();
   const deployment = getDeployment();
   
@@ -95,14 +102,11 @@ module.exports = async function (context, req) {
     return;
   }
 
-  // --- Check cache for common questions ---
-  // Cache key includes user identity so one student's common-question
-  // reply is never served to another student.
-  const cacheKey = buildCacheKey('chat', userId || 'anon', message.toLowerCase().trim(), sessionContext?.title, sessionContext?.summary?.slice(0, 200));
-  const cached = cache.get("chat", cacheKey);
-  if (cached) {
-    structuredLog(context, "info", "Cache hit - returning cached chat response", {}, requestId);
-    jsonResponse(context, 200, { reply: cached, cached: true }, requestId);
+  // The verified token is the source of truth. A body userId that differs
+  // means someone is trying to impersonate another user.
+  const effectiveUserId = auth.userId || userId || "anon";
+  if (userId && auth.userId && userId !== auth.userId) {
+    jsonResponse(context, 403, { error: "Authenticated user does not match the request's userId." }, requestId);
     return;
   }
 
@@ -135,6 +139,19 @@ module.exports = async function (context, req) {
     contextBlock = contextBlock.slice(0, MAX_CONTEXT_LENGTH) + "...";
   }
 
+  // --- Check cache for common questions ---
+  // Cache key includes user identity so one student's common-question
+  // reply is never served to another student. The FULL context block is
+  // hashed (not just title + summary prefix) so replies from sessions that
+  // share a title but differ in content never collide.
+  const cacheKey = buildCacheKey('chat', effectiveUserId, message.toLowerCase().trim(), contextBlock);
+  const cached = cache.get("chat", cacheKey);
+  if (cached) {
+    structuredLog(context, "info", "Cache hit - returning cached chat response", {}, requestId);
+    jsonResponse(context, 200, { reply: cached, cached: true }, requestId);
+    return;
+  }
+
   const systemWithContext = contextBlock
     ? `${SYSTEM_PROMPT}\n\n--- SESSION CONTEXT ---\n${contextBlock}\n--- END CONTEXT ---`
     : SYSTEM_PROMPT;
@@ -143,11 +160,27 @@ module.exports = async function (context, req) {
   const messages = [{ role: "system", content: systemWithContext }];
 
   // Add recent chat history (limit to avoid token overflow)
+  // Individual messages are capped at MAX_MESSAGE_LENGTH, and the total
+  // assembled history is also capped so it cannot blow up the prompt.
+  const HISTORY_CHAR_BUDGET = 12000;
   if (Array.isArray(chatHistory)) {
     const recent = chatHistory.slice(-MAX_HISTORY);
+    let historyChars = 0;
     for (const msg of recent) {
-      if (msg.role === "user" || msg.role === "assistant") {
-        messages.push({ role: msg.role, content: msg.content });
+      if (
+        (msg.role === "user" || msg.role === "assistant") &&
+        typeof msg.content === "string" &&
+        msg.content.length <= MAX_MESSAGE_LENGTH
+      ) {
+        const remaining = HISTORY_CHAR_BUDGET - historyChars;
+        if (remaining <= 0) break;
+        messages.push({
+          role: msg.role,
+          content: msg.content.length > remaining
+            ? msg.content.slice(0, remaining) + "..."
+            : msg.content,
+        });
+        historyChars += msg.content.length;
       }
     }
   }
