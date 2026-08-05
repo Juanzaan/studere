@@ -11,7 +11,9 @@
  */
 
 const { getClient, getDeployment } = require("../shared/openai-client");
-const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff } = require("../shared/utils");
+const { jsonResponse, getRequestId, calculateMaxTokens, structuredLog, withTimeout, retryWithBackoff, isDataUrlImage } = require("../shared/utils");
+
+const MAX_IMAGE_SIZE_MB = 10;
 
 const SYSTEM_PROMPT = `You are Stude, an educational tutor inside the Studere platform. A student has completed an exercise from their study session and submitted their answer for evaluation. Your goal is genuinely educational feedback — not just grading.
 
@@ -65,6 +67,18 @@ JSON schema:
 
 const REQUEST_TIMEOUT_MS = 60000; // 60 seconds
 
+/**
+ * Normalize the grade string the model returns to the stable
+ * English set the frontend expects: correct | partial | incorrect.
+ */
+function normalizeGrade(grade) {
+  if (typeof grade !== "string") return "partial";
+  const g = grade.toLowerCase().trim();
+  if (g.includes("correcto") || g.startsWith("correct") || g === "full") return "correct";
+  if (g.includes("incorrecto") || g.includes("incorrect") || g.includes("wrong") || g.includes("error")) return "incorrect";
+  return "partial";
+}
+
 module.exports = async function (context, req) {
   const requestId = getRequestId(req);
   
@@ -83,14 +97,35 @@ module.exports = async function (context, req) {
 
   const { exercise, studentAnswer, context: sessionContext, answerType } = req.body || {};
 
-  if (!exercise || !studentAnswer) {
-    jsonResponse(context, 400, { error: "Request must include 'exercise' and 'studentAnswer'." }, requestId);
+  if (!exercise || typeof exercise !== "string" || exercise.length === 0 || exercise.length > 20000) {
+    jsonResponse(context, 400, { error: "Request must include an 'exercise' string (max 20000 chars)." }, requestId);
+    return;
+  }
+
+  if (typeof studentAnswer !== "string" || studentAnswer.length === 0) {
+    jsonResponse(context, 400, { error: "Request must include a 'studentAnswer' string." }, requestId);
+    return;
+  }
+
+  const isImage = answerType === "image";
+
+  if (isImage) {
+    // SSRF guard: the model fetches the URL server-side, so remote URLs
+    // are rejected — only local data URLs are accepted.
+    if (!isDataUrlImage(studentAnswer, MAX_IMAGE_SIZE_MB * 1024 * 1024)) {
+      jsonResponse(context, 400, {
+        error: `'studentAnswer' must be a base64 image data URL (data:image/...;base64,...) of at most ${MAX_IMAGE_SIZE_MB}MB.`
+      }, requestId);
+      return;
+    }
+  } else if (studentAnswer.length > 20000) {
+    jsonResponse(context, 400, { error: "'studentAnswer' must be at most 20000 characters for text answers." }, requestId);
     return;
   }
 
   structuredLog(context, "info", "Evaluating exercise", {
     exerciseLength: exercise.length,
-    answerType: answerType || "text",
+    answerType: isImage ? "image" : "text",
   }, requestId);
 
   const messages = [
@@ -98,7 +133,7 @@ module.exports = async function (context, req) {
   ];
 
   // Build user message — for images, include as vision content
-  if (answerType === "image") {
+  if (isImage) {
     messages.push({
       role: "user",
       content: [
@@ -150,6 +185,9 @@ module.exports = async function (context, req) {
     if (parsed && !parsed.grade) {
       parsed.grade = "partial";
     }
+    if (parsed) {
+      parsed.grade = normalizeGrade(parsed.grade);
+    }
     if (parsed && !parsed.explanation) {
       parsed.explanation = "Sin explicación disponible.";
     }
@@ -165,6 +203,6 @@ module.exports = async function (context, req) {
       code: error.code,
     }, requestId);
     
-    jsonResponse(context, 500, { error: error.message || "Unknown error" }, requestId);
+    jsonResponse(context, 500, { error: "Evaluation failed." }, requestId);
   }
 };

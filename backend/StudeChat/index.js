@@ -59,6 +59,7 @@ const SYSTEM_PROMPT = `You are Stude, a warm, sharp, Spanish-speaking academic t
 
 const MAX_CONTEXT_LENGTH = 8000;
 const MAX_HISTORY = 20;
+const MAX_MESSAGE_LENGTH = 4000;
 const REQUEST_TIMEOUT_MS = 60000; // 60 seconds
 
 module.exports = async function (context, req) {
@@ -77,15 +78,27 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { message, sessionContext, chatHistory } = req.body || {};
+  const { message, sessionContext, chatHistory, userId } = req.body || {};
 
   if (!message || typeof message !== "string") {
     jsonResponse(context, 400, { error: "Request must include a 'message' string." }, requestId);
     return;
   }
 
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    jsonResponse(context, 400, { error: `'message' must be at most ${MAX_MESSAGE_LENGTH} characters.` }, requestId);
+    return;
+  }
+
+  if (userId !== undefined && (typeof userId !== "string" || userId.length > 128)) {
+    jsonResponse(context, 400, { error: "'userId' must be a string of at most 128 characters." }, requestId);
+    return;
+  }
+
   // --- Check cache for common questions ---
-  const cacheKey = buildCacheKey('chat', message.toLowerCase().trim(), sessionContext?.title);
+  // Cache key includes user identity so one student's common-question
+  // reply is never served to another student.
+  const cacheKey = buildCacheKey('chat', userId || 'anon', message.toLowerCase().trim(), sessionContext?.title, sessionContext?.summary?.slice(0, 200));
   const cached = cache.get("chat", cacheKey);
   if (cached) {
     structuredLog(context, "info", "Cache hit - returning cached chat response", {}, requestId);
@@ -188,6 +201,6 @@ module.exports = async function (context, req) {
       return;
     }
 
-    jsonResponse(context, 500, { error: error.message || "Unknown error" }, requestId);
+    jsonResponse(context, 500, { error: "Chat request failed." }, requestId);
   }
 };
