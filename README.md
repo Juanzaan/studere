@@ -213,12 +213,15 @@ CLERK_SECRET_KEY=sk_test_...
     "AZURE_OPENAI_DEPLOYMENT": "gpt-4o-mini",
     "AZURE_OPENAI_WHISPER_DEPLOYMENT": "whisper",
     "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
-    "ALLOWED_ORIGIN": "http://localhost:3000"
+    "ALLOWED_ORIGIN": "http://localhost:3000",
+    "CLERK_SECRET_KEY": "sk_test_..."
   }
 }
 ```
 
 > 🔑 **Important:** rotate your `CLERK_SECRET_KEY` before any production deployment.
+>
+> 🔐 **Backend auth:** all AI endpoints (`generate-study-session`, `transcribe-audio`, `evaluate-exercise`, `stude-chat`, `upload-audio-chunk`, `process-audio`) verify the Clerk session token (`Authorization: Bearer <token>`) sent by the frontend. If `CLERK_SECRET_KEY` is not configured, the backend falls back to unauthenticated dev mode — set it in the Azure Function App settings for production.
 
 ### Run locally
 
