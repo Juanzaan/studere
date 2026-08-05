@@ -74,7 +74,11 @@ async function enrichIfNeeded(context, output, transcript, client, requestId) {
       );
 
       const summaryResult = (typeof retryWithBackoff === 'function')
-        ? await retryWithBackoff(summaryCall, 2, 1000)
+        ? await withTimeout(
+            retryWithBackoff(summaryCall, 2, 1000),
+            45000,
+            'Summary enrichment timed out'
+          )
         : await summaryCall();
 
       const improvedSummary = summaryResult.choices?.[0]?.message?.content;
@@ -117,7 +121,11 @@ async function enrichIfNeeded(context, output, transcript, client, requestId) {
         );
 
         const conceptsResult = (typeof retryWithBackoff === 'function')
-          ? await retryWithBackoff(conceptsCall, 2, 1000)
+          ? await withTimeout(
+              retryWithBackoff(conceptsCall, 2, 1000),
+              45000,
+              'Concepts enrichment timed out'
+            )
           : await conceptsCall();
 
         const raw = conceptsResult.choices?.[0]?.message?.content || '';
@@ -173,7 +181,11 @@ async function enrichIfNeeded(context, output, transcript, client, requestId) {
         );
 
         const quizResult = (typeof retryWithBackoff === 'function')
-          ? await retryWithBackoff(quizCall, 2, 1000)
+          ? await withTimeout(
+              retryWithBackoff(quizCall, 2, 1000),
+              45000,
+              'Quiz enrichment timed out'
+            )
           : await quizCall();
 
         const raw = quizResult.choices?.[0]?.message?.content || '';
@@ -259,8 +271,21 @@ module.exports = async function (context, req) {
   const existingItems = req.body?.existingItems || null;
   const generateMore = Boolean(req.body?.generateMore);
 
+  if (language !== "auto" && (typeof language !== "string" || language.length > 50)) {
+    jsonResponse(context, 400, { error: "'language' must be a short string or 'auto'." }, requestId);
+    return;
+  }
+
   // --- Check cache first ---
-  const cacheKey = buildCacheKey('generation', transcript, language, generateMore, extras.target);
+  const cacheKey = buildCacheKey(
+    'generation',
+    transcript,
+    language,
+    generateMore,
+    extras.target,
+    JSON.stringify(existingItems),
+    req.body?.summaryFocus
+  );
   const cached = cache.get("generation", cacheKey);
   if (cached) {
     structuredLog(context, "info", "Cache hit - returning cached response", {}, requestId);
@@ -321,13 +346,13 @@ module.exports = async function (context, req) {
           filterResult: retryFilter,
         }, requestId);
         jsonResponse(context, 500, {
-          error: retryError.message ?? "Content filter blocked both attempts.",
+          error: "Content filter blocked generation. Try rephrasing or a shorter transcript.",
           filterDetail: retryFilter ?? null,
         }, requestId);
         return;
       }
     } else {
-      jsonResponse(context, 500, { error: error.message ?? "Unknown error" }, requestId);
+      jsonResponse(context, 500, { error: "Generation failed." }, requestId);
       return;
     }
   }

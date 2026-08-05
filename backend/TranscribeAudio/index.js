@@ -11,10 +11,11 @@
 
 const { getClient, getWhisperDeployment } = require("../shared/openai-client");
 const cache = require("../shared/cache");
-const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff, buildCacheKey } = require("../shared/utils");
+const { jsonResponse, getRequestId, structuredLog, withTimeout, retryWithBackoff, buildCacheKey, isValidBase64 } = require("../shared/utils");
 
 const MAX_AUDIO_SIZE_MB = 25;
 const MAX_AUDIO_SIZE_BYTES = MAX_AUDIO_SIZE_MB * 1024 * 1024;
+const MAX_FILE_NAME_LENGTH = 255;
 const REQUEST_TIMEOUT_MS = 300000; // 5 minutes for audio transcription (allows for longer files)
 
 module.exports = async function (context, req) {
@@ -43,24 +44,25 @@ module.exports = async function (context, req) {
   const fileName = req.body?.fileName || "audio.webm";
   const language = req.body?.language || undefined; // let Whisper auto-detect if not specified
 
-  if (!audioBase64 || typeof audioBase64 !== "string") {
-    jsonResponse(context, 400, { error: "Request body must include 'audioBase64' (base64-encoded audio)." }, requestId);
+  if (typeof fileName !== "string" || fileName.length === 0 || fileName.length > MAX_FILE_NAME_LENGTH || /[\\/]/.test(fileName)) {
+    jsonResponse(context, 400, { error: "fileName must be a plain file name (no paths), max 255 characters." }, requestId);
     return;
   }
 
-  // --- Check cache first (using SHA-256 hash of audio data) ---
-  const cacheKey = buildCacheKey('transcription', audioBase64, language);
-  const cached = cache.get("transcription", cacheKey);
-  if (cached) {
-    structuredLog(context, "info", "Cache hit - returning cached transcription", {}, requestId);
-    jsonResponse(context, 200, { ...cached, cached: true }, requestId);
+  if (language !== undefined && (typeof language !== "string" || !/^[a-z]{2,3}(-[A-Z]{2})?$/.test(language))) {
+    jsonResponse(context, 400, { error: "language must be a BCP-47 code like 'es' or 'en-US'." }, requestId);
     return;
   }
 
-  // Decode base64 to buffer
+  if (!audioBase64 || typeof audioBase64 !== "string" || !isValidBase64(audioBase64)) {
+    jsonResponse(context, 400, { error: "Request body must include 'audioBase64' (valid base64-encoded audio)." }, requestId);
+    return;
+  }
+
+  // Decode base64 to buffer (whitespace-tolerant, like the validator)
   let audioBuffer;
   try {
-    audioBuffer = Buffer.from(audioBase64, "base64");
+    audioBuffer = Buffer.from(audioBase64.replace(/\s+/g, ''), "base64");
   } catch (err) {
     jsonResponse(context, 400, { error: "Invalid base64 encoding." }, requestId);
     return;
@@ -73,6 +75,15 @@ module.exports = async function (context, req) {
 
   if (audioBuffer.length < 100) {
     jsonResponse(context, 400, { error: "Audio file is too small or empty." }, requestId);
+    return;
+  }
+
+  // --- Check cache first (using SHA-256 hash of audio data) ---
+  const cacheKey = buildCacheKey('transcription', audioBase64, language);
+  const cached = cache.get("transcription", cacheKey);
+  if (cached) {
+    structuredLog(context, "info", "Cache hit - returning cached transcription", {}, requestId);
+    jsonResponse(context, 200, { ...cached, cached: true }, requestId);
     return;
   }
 
@@ -133,7 +144,7 @@ module.exports = async function (context, req) {
     }, requestId);
     
     jsonResponse(context, 500, {
-      error: error.message || "Transcription failed.",
+      error: "Transcription failed.",
       code: error.code || "unknown",
     }, requestId);
   }
