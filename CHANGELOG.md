@@ -2,6 +2,33 @@
 
 All notable changes to the Studere project will be documented in this file.
 
+## [1.2.0] - 2026-08-05
+
+### Added
+- **Study streak (real):** `calculateStreak` in `lib/session-utils.ts` — consecutive days with sessions (UTC); the streak stays alive until the end of the day (a session yesterday keeps it when today is empty). 8 unit tests.
+- **AGENTS.md:** conventions for AI agents — commands, golden rules (typecheck + green suite before done), code conventions, git workflow.
+- **GitHub issue templates:** form-based bug report and feature request.
+- **Labels:** `ci`, `docs`, `chore`, `security` added to the default set.
+- **Backend `.gitignore`** and Playwright artifact ignores (`test-results/`, `playwright-report/`).
+
+### Fixed
+- **Auth 401 on every backend request:** Clerk verification now uses `Clerk.verifyToken(token, { secretKey })` (the object-form `verifySession` call returned 401 in production).
+- **Session data loss:** session IDs were derived from title + timestamp — two sessions with the same title created within the same millisecond overwrote each other. IDs now append a random suffix.
+- **XSS vectors:** mind-map tooltip and exporters now escape user-provided text; `md-renderer` sanitizes `href` (blocks `javascript:`).
+- **Hydration flash:** theme applied after mount with a mount-effect, matching the inline layout script.
+- **Cross-tab session overwrite:** session detail only persists when its own props changed (600 ms guard) instead of clobbering other tabs' writes.
+- **File-to-base64 hang:** the Web Worker path now has a 30 s timeout and terminates the worker on failure.
+- **Quota failures surfaced:** storage-full errors now show a toast and abort navigation instead of silently losing the session.
+- **Flashcard viewer side effects:** analytics/completion/progress moved out of the state updater into effects with dedupe refs (no double counting, no completion on backward wrap).
+- **Dashboard streak:** replaced the fake `sessions.length / 2` formula with the real consecutive-days calculation.
+- **README/CODING_STANDARDS:** stale test counts refreshed (320 unit tests · 15 suites · 9 E2E specs).
+
+### Changed
+- **Repository cleanup:** untracked `backend/node_modules` (~3500 files), personal AI tooling (`.claude`, `.claude-flow`, `.swarm`, `.windsurf`, `.mcp.json`, `.windsurfrules`, `frontend/.agents`, `frontend/.windsurf`), `preview-captures`, and Playwright `test-results/`. Obsolete capture scripts deleted. Files stay on disk locally.
+- **CI now runs:** workflow moved from `frontend/.github/` (GitHub only reads the root) to `.github/workflows/`; passes Clerk env vars from repository secrets.
+- **CI E2E job disabled** until specs get Clerk test-user auth — tracked in [issue #3](https://github.com/Juanzaan/studere/issues/3).
+- **Issue tracker:** 10 backlog issues created covering the landing swap, E2E auth, git history cleanup, calendar/integrations placeholders, free-plan enforcement, CHANGELOG policy, and branch protection.
+
 ## [1.1.0] - 2026-07-25
 
 ### Added
