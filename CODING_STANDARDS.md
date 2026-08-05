@@ -30,7 +30,7 @@
 - **UI:** React 18.3.1, TailwindCSS 3.4.7
 - **Animations:** GSAP 3.14.2
 - **Visualizations:** React Flow, Recharts, KaTeX
-- **Testing:** Vitest (311 tests, 14 suites), Playwright (8 E2E specs)
+- **Testing:** Vitest (320 tests, 15 suites), Playwright (9 E2E specs)
 
 ### Backend
 - **Runtime:** Node.js 18 LTS
@@ -64,8 +64,8 @@ frontend/
 ├── src/
 │   ├── domains/         # Domain-specific modules
 │   ├── shared/          # Shared hooks & utilities (useAnimations, useFadeInStagger)
-│   └── tests/           # 14 test suites, 311 tests
-└── e2e/                 # 8 Playwright spec files
+│   └── tests/           # 15 test suites, 320 tests
+└── e2e/                 # 9 Playwright spec files
 ```
 
 ### Backend Structure
@@ -233,7 +233,7 @@ const { scope, enter } = useFadeInStagger({
 
 ## 10. TESTING
 
-### Unit Tests (Vitest — 311 tests, 14 suites)
+### Unit Tests (Vitest — 320 tests, 15 suites)
 - **SessionSkeleton:** 13 tests — render modes (transcribing/generating/idle), a11y, responsive, progress phases
 - **TutorialOverlay:** 22 tests — keyboard nav, blocking, aria-modal, mobile, aria-live, persistence
 - **SessionComposerCard:** 16 tests — form validation, AI toggle, submit flows, error handling, callbacks
@@ -316,7 +316,7 @@ func azure functionapp publish your-function-app-name
 - **Mobile-responsive layout** across all pages
 - **Accessibility audit** — WCAG AA contrast, semantic HTML, ARIA roles/attributes
 - **Color contrast WCAG AA** — all text/background combinations pass ≥4.5:1
-- **311 unit tests + 21 critical-flow E2E tests** passing
+- **320 unit tests + 76 E2E tests per browser (9 specs)** passing
 
 ### Known Issues
 None — all critical issues resolved.

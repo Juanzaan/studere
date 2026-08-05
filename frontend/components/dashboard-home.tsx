@@ -16,6 +16,7 @@ gsap.registerPlugin(useGSAP);
 import { ANALYTICS_UPDATED_EVENT, getFlashcardAttempts, getQuizAttempts } from "@/lib/analytics-storage";
 import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
+import { calculateStreak } from "@/lib/session-utils";
 import { FREE_PLAN_MINUTES } from "@/lib/constants";
 import { AudioRecorderWidget } from "@/components/audio-recorder-widget";
 import { SessionComposerCard } from "@/components/session-composer-card";
@@ -120,7 +121,7 @@ export function DashboardHome() {
 
   const totalMinutes = sessions.reduce((sum, session) => sum + (session.stats?.estimatedDurationMinutes ?? 0), 0);
   const minutesUsed = Math.min(FREE_PLAN_MINUTES, totalMinutes);
-  const streak = Math.min(7, Math.max(1, Math.ceil(sessions.length / 2)));
+  const streak = calculateStreak(sessions);
   const latestSession = sessions[0];
 
   /** Refresh sessions list from storage. */

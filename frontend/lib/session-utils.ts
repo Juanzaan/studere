@@ -291,3 +291,39 @@ export function createComment(sessionId: string, text: string, segmentId?: strin
 export { normalizeSession } from "@/lib/session-normalizer";
 export { buildBrainReply, BRAIN_PROMPT_TEMPLATES } from "@/lib/brain-reply";
 export type { BrainPromptTemplate } from "@/lib/brain-reply";
+
+function dayKey(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function shiftDay(key: string, delta: number): string {
+  const date = new Date(`${key}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + delta);
+  return dayKey(date);
+}
+
+/**
+ * Calculate the current study streak (consecutive days with sessions).
+ *
+ * A day counts if at least one session has that `createdAt` date (UTC).
+ * The streak starts today if there is a session today, otherwise it starts
+ * yesterday — a streak only breaks at the end of the day, so a user who
+ * studied yesterday but not yet today still keeps it alive.
+ *
+ * @param sessions - Sessions to compute the streak from
+ * @returns Number of consecutive days with activity (0 if none)
+ */
+export function calculateStreak(sessions: Pick<StudySession, "createdAt">[]): number {
+  if (sessions.length === 0) return 0;
+
+  const days = new Set(sessions.map((session) => dayKey(new Date(session.createdAt))));
+  const today = dayKey(new Date());
+
+  let cursor = days.has(today) ? today : shiftDay(today, -1);
+  let streak = 0;
+  while (days.has(cursor)) {
+    streak++;
+    cursor = shiftDay(cursor, -1);
+  }
+  return streak;
+}

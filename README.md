@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Auth-Clerk-6C47FF?logo=clerk&logoColor=white" alt="Clerk" />
   <img src="https://img.shields.io/badge/AI-Azure%20OpenAI-0078D4?logo=microsoftazure&logoColor=white" alt="Azure OpenAI" />
-  <img src="https://img.shields.io/badge/tests-387%20total-2ea44f" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-320%20total-2ea44f" alt="Tests" />
   <img src="https://img.shields.io/badge/license-Studere%20Proprietary-DC2626" alt="Proprietary license" />
 </p>
 
@@ -153,7 +153,7 @@ graph TB
 | **Frontend** | Next.js 14 (App Router), TypeScript (strict), Tailwind CSS 3.4, GSAP 3.14, React Flow, Recharts, Lucide, KaTeX |
 | **Auth** | Clerk (`@clerk/nextjs` v6) |
 | **Backend** | Azure Functions (Node 18), Azure OpenAI (GPT-4o-mini, GPT-4.1-mini, Whisper), Azure Blob Storage, FFmpeg |
-| **Testing** | Vitest (311 unit tests · 14 suites), Playwright (76 tests · 9 specs) |
+| **Testing** | Vitest (320 unit tests · 15 suites), Playwright (76 E2E tests per browser · 9 specs) |
 
 ---
 
@@ -255,7 +255,7 @@ Open **http://localhost:3000** 🎉
 ```bash
 cd frontend
 
-# Unit tests (311 tests · 14 suites)
+# Unit tests (320 tests · 15 suites)
 npm test
 
 # Coverage report
@@ -268,7 +268,7 @@ npm run test:e2e
 npx playwright test --project=chromium
 ```
 
-**Current status:** 309/311 unit tests pass; 2 timing-sensitive tests occasionally exceed their 5 s timeout and are considered known flaky. 76 E2E tests across 9 specs (critical flows, auth-aware UI, audio transcription, AI generation, flashcards, quiz, session detail, library, a11y).
+**Current status:** 320/320 unit tests pass. 76 E2E tests across 9 specs (critical flows, auth-aware UI, audio transcription, AI generation, flashcards, quiz, session detail, library, a11y). The E2E job is currently disabled in CI pending Clerk test-auth setup — see [issue #3](https://github.com/Juanzaan/studere/issues/3).
 
 ---
 
@@ -319,7 +319,9 @@ FFMPEG_PATH=/path/to/ffmpeg   # optional — otherwise auto-downloaded to %TEMP%
 
 ```
 studere/
-├── frontend/                        # Next.js 14 app
+├── .github/                        # CI workflows, issue templates
+├── AGENTS.md                       # Conventions for AI agents working in this repo
+├── frontend/                       # Next.js 14 app
 │   ├── app/
 │   │   ├── page.tsx                 # Marketing landing (auth-aware redirect)
 │   │   ├── (app)/                   # Dashboard, library, starred, upcoming,
@@ -329,8 +331,8 @@ studere/
 │   ├── components/                  # UI + session panels + landing page
 │   ├── lib/                         # API client, storage, types, audio, utils
 │   ├── src/shared/                  # Hooks (useAnimations, useFadeInStagger)
-│   ├── src/tests/                   # 14 Vitest suites (311 tests)
-│   ├── e2e/                         # 9 Playwright specs (76 tests)
+│   ├── src/tests/                   # 15 Vitest suites (320 tests)
+│   ├── e2e/                         # 9 Playwright specs (76 tests per browser)
 │   └── scripts/                     # Doc-coverage script
 │
 └── backend/                         # Azure Functions (Node 18)

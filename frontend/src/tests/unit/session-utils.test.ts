@@ -6,6 +6,7 @@ import {
   createComment,
   createInsights,
   createWelcomeChat,
+  calculateStreak,
   normalizeSession,
 } from '@/lib/session-utils';
 import { StudySession } from '@/lib/types';
@@ -489,6 +490,54 @@ describe('session-utils.ts', () => {
       };
       const normalized = normalizeSession(session);
       expect(normalized.studyMetrics.completionRate).toBe(67); // 2/3 ≈ 66.67, rounded
+    });
+  });
+
+  describe('calculateStreak', () => {
+    function iso(daysAgo: number): string {
+      const date = new Date();
+      date.setUTCDate(date.getUTCDate() - daysAgo);
+      return date.toISOString();
+    }
+
+    it('should return 0 when there are no sessions', () => {
+      expect(calculateStreak([])).toBe(0);
+    });
+
+    it('should count a single session today as 1', () => {
+      expect(calculateStreak([{ createdAt: iso(0) }])).toBe(1);
+    });
+
+    it('should keep the streak alive when the last session was yesterday', () => {
+      expect(calculateStreak([{ createdAt: iso(1) }])).toBe(1);
+    });
+
+    it('should count consecutive days including today', () => {
+      const sessions = [0, 1, 2, 3].map((daysAgo) => ({ createdAt: iso(daysAgo) }));
+      expect(calculateStreak(sessions)).toBe(4);
+    });
+
+    it('should break the streak on a gap', () => {
+      const sessions = [0, 1, 3].map((daysAgo) => ({ createdAt: iso(daysAgo) }));
+      expect(calculateStreak(sessions)).toBe(2);
+    });
+
+    it('should ignore multiple sessions on the same day', () => {
+      const sessions = [
+        { createdAt: iso(0) },
+        { createdAt: iso(0) },
+        { createdAt: iso(1) },
+      ];
+      expect(calculateStreak(sessions)).toBe(2);
+    });
+
+    it('should not count a future-dated session as today', () => {
+      expect(calculateStreak([{ createdAt: iso(-1) }])).toBe(0);
+    });
+
+    it('should ignore future-dated sessions when computing the streak', () => {
+      const sessions = [{ createdAt: iso(-1) }, { createdAt: iso(1) }];
+      expect(calculateStreak(sessions)).toBe(1);
     });
   });
 });
