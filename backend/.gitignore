@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Azure Functions local settings (contains secrets)
+local.settings.json
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Azure build artifacts
+bin/
+obj/
+.azurefunctions/
+.python_packages/
+__pycache__/
+
+# Logs
+*.log

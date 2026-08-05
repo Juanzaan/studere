@@ -76,14 +76,21 @@ logs/
 # Local Netlify folder
 .netlify
 
-# AI Tool Directories
+# AI Tool Directories (any level)
 .claude/
 .claude-flow/
 .swarm/
 .windsurf/
+.windsurfrules
+.agents/
 
 # AI Configuration
 .mcp.json
+
+# Playwright artifacts
+test-results/
+playwright-report/
+blob-report/
 
 # Visual verification captures (not for production)
 preview-captures/

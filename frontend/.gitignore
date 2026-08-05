@@ -17,5 +17,10 @@ tsconfig.tsbuildinfo
 .turbo/
 core
 
+# Playwright artifacts
+test-results/
+playwright-report/
+blob-report/
+
 # clerk configuration (can include secrets)
 /.clerk/
