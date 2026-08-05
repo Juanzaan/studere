@@ -2,7 +2,7 @@
 
 import { memo, FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Show, UserButton } from "@clerk/nextjs";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 import { Bell, Crown, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { getStoredTheme, setTheme, type Theme } from "@/lib/theme";
 import { getSessions, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
@@ -121,7 +121,7 @@ export const AppTopbar = memo(function AppTopbar() {
         >
           <Bell className="h-[16px] w-[16px] sm:h-[14px] sm:w-[14px]" />
         </button>
-        <Show when="signed-in">
+        <SignedIn>
           <UserButton
             appearance={{
               elements: {
@@ -130,7 +130,7 @@ export const AppTopbar = memo(function AppTopbar() {
               },
             }}
           />
-        </Show>
+        </SignedIn>
       </div>
     </header>
   );
