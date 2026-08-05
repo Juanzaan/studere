@@ -1,0 +1,40 @@
+name: "✨ Feature request"
+description: "Proponé una funcionalidad o mejora para Studere"
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: "Problema / necesidad"
+      description: "¿Qué necesidad cubre esta funcionalidad? ¿Qué problema resuelve?"
+    validations:
+      required: true
+  - type: textarea
+    id: solucion
+    attributes:
+      label: "Solución propuesta"
+      description: "Describí cómo te imaginás que funcionaría"
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: "Alternativas consideradas"
+      description: "¿Otras formas de resolverlo que hayas pensado?"
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: "Prioridad sugerida"
+      options:
+        - "Alta (necesaria pronto)"
+        - "Media (importante)"
+        - "Baja (nice to have)"
+    validations:
+      required: true
+  - type: textarea
+    id: alcance
+    attributes:
+      label: "Alcance / área afectada"
+      description: "¿Qué parte de la app toca? (frontend, backend, CI, docs...)"
+      placeholder: "frontend: dashboard, lib/storage..."

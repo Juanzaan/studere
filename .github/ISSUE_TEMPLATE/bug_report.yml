@@ -1,0 +1,46 @@
+name: "🐞 Bug report"
+description: "Reportá un error o comportamiento inesperado de Studere"
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: "Descripción"
+      description: "¿Qué pasó? ¿Qué esperabas que pasara?"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduccion
+    attributes:
+      label: "Pasos para reproducir"
+      description: "Pasos exactos para que cualquiera pueda reproducirlo"
+      placeholder: |
+        1. Ir a '...'
+        2. Hacer clic en '...'
+        3. Ver el error
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: "Entorno"
+      description: "Navegador, dispositivo, y si es local o producción"
+      placeholder: "Chrome 126 · Windows 11 · Producción"
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Errores de consola / capturas"
+      description: "Pegá el texto de errores de consola, o describí capturas (no adjuntar imágenes pesadas)"
+      render: shell
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: "Severidad"
+      options:
+        - "Crítico (bloquea uso)"
+        - "Alto (falla funcionalidad principal)"
+        - "Medio (falla funcionalidad secundaria)"
+        - "Bajo (cosmético)"
+    validations:
+      required: true
