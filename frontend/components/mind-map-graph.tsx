@@ -6,7 +6,7 @@ import { Maximize2, Minimize2, X } from "lucide-react";
 import type { EChartsOption } from "echarts";
 import type { MindMapNode, Concept } from "@/lib/types";
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic<any>(() => import("echarts-for-react"), { ssr: false });
 
 // ── CSS variable resolver (theme-aware) ────────────────────────────────────
 
