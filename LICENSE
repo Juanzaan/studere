@@ -1,21 +1,68 @@
-MIT License
+STUDERE PROPRIETARY LICENSE
+Copyright (c) 2026 Juan Pablo Zanolli ("Licensor")
 
-Copyright (c) 2026 Juan Pablo Zanolli
+ALL RIGHTS RESERVED.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license governs the use of the Studere software, including all source
+code, compiled artifacts, documentation, design assets, and any related
+materials (collectively, the "Software").
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. GRANT OF LIMITED LICENSE
+   The Licensor grants you a personal, non-exclusive, non-transferable,
+   non-sublicensable, revocable license to view, study, and evaluate the
+   Software for informational and educational purposes only, subject to the
+   restrictions in this license.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. PROHIBITED USES
+   You may NOT, without the prior express written permission of the Licensor:
+
+   a. Use, copy, reproduce, or incorporate the Software, or any portion of it,
+      in any other application, product, service, website, or project of any
+      kind, whether commercial, academic, open-source, or personal.
+
+   b. Use the Software, or any portion of it, to develop, operate, or offer a
+      commercial product or service — including but not limited to any
+      Software-as-a-Service (SaaS), subscription service, hosted platform,
+      consulting service, or any other offering that directly or indirectly
+      generates revenue, whether monetary or otherwise.
+
+   c. Modify, adapt, translate, or create derivative works of the Software.
+
+   d. Distribute, publish, sell, rent, lease, lend, or sublicense the Software
+      or any portion of it, in whole or in part, in any form or medium.
+
+   e. Use the Software to train, fine-tune, or otherwise improve any machine
+      learning model or artificial intelligence system.
+
+   f. Remove, obscure, or alter any copyright, trademark, or proprietary
+      notices contained in or on the Software.
+
+   g. Port the Software to another platform or technology stack for any
+      purpose other than the personal evaluation permitted in Section 1.
+
+3. ENFORCEMENT AND LEGAL CONSEQUENCES
+   The Software is protected by applicable copyright and intellectual
+   property laws. Any use in violation of this license constitutes copyright
+   infringement and a breach of contract. In the event of any violation, the
+   Licensor reserves the right to take all legal action available, including
+   but not limited to seeking injunctive relief, actual damages, statutory
+   damages, and attorney's fees, and to terminate this license immediately
+   without notice. Each unauthorized use constitutes a separate and distinct
+   violation.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE ENTIRE RISK AS TO
+   THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
+
+5. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+6. REQUESTS FOR PERMISSION
+   If you wish to use the Software in any manner not expressly permitted by
+   this license, you must contact the Licensor in writing and obtain prior
+   express written permission.

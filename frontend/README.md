@@ -194,4 +194,4 @@ Ver [CODING_STANDARDS.md](../CODING_STANDARDS.md) para:
 
 ## 📄 Licencia
 
-MIT — parte del monorepo [Studere](https://github.com/Juanzaan/studere)
+**Software propietario — todos los derechos reservados.** Parte del monorepo [Studere](https://github.com/Juanzaan/studere). Uso comercial, redistribución o reutilización en otras aplicaciones está estrictamente prohibido. Ver [LICENSE](../LICENSE).
