@@ -20,9 +20,11 @@ jobs:
     name: Test & Build
     runs-on: ubuntu-latest
 
+    # Vitest 4 requires Node >= 20.12 (uses node:util styleText), so Node 18
+    # is intentionally not in the matrix anymore.
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
 
     steps:
       - name: Checkout code
