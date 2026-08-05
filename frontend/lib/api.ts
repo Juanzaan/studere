@@ -323,6 +323,8 @@ export async function evaluateExercise(
 /** Request body for the Stude AI chat endpoint. */
 export type StudeChatRequest = {
   message: string;
+  /** The signed-in user's Clerk user ID (used to isolate server-side cache) */
+  userId?: string;
   sessionContext?: {
     title?: string;
     course?: string;
@@ -337,7 +339,7 @@ export type StudeChatRequest = {
  * Send a message to the Stude AI tutor with session context.
  * The AI responds with contextual help based on the session's content.
  *
- * @param request - Message, session context, and optional chat history
+ * @param request - Message, optional user ID, session context, and optional chat history
  * @returns The AI's reply text
  */
 export async function sendStudeChat(

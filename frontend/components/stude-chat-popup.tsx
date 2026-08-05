@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useUser } from "@clerk/nextjs";
 import { Brain, Copy, GripVertical, Loader2, Minus, X } from "lucide-react";
 import { BRAIN_PROMPT_TEMPLATES, buildBrainReply, createChatMessage } from "@/lib/session-utils";
 import { sendStudeChat } from "@/lib/api";
@@ -78,6 +79,7 @@ function detectChartRequest(message: string): string | null {
  */
 export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, onChartDetected, initialMessage }: StudeChatPopupProps) {
   const toast = useToastContext();
+  const { user } = useUser();
   const [input, setInput] = useState("");
   const [minimized, setMinimized] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -213,6 +215,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
     try {
       reply = await sendStudeChat({
         message,
+        userId: user?.id,
         sessionContext: {
           title: session.title,
           course: session.course,
