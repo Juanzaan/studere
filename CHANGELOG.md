@@ -6,9 +6,11 @@ All notable changes to the Studere project will be documented in this file.
 
 ### Added
 - **Trial enforcement:** AI features (transcription + generation) are now blocked once the 120-minute trial is used up — `isTrialExhausted` / `calculateTrialMinutesUsed` in `lib/session-utils.ts`, enforced in the session composer and the audio recorder with a "Trial finalizado" toast. Local-only creation (no AI) stays available. 10 unit tests.
+- **CONTRIBUTING.md:** documented branch workflow, Conventional Commits, CHANGELOG policy (Keep a Changelog + semver) and the release process — see [issue #9](https://github.com/Juanzaan/studere/issues/9).
 
 ### Changed
 - `FREE_PLAN_MINUTES` renamed to `TRIAL_MINUTES` (the app is trial-based, not free) and the dashboard "Plan gratuito" label now reads "Trial".
+- **Branch protection hardened:** `main` now requires the `Test & Build (20.x)` status check to pass (strict, up-to-date branch) before merging — see [issue #11](https://github.com/Juanzaan/studere/issues/11).
 
 ## [1.2.0] - 2026-08-05
 
