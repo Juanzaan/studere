@@ -162,6 +162,51 @@ function buildCacheKey(...parts) {
     .digest('hex');
 }
 
+/**
+ * Validate a session ID.
+ * Only alphanumerics, dash and underscore, max 64 chars.
+ * Prevents path traversal in filesystem paths and blob-name abuse.
+ * @param {unknown} id - Value to validate
+ * @returns {boolean} - True if valid
+ */
+function isValidSessionId(id) {
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(id);
+}
+
+/**
+ * Strict base64 validation (round-trip check).
+ * `Buffer.from(str, 'base64')` never throws, so a simple try/catch
+ * is not enough — invalid input must be rejected explicitly.
+ * @param {unknown} value - Value to validate
+ * @returns {boolean} - True if value is valid base64
+ */
+function isValidBase64(value) {
+  if (typeof value !== 'string' || value.length === 0) return false;
+  const compact = value.replace(/\s+/g, '');
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(compact)) return false;
+  const decoded = Buffer.from(compact, 'base64');
+  if (decoded.length === 0) return false;
+  return decoded.toString('base64').replace(/=+$/, '') === compact.replace(/=+$/, '');
+}
+
+/**
+ * Validate an image data URL (base64), optionally with a max decoded size.
+ * Only local data URLs are allowed — remote URLs are rejected to prevent SSRF.
+ * @param {unknown} value - Value to validate
+ * @param {number} [maxBytes] - Maximum decoded size in bytes
+ * @returns {boolean} - True if value is a valid image data URL
+ */
+function isDataUrlImage(value, maxBytes) {
+  if (typeof value !== 'string') return false;
+  const match = value.match(/^data:image\/(png|jpe?g|webp|gif|bmp);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) return false;
+  if (!isValidBase64(match[2])) return false;
+  if (typeof maxBytes === 'number' && Buffer.from(match[2], 'base64').length > maxBytes) {
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   jsonResponse,
   getRequestId,
@@ -171,4 +216,7 @@ module.exports = {
   retryWithBackoff,
   buildCacheKey,
   CORS_HEADERS,
+  isValidSessionId,
+  isValidBase64,
+  isDataUrlImage,
 };
