@@ -30,6 +30,34 @@ export type TranscriptionResult = {
 };
 
 /**
+ * Fetch with a hard timeout via AbortController.
+ * Prevents the UI from hanging forever when the backend stalls or the
+ * network degrades. Timeouts are set above the backend's own timeouts.
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("La solicitud tardó demasiado. Verificá tu conexión e intentá de nuevo.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Build auth headers for the backend.
+ * The backend verifies the Clerk session token (Bearer) on every AI endpoint.
+ */
+function authHeaders(token?: string): Record<string, string> {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/**
  * Convert a File to a base64 string.
  * Uses a fast sync path for files <1MB and a Web Worker for larger files
  * to avoid blocking the main thread.
@@ -84,37 +112,38 @@ async function transcribeChunk(
   file: File,
   language?: string,
   options?: TranscribeChunkOptions,
+  token?: string,
 ): Promise<TranscriptionResult> {
   const encodeFile = options?.fileToBase64 ?? fileToBase64;
-  try {
-    const base64 = await encodeFile(file);
+  const base64 = await encodeFile(file);
 
-    const res = await fetch(`${BACKEND_URL}/api/transcribe-audio`, {
+  const res = await fetchWithTimeout(
+    `${BACKEND_URL}/api/transcribe-audio`,
+    {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
       body: JSON.stringify({
         audioBase64: base64,
         fileName: file.name,
         language: language || "auto",
       }),
-    });
+    },
+    320000, // backend Whisper timeout is 5 min — give it a little more
+  );
 
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      const errorMsg = body?.error || 'Error desconocido del servidor';
-      throw new Error(`Error al transcribir audio: ${errorMsg}`);
-    }
-
-    let result;
-    try {
-      result = await res.json();
-    } catch {
-      throw new Error('Invalid response from server — expected JSON');
-    }
-    return result;
-  } catch (error) {
-    throw error;
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const errorMsg = body?.error || 'Error desconocido del servidor';
+    throw new Error(`Error al transcribir audio: ${errorMsg}`);
   }
+
+  let result;
+  try {
+    result = await res.json();
+  } catch {
+    throw new Error('Invalid response from server — expected JSON');
+  }
+  return result;
 }
 
 /**
@@ -128,7 +157,10 @@ export type TranscribeAudioOptions = {
     file: File,
     language?: string,
     onProgress?: (message: string) => void,
+    token?: string,
   ) => Promise<TranscriptionResult>;
+  /** Clerk session token — sent as "Authorization: Bearer" for backend auth */
+  token?: string;
 };
 
 /**
@@ -162,22 +194,38 @@ export async function transcribeAudio(
   if (useServerSide) {
     if (options?.transcribeAudioServerSide) {
       // Injected mock (testing)
-      return options.transcribeAudioServerSide(file, language, onProgress);
+      return options.transcribeAudioServerSide(file, language, onProgress, options.token);
     }
     // Import dynamically to avoid bundle bloat
     const { transcribeAudioServerSide } = await import('./api-server-side');
-    return transcribeAudioServerSide(file, language, onProgress);
+    return transcribeAudioServerSide(file, language, onProgress, options?.token);
   }
   
   // Client-side processing for smaller files
   
   onProgress?.("Preparando audio...");
   const chunkOptions: TranscribeChunkOptions = options ? { fileToBase64: options.fileToBase64 } : {};
-  const chunks = await chunkAudioFile(file, onProgress);
+  let chunks: Awaited<ReturnType<typeof chunkAudioFile>>;
+  try {
+    chunks = await chunkAudioFile(file, onProgress);
+  } catch (error) {
+    // Client-side limits exceeded (e.g. actual duration > 2h at very low
+    // bitrates) — route to the server instead of failing the upload.
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("demasiado largo")) {
+      onProgress?.("Audio demasiado largo para el procesamiento local; enviando al servidor...");
+      if (options?.transcribeAudioServerSide) {
+        return options.transcribeAudioServerSide(file, language, onProgress, options.token);
+      }
+      const { transcribeAudioServerSide } = await import('./api-server-side');
+      return transcribeAudioServerSide(file, language, onProgress, options?.token);
+    }
+    throw error;
+  }
 
   if (chunks.length === 1) {
     onProgress?.("Transcribiendo audio...");
-    return transcribeChunk(chunks[0].file, language, chunkOptions);
+    return transcribeChunk(chunks[0].file, language, chunkOptions, options?.token);
   }
 
   // Multiple chunks — transcribe sequentially and concatenate
@@ -186,7 +234,7 @@ export async function transcribeAudio(
 
   for (const chunk of chunks) {
     onProgress?.(`Transcribiendo parte ${chunk.index + 1} de ${chunk.total}...`);
-    const result = await transcribeChunk(chunk.file, language, chunkOptions);
+    const result = await transcribeChunk(chunk.file, language, chunkOptions, options?.token);
     texts.push(result.text);
     if (result.language && result.language !== "unknown") {
       detectedLanguage = result.language;
@@ -229,17 +277,23 @@ export type GenerateStudySessionRequest = {
  * mind map, action items, insights) from a transcript.
  *
  * @param request - Transcript and generation options
+ * @param token - Optional Clerk session token (sent as Bearer for backend auth)
  * @returns AIStudyPackage with all generated materials
  * @throws If the server returns an error or unparseable response
  */
 export async function generateStudySession(
   request: GenerateStudySessionRequest,
+  token?: string,
 ): Promise<AIStudyPackage> {
-  const res = await fetch(`${BACKEND_URL}/api/generate-study-session`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
+  const res = await fetchWithTimeout(
+    `${BACKEND_URL}/api/generate-study-session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify(request),
+    },
+    220000, // backend does up to 2 attempts at 90 s each
+  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -287,16 +341,22 @@ export type EvaluateExerciseRequest = {
  * Supports text and image (base64) answers.
  *
  * @param request - Exercise details and student answer
+ * @param token - Optional Clerk session token (sent as Bearer for backend auth)
  * @returns ExerciseFeedback with grade and explanation
  */
 export async function evaluateExercise(
   request: EvaluateExerciseRequest,
+  token?: string,
 ): Promise<ExerciseFeedback> {
-  const res = await fetch(`${BACKEND_URL}/api/evaluate-exercise`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
+  const res = await fetchWithTimeout(
+    `${BACKEND_URL}/api/evaluate-exercise`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify(request),
+    },
+    90000, // backend eval timeout is 60 s
+  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -340,16 +400,22 @@ export type StudeChatRequest = {
  * The AI responds with contextual help based on the session's content.
  *
  * @param request - Message, optional user ID, session context, and optional chat history
+ * @param token - Optional Clerk session token (sent as Bearer for backend auth)
  * @returns The AI's reply text
  */
 export async function sendStudeChat(
   request: StudeChatRequest,
+  token?: string,
 ): Promise<string> {
-  const res = await fetch(`${BACKEND_URL}/api/stude-chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
+  const res = await fetchWithTimeout(
+    `${BACKEND_URL}/api/stude-chat`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify(request),
+    },
+    90000, // backend chat timeout is 60 s
+  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);

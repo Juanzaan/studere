@@ -150,37 +150,32 @@ export function PomodoroTimer({ onExit }: PomodoroTimerProps) {
   const totalSeconds = modeMinutes(mode) * 60;
   const colors = modeColor(mode);
 
-  const advanceMode = useCallback(() => {
-    setMode((prevMode) => {
-      if (prevMode === "focus") {
-        if (round >= POMODORO.ROUNDS_BEFORE_LONG_BREAK) {
-          setRound(1);
-          return "long-break";
-        }
-        return "short-break";
+  const getNextMode = useCallback((prevMode: TimerMode, currentRound: number): { mode: TimerMode; round: number } => {
+    if (prevMode === "focus") {
+      if (currentRound >= POMODORO.ROUNDS_BEFORE_LONG_BREAK) {
+        return { mode: "long-break", round: 1 };
       }
-      // Coming back from any break → next focus round
-      if (prevMode === "short-break") {
-        setRound((r) => r + 1);
-      }
-      if (prevMode === "long-break") {
-        setRound(1);
-      }
-      return "focus";
-    });
-  }, [round]);
+      return { mode: "short-break", round: currentRound };
+    }
+    if (prevMode === "short-break") {
+      return { mode: "focus", round: currentRound + 1 };
+    }
+    return { mode: "focus", round: 1 };
+  }, []);
 
   const tick = useCallback(() => {
-    setSecondsLeft((prev) => {
-      if (prev <= 1) {
-        // Timer finished
-        return 0;
+    setSecondsLeft(() => {
+      // Recompute from wall clock when possible so background-tab timer
+      // throttling cannot make the countdown drift behind real time.
+      if (endTimeRef.current) {
+        const remaining = Math.ceil((endTimeRef.current - Date.now()) / 1000);
+        return Math.max(0, remaining);
       }
-      return prev - 1;
+      return 0;
     });
   }, []);
 
-  // Handle timer hitting 0
+  // Handle timer hitting 0 — fire the notification once
   useEffect(() => {
     if (secondsLeft === 0 && isRunning && !notified) {
       setNotified(true);
@@ -191,27 +186,35 @@ export function PomodoroTimer({ onExit }: PomodoroTimerProps) {
           new Notification(title);
         }
       }
-      // Auto-advance after a brief pause so the user sees 00:00
-      const timeout = setTimeout(() => {
-        advanceMode();
-        const nextMode = mode === "focus"
-          ? (round >= POMODORO.ROUNDS_BEFORE_LONG_BREAK ? "long-break" : "short-break")
-          : "focus";
-        const nextSeconds = modeMinutes(nextMode) * 60;
-        setSecondsLeft(nextSeconds);
-        setIsRunning(false);
-        endTimeRef.current = null;
-        setNotified(false);
-        saveState({
-          mode: nextMode,
-          secondsLeft: nextSeconds,
-          isRunning: false,
-          round: mode === "focus" ? (round >= POMODORO.ROUNDS_BEFORE_LONG_BREAK ? 1 : round + 1) : round,
-        });
-      }, 1500);
-      return () => clearTimeout(timeout);
     }
-  }, [secondsLeft, isRunning, mode, round, advanceMode, notified]);
+  }, [secondsLeft, isRunning, notified, mode]);
+
+  // Auto-advance shortly after the timer hits 0 (separate effect: the
+  // notification effect above changes `notified`, which would otherwise
+  // cancel this timeout via its cleanup before it can fire).
+  useEffect(() => {
+    if (!notified) return;
+
+    const timeout = setTimeout(() => {
+      const next = getNextMode(mode, round);
+      const nextSeconds = modeMinutes(next.mode) * 60;
+
+      setMode(next.mode);
+      setRound(next.round);
+      setSecondsLeft(nextSeconds);
+      setIsRunning(false);
+      endTimeRef.current = null;
+      setNotified(false);
+      saveState({
+        mode: next.mode,
+        secondsLeft: nextSeconds,
+        isRunning: false,
+        round: next.round,
+      });
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [notified, getNextMode, mode, round]);
 
   // Interval management
   useEffect(() => {
@@ -268,19 +271,24 @@ export function PomodoroTimer({ onExit }: PomodoroTimerProps) {
   }, [isRunning, secondsLeft]);
 
   const handleSkip = useCallback(() => {
-    advanceMode();
-    const nextSeconds = modeMinutes(mode) * 60;
+    // Compute the target mode synchronously from the CURRENT state so the
+    // reset duration always matches the displayed mode (the old code used
+    // the stale render-closure mode and saved a stale snapshot).
+    const next = getNextMode(mode, round);
+    const nextSeconds = modeMinutes(next.mode) * 60;
+    setMode(next.mode);
+    setRound(next.round);
     setSecondsLeft(nextSeconds);
     setIsRunning(false);
     endTimeRef.current = null;
     setNotified(false);
     saveState({
-      mode,
+      mode: next.mode,
       secondsLeft: nextSeconds,
       isRunning: false,
-      round,
+      round: next.round,
     });
-  }, [advanceMode, mode, round]);
+  }, [getNextMode, mode, round]);
 
   const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0;
 

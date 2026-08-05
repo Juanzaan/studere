@@ -2,6 +2,7 @@
 
 import { memo, ChangeEvent, FormEvent, useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useScaleBounce } from "@/src/shared/hooks/useAnimations";
@@ -68,6 +69,9 @@ async function readOptionalText(file: File | null) {
   return file.text();
 }
 
+/** Text files larger than this are skipped (localStorage quota + AI payload). */
+const MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024;
+
 /**
  * Props for the SessionComposerCard component.
  */
@@ -93,6 +97,7 @@ type SessionComposerCardProps = {
 export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProps) {
   const router = useRouter();
   const toast = useToastContext();
+  const { getToken } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState("");
@@ -117,7 +122,16 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
     setIsCreating(true);
     setAiStatus("idle");
     try {
-      const fileText = await readOptionalText(file);
+      let fileText = "";
+      if (file) {
+        const lower = file.name.toLowerCase();
+        const isReadableText = file.type.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md");
+        if (isReadableText && file.size > MAX_TEXT_FILE_BYTES) {
+          toast.warning("Archivo de texto muy grande", "El archivo supera los 2MB y no se pudo leer. Pegá el texto en Notas o transcripción.");
+        } else {
+          fileText = await readOptionalText(file);
+        }
+      }
       let rawText = notes.trim() || fileText;
 
       const isAudioVideo = file && (file.type.startsWith("audio/") || file.type.startsWith("video/"));
@@ -139,7 +153,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
       if (useAI && isAudioVideo && file) {
         setAiStatus("transcribing");
         try {
-          const transcription = await transcribeAudio(file, undefined, (msg) => setProgressMsg(msg));
+          const token = await getToken();
+          const transcription = await transcribeAudio(file, undefined, (msg) => setProgressMsg(msg), { token: token || undefined });
           rawText = transcription.text || rawText;
           if (rawText.length < 10) {
             toast.warning("Transcripción muy corta", "El audio no generó suficiente texto. Continuando con datos locales.");
@@ -167,11 +182,12 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
       if (useAI && rawText.length > 30) {
         setAiStatus("generating");
         try {
+          const token = await getToken();
           const ai = await generateStudySession({
             transcript: rawText,
             language: "auto",
             summaryFocus: title.trim(),
-          });
+          }, token || undefined);
 
           // Merge AI results into the session
           session.summary = (ai.summary && ai.summary.length > 0) ? ai.summary : session.summary;
@@ -196,7 +212,12 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
         }
       }
 
-      upsertSession(session);
+      const saved = upsertSession(session);
+      if (!saved) {
+        toast.error("No se pudo guardar la sesión", "El almacenamiento local está lleno. Eliminá sesiones viejas o exportá el contenido.");
+        setIsCreating(false);
+        return;
+      }
       toast.success("Sesión creada", `"${session.title}" está lista para estudiar.`);
       onCreated?.();
       router.push(`/sessions/${session.id}`);

@@ -11,11 +11,24 @@ export function canUseStorage(): boolean {
 }
 
 /**
+ * Safely read from localStorage.
+ * Property access and getItem can throw (SecurityError in private browsing,
+ * blocked storage) — never let that crash the app.
+ */
+export function safeGetItem(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Safely set item in localStorage with quota handling
  */
 export function safeSetItem(key: string, value: string): boolean {
   try {
-    localStorage.setItem(key, value);
+    window.localStorage.setItem(key, value);
     return true;
   } catch (e) {
     if (e instanceof DOMException && e.name === 'QuotaExceededError') {

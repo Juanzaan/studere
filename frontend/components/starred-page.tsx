@@ -14,13 +14,15 @@ import { SessionRecordsTable } from "@/components/session-records-table";
  */
 export function StarredPage() {
   const headerRef = useRef<HTMLDivElement>(null);
-  const [sessions, setSessions] = useState(() => getSessions());
+  const [sessions, setSessions] = useState<Awaited<ReturnType<typeof getSessions>>>([]);
 
   useFadeInStagger(headerRef, ".starred-header", { y: 16, stagger: 0.06, duration: 0.5, scale: 0.96, ease: "smooth" });
   const starred = sessions.filter((session) => session.starred);
 
   useEffect(() => {
+    // Load on mount (client-only) and keep in sync afterwards
     function sync() { setSessions(getSessions()); }
+    sync();
     window.addEventListener(SESSIONS_UPDATED_EVENT, sync);
     return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, sync);
   }, []);

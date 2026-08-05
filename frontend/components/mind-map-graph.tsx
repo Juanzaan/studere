@@ -271,8 +271,13 @@ export function MindMapGraph({ mindMap, keyConcepts = [] }: MindMapGraphProps) {
         formatter: (params: any) => {
           // Only show tooltip on nodes, never on edges (would show raw IDs)
           if (!params || !params.data || params.dataType !== "node") return "";
-          const name = params.name || "";
-          const desc = params.data.description || "";
+          // Escape HTML — content is AI/user-generated and ECharts injects
+          // the formatter output via innerHTML (stored-XSS vector otherwise).
+          const escapeHtml = (s: string) =>
+            s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+          const name = escapeHtml(String(params.name || ""));
+          const desc = escapeHtml(String(params.data.description || ""));
           let html = `<div style="font-weight:600;font-size:13px;margin-bottom:4px">${name}</div>`;
           if (desc) html += `<div style="font-size:11px;color:${colors.muted};line-height:1.5">${desc}</div>`;
           return html;

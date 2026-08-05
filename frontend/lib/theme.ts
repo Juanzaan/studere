@@ -19,7 +19,12 @@ export type Theme = "light" | "dark";
  */
 export function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem(STORAGE_KEY);
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    stored = null;
+  }
   if (stored === "dark" || stored === "light") return stored;
   // Respect OS preference
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
@@ -32,6 +37,10 @@ export function getStoredTheme(): Theme {
  */
 export function setTheme(theme: Theme) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, theme);
+  try {
+    localStorage.setItem(STORAGE_KEY, theme);
+  } catch {
+    // storage unavailable — apply the class anyway for this session
+  }
   document.documentElement.classList.toggle("dark", theme === "dark");
 }

@@ -78,6 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <Link
                 href="/dashboard"
+                onClick={() => this.setState({ hasError: false, error: null })}
                 className="flex items-center justify-center gap-2 rounded-btn border border-c-border bg-c-surface px-6 py-3 text-sm font-semibold text-c-text transition hover:bg-c-surface-2 focus-visible:outline-none"
               >
                 <Home className="h-4 w-4" />

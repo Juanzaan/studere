@@ -12,6 +12,8 @@
  */
 
 import type { StudySession, QuizAttempt, FlashcardAttempt, MindMapNode, TranscriptSegment } from "@/lib/types";
+import { STORAGE_KEY } from "@/lib/storage";
+import { QUIZ_KEY, FLASHCARD_KEY } from "@/lib/analytics-storage";
 
 const COURSES = ["Álgebra Lineal", "Programación Avanzada", "Base de Datos", "Redes"] as const;
 
@@ -68,11 +70,11 @@ function generateConcepts(topic: string): { term: string; description: string }[
 
 function generateFlashcards(topic: string) {
   return [
-    { question: `¿Qué es ${topic.toLowerCase()}?`, answer: `${topic} es un concepto fundamental que se define como... Su importancia radica en que permite comprender fenómenos más complejos dentro de la disciplina.`, difficulty: "medium" as const },
-    { question: `¿Cuáles son las propiedades principales de ${topic.toLowerCase()}?`, answer: `Las propiedades principales incluyen: conmutatividad, asociatividad y existencia de elemento neutro. Cada una tiene implicaciones importantes en la resolución de problemas.`, difficulty: "hard" as const },
-    { question: `¿Cómo se diferencia ${topic.toLowerCase()} de otros conceptos similares?`, answer: `A diferencia de conceptos relacionados, ${topic.toLowerCase()} se caracteriza por... Esta distinción es crucial para elegir el enfoque correcto en cada problema.`, difficulty: "hard" as const },
-    { question: `Mencioná una aplicación práctica de ${topic.toLowerCase()}`, answer: `Una aplicación común es en el análisis de sistemas complejos, donde ${topic.toLowerCase()} permite modelar y predecir comportamientos de manera eficiente.`, difficulty: "easy" as const },
-    { question: `¿Qué errores son comunes al estudiar ${topic.toLowerCase()}?`, answer: `Los errores más frecuentes incluyen confundir las propiedades, aplicar incorrectamente las definiciones y omitir casos especiales. Es importante practicar con ejercicios variados.`, difficulty: "medium" as const },
+    { question: `¿Qué es ${topic.toLowerCase()}?`, answer: `${topic} es un concepto fundamental que se define como... Su importancia radica en que permite comprender fenómenos más complejos dentro de la disciplina.` },
+    { question: `¿Cuáles son las propiedades principales de ${topic.toLowerCase()}?`, answer: `Las propiedades principales incluyen: conmutatividad, asociatividad y existencia de elemento neutro. Cada una tiene implicaciones importantes en la resolución de problemas.` },
+    { question: `¿Cómo se diferencia ${topic.toLowerCase()} de otros conceptos similares?`, answer: `A diferencia de conceptos relacionados, ${topic.toLowerCase()} se caracteriza por... Esta distinción es crucial para elegir el enfoque correcto en cada problema.` },
+    { question: `Mencioná una aplicación práctica de ${topic.toLowerCase()}`, answer: `Una aplicación común es en el análisis de sistemas complejos, donde ${topic.toLowerCase()} permite modelar y predecir comportamientos de manera eficiente.` },
+    { question: `¿Qué errores son comunes al estudiar ${topic.toLowerCase()}?`, answer: `Los errores más frecuentes incluyen confundir las propiedades, aplicar incorrectamente las definiciones y omitir casos especiales. Es importante practicar con ejercicios variados.` },
   ];
 }
 
@@ -208,7 +210,7 @@ export function seedMockData(): void {
       transcript: generateTranscript(t.title),
       summary: `## Resumen de ${t.title}\n\nEn esta clase se abordaron los conceptos fundamentales relacionados con ${t.title.toLowerCase()}. El profesor explicó detalladamente las definiciones, propiedades y aplicaciones prácticas.\n\n### Puntos principales\n\n- Se presentó la definición formal del concepto\n- Se analizaron las propiedades fundamentales\n- Se resolvieron ejemplos prácticos\n- Se discutieron aplicaciones en contextos reales\n\n### Conclusión\n\n${t.title} es un tema fundamental que sienta las bases para conceptos más avanzados. Es importante practicar con los ejercicios de la guía para afianzar los conocimientos.`,
       keyConcepts: generateConcepts(t.title),
-      flashcards: generateFlashcards(t.title) as any,
+      flashcards: generateFlashcards(t.title),
       quiz: generateQuiz(t.title),
       actionItems: generateActionItems(),
       mindMap: generateMindMap(t.title),
@@ -225,8 +227,8 @@ export function seedMockData(): void {
         estimatedDurationMinutes: 45 + Math.floor(Math.random() * 30),
       },
       studyMetrics: {
-        completionRate: 0.6 + Math.random() * 0.4,
-        quizAccuracy: 0.5 + Math.random() * 0.45,
+        completionRate: Math.round(60 + Math.random() * 40),
+        quizAccuracy: Math.round(50 + Math.random() * 45),
         reviewCount: Math.floor(Math.random() * 5),
         lastReviewedAt: daysAgo(Math.floor(Math.random() * 3)),
       },
@@ -263,9 +265,9 @@ export function seedMockData(): void {
 
   // Write to localStorage
   try {
-    window.localStorage.setItem("studere.sessions.v1", JSON.stringify(sessions));
-    window.localStorage.setItem("studere.quiz-attempts.v1", JSON.stringify(quizAttempts));
-    window.localStorage.setItem("studere.flashcard-attempts.v1", JSON.stringify(flashcardAttempts));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    window.localStorage.setItem(QUIZ_KEY, JSON.stringify(quizAttempts));
+    window.localStorage.setItem(FLASHCARD_KEY, JSON.stringify(flashcardAttempts));
 
     // Dispatch update events so the UI reactively refreshes
     window.dispatchEvent(new Event("studere:sessions-updated"));

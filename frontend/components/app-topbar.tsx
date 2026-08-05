@@ -25,11 +25,16 @@ export const AppTopbar = memo(function AppTopbar() {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [sessions, setSessions] = useState<StudySession[]>([]);
+  // SSR y primer render de hidratación usan "light" (determinístico, evita
+  // hydration mismatch). El tema real se aplica tras montar; el class .dark
+  // ya lo aplica el inline script del layout antes de pintar.
   const [dark, setDark] = useState<Theme>("light");
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setDark(getStoredTheme());
+    const stored = getStoredTheme();
+    setTheme(stored);
+    setDark(stored);
   }, []);
 
   function toggleTheme() {

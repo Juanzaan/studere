@@ -9,6 +9,11 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./src/tests/setup.ts'],
     exclude: ['**/e2e/**', '**/node_modules/**'],
+    // Run test files sequentially: several tests allocate hundreds of MB
+    // (audio chunking, large sessions) and parallel forks OOM the default
+    // 4 GB worker heap on memory-constrained machines. The npm scripts set
+    // NODE_OPTIONS=--max-old-space-size=6144 for the worker heap.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

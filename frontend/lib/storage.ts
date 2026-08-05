@@ -11,10 +11,10 @@
 
 import { StudySession } from "@/lib/types";
 import { normalizeSession } from "@/lib/session-utils";
-import { canUseStorage, safeSetItem } from "@/lib/local-storage-guard";
+import { canUseStorage, safeGetItem, safeSetItem } from "@/lib/local-storage-guard";
 
 /** localStorage key under which all sessions are stored. */
-const STORAGE_KEY = "studere.sessions.v1";
+export const STORAGE_KEY = "studere.sessions.v1";
 
 /**
  * Custom event dispatched on `window` whenever sessions data is modified.
@@ -40,7 +40,7 @@ export function getSessions(): StudySession[] {
     return [];
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
 
   if (!raw) {
     return [];
@@ -56,38 +56,48 @@ export function getSessions(): StudySession[] {
 
 /**
  * Replace all stored sessions with a new array.
- * Each session is normalized before writing.
+ * Values are persisted AS PROVIDED — normalization happens on READ only
+ * (see {@link getSessions}). This is intentional: normalizing on write
+ * silently strips data (duplicate flashcards, cleared chat histories,
+ * emptied action items) and would resurrect content the user deleted.
+ *
+ * @returns True if the write succeeded, false if it was skipped (no storage
+ *          available) or failed (e.g. quota exceeded).
  */
-export function saveSessions(sessions: StudySession[]) {
+export function saveSessions(sessions: StudySession[]): boolean {
   if (!canUseStorage()) {
-    return;
+    return false;
   }
 
-  const success = safeSetItem(STORAGE_KEY, JSON.stringify(sessions.map((session) => normalizeSession(session))));
+  const success = safeSetItem(STORAGE_KEY, JSON.stringify(sessions));
   if (!success) {
     console.warn('[Storage] Session data could not be saved — storage full');
-    return;
+    return false;
   }
   emitSessionsUpdated();
+  return true;
 }
 
 /**
  * Insert or update a single session.
  * If a session with the same ID exists, it is replaced.
  * Otherwise, the new session is prepended (most recent first).
+ * The session is persisted as provided (normalization happens on read).
+ *
+ * @returns True if the write succeeded, false if storage was unavailable
+ *          or the quota was exceeded (caller should surface the failure).
  */
-export function upsertSession(session: StudySession) {
+export function upsertSession(session: StudySession): boolean {
   const sessions = getSessions();
   const index = sessions.findIndex((item) => item.id === session.id);
-  const normalized = normalizeSession(session);
 
   if (index >= 0) {
-    sessions[index] = normalized;
+    sessions[index] = session;
   } else {
-    sessions.unshift(normalized);
+    sessions.unshift(session);
   }
 
-  saveSessions(sessions);
+  return saveSessions(sessions);
 }
 
 /**
@@ -107,11 +117,12 @@ export function getSessionById(id: string) {
 
 /**
  * Apply a partial update to an existing session.
- * Merges the patch into the existing session, normalizes, and saves.
+ * Merges the patch into the existing session and saves it as provided
+ * (normalization happens on read).
  *
  * @param id - Session ID to patch
  * @param patch - Partial StudySession fields to merge
- * @returns The updated and normalized session, or null if not found
+ * @returns The merged session, or null if not found
  */
 export function patchSession(id: string, patch: Partial<StudySession>) {
   const session = getSessionById(id);
@@ -120,10 +131,10 @@ export function patchSession(id: string, patch: Partial<StudySession>) {
     return null;
   }
 
-  const nextSession = normalizeSession({
+  const nextSession = {
     ...session,
     ...patch,
-  });
+  };
 
   upsertSession(nextSession);
   return nextSession;

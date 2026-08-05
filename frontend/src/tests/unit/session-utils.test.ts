@@ -409,10 +409,16 @@ describe('session-utils.ts', () => {
     });
 
     it('should create default actionItems if missing', () => {
-      const sessionWithoutActions = { ...mockSession, actionItems: [] };
+      const sessionWithoutActions = { ...mockSession, actionItems: undefined as any };
       const normalized = normalizeSession(sessionWithoutActions);
       expect(normalized.actionItems.length).toBeGreaterThanOrEqual(1);
       expect(normalized.actionItems[0].status).toBe('pending');
+    });
+
+    it('should preserve an intentionally emptied actionItems array', () => {
+      const sessionWithoutActions = { ...mockSession, actionItems: [] };
+      const normalized = normalizeSession(sessionWithoutActions);
+      expect(normalized.actionItems).toEqual([]);
     });
 
     it('should preserve existing actionItems', () => {
@@ -433,11 +439,17 @@ describe('session-utils.ts', () => {
     });
 
     it('should create chatHistory if missing', () => {
-      const sessionWithoutChat = { ...mockSession, chatHistory: [] };
+      const sessionWithoutChat = { ...mockSession, chatHistory: undefined as any };
       const normalized = normalizeSession(sessionWithoutChat);
       expect(normalized.chatHistory).toHaveLength(1);
       expect(normalized.chatHistory[0].role).toBe('assistant');
       expect(normalized.chatHistory[0].content).toContain('Soy Stude');
+    });
+
+    it('should preserve an intentionally emptied chatHistory array', () => {
+      const sessionWithoutChat = { ...mockSession, chatHistory: [] };
+      const normalized = normalizeSession(sessionWithoutChat);
+      expect(normalized.chatHistory).toEqual([]);
     });
 
     it('should calculate wordCount from transcript if missing', () => {

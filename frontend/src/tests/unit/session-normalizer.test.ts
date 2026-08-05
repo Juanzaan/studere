@@ -122,7 +122,7 @@ describe('normalizeSession — transcript normalization', () => {
 // ---------------------------------------------------------------------------
 
 describe('normalizeSession — concept filtering', () => {
-  it('should reject concepts with single-word terms', () => {
+  it('should keep concepts with single-word terms', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const session = makeMinimalSession({
       keyConcepts: [
@@ -130,9 +130,22 @@ describe('normalizeSession — concept filtering', () => {
       ],
     });
     const normalized = normalizeSession(session);
+    expect(normalized.keyConcepts).toHaveLength(1);
+    expect(normalized.keyConcepts[0].term).toBe('Single');
+    warnSpy.mockRestore();
+  });
+
+  it('should reject concepts with empty terms', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const session = makeMinimalSession({
+      keyConcepts: [
+        { term: '   ', description: 'This is a description that has many words in it so it will pass the length check easily and be valid.' },
+      ],
+    });
+    const normalized = normalizeSession(session);
     expect(normalized.keyConcepts).toHaveLength(0);
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('term too short'),
+      expect.stringContaining('empty term'),
     );
     warnSpy.mockRestore();
   });
@@ -415,9 +428,15 @@ describe('normalizeSession — task validation', () => {
   });
 
   it('should create default action items when none provided', () => {
-    const session = makeMinimalSession({ actionItems: [] });
+    const session = makeMinimalSession({ actionItems: undefined as any });
     const normalized = normalizeSession(session);
     expect(normalized.actionItems.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should preserve an intentionally emptied actionItems array', () => {
+    const session = makeMinimalSession({ actionItems: [] });
+    const normalized = normalizeSession(session);
+    expect(normalized.actionItems).toEqual([]);
   });
 });
 
@@ -503,11 +522,17 @@ describe('normalizeSession — field defaults', () => {
   });
 
   it('should create welcome chat message when chatHistory is empty', () => {
-    const session = makeMinimalSession({ chatHistory: [] });
+    const session = makeMinimalSession({ chatHistory: undefined as any });
     const normalized = normalizeSession(session);
     expect(normalized.chatHistory).toHaveLength(1);
     expect(normalized.chatHistory[0].role).toBe('assistant');
     expect(normalized.chatHistory[0].content).toContain('Soy Stude');
+  });
+
+  it('should preserve an intentionally emptied chatHistory array', () => {
+    const session = makeMinimalSession({ chatHistory: [] });
+    const normalized = normalizeSession(session);
+    expect(normalized.chatHistory).toEqual([]);
   });
 
   it('should preserve existing chatHistory', () => {

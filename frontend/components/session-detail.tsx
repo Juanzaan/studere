@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Brain } from "lucide-react";
 import { flashcardsToCsv, sessionToMarkdown, triggerDownload } from "@/lib/exporters";
 import { generateFlashcards } from "@/lib/study-generator";
@@ -31,6 +32,17 @@ import {
   completionRate,
 } from "@/components/session-detail-helpers";
 
+/** Screen-reader labels for each focus panel (stable reference — do not recreate per render). */
+const PANEL_LABELS: Record<FocusPanel, string> = {
+  summary: "Resumen IA",
+  flashcards: "Flashcards",
+  quiz: "Quiz",
+  mindmap: "Mapa Mental",
+  tasks: "Tareas",
+  insights: "Insights",
+  notes: "Mis Notas",
+};
+
 /**
  * Main session detail view — the core study workspace.
  *
@@ -50,9 +62,26 @@ import {
 export function SessionDetail({ session }: { session: StudySession }) {
   const router = useRouter();
   const toast = useToastContext();
+  const { getToken } = useAuth();
   const { isFocused, enterFocus, exitFocus } = useFocus();
   const [current, setCurrent] = useState(session);
   const throttledPersist = useThrottledPersist(session.id, 500);
+
+  // Cross-tab / cross-navigation sync: if the parent hands us a DIFFERENT
+  // session object (edited/deleted in another tab → shell reload), adopt it.
+  // The lastWriteRef guard prevents our own throttled writes (which trigger
+  // SESSIONS_UPDATED_EVENT → shell reload → new object with identical
+  // content) from clobbering newer local edits.
+  const lastPropsRef = useRef(session);
+  const lastWriteRef = useRef(0);
+  useEffect(() => {
+    if (session !== lastPropsRef.current) {
+      lastPropsRef.current = session;
+      if (Date.now() - lastWriteRef.current > 600) {
+        setCurrent(session);
+      }
+    }
+  }, [session]);
   const [conceptsOpen, setConceptsOpen] = useState(true);
   const [focusPanel, setFocusPanel] = useState<FocusPanel>("summary");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -66,15 +95,6 @@ export function SessionDetail({ session }: { session: StudySession }) {
   const panelContainerRef = useRef<HTMLDivElement>(null);
   const liveRegionRef = useRef<HTMLDivElement>(null);
 
-  const PANEL_LABELS: Record<FocusPanel, string> = {
-    summary: "Resumen IA",
-    flashcards: "Flashcards",
-    quiz: "Quiz",
-    mindmap: "Mapa Mental",
-    tasks: "Tareas",
-    insights: "Insights",
-    notes: "Mis Notas",
-  };
   const startX = useRef(0);
   const startWidth = useRef(240);
 
@@ -129,6 +149,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
    * Does NOT recompute derived fields (completionRate, insights).
    */
   function persist(nextSession: StudySession) {
+    lastWriteRef.current = Date.now();
     setCurrent(nextSession); // UI update inmediato (optimistic)
     throttledPersist(nextSession); // localStorage throttled
   }
@@ -204,12 +225,13 @@ export function SessionDetail({ session }: { session: StudySession }) {
     persist(withSubmission);
 
     try {
+      const token = await getToken();
       const feedback = await evaluateExercise({
         exercise: task.exercisePrompt || task.title,
         studentAnswer: content,
         answerType,
         context: `Materia: ${current.course}. Sesión: ${current.title}. Conceptos: ${current.keyConcepts.map((c) => c.term).join(", ")}`,
-      });
+      }, token || undefined);
       persistWithDerived({
         ...withSubmission,
         actionItems: withSubmission.actionItems.map((item) =>
@@ -283,12 +305,16 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
   /** Create a flashcard from a transcript segment's text content. */
   function addFlashcardFromSegment(text: string) {
+    // Embed a short excerpt in the question so every segment produces a
+    // UNIQUE card — otherwise all cards share "¿Qué explica este fragmento?"
+    // and the normalizer's dedupe (>70% overlap) silently drops all but one.
+    const excerpt = text.trim().split(/\s+/).slice(0, 6).join(" ") || "este fragmento";
     persist({
       ...current,
       flashcards: [
         ...current.flashcards,
         {
-          question: "¿Qué explica este fragmento?",
+          question: `¿Qué explica "…${excerpt}…"?`,
           answer: text,
         },
       ],
@@ -329,9 +355,9 @@ export function SessionDetail({ session }: { session: StudySession }) {
     });
   }
 
-  /** Persist updated chat history from Stude chat popup. */
+  /** Persist updated chat history from Stude chat popup (keeps the last 100 messages). */
   function handleChatUpdate(messages: ChatMessage[]) {
-    persist({ ...current, chatHistory: messages });
+    persist({ ...current, chatHistory: messages.slice(-100) });
   }
 
   /** Open the Stude chat popup with a pre-filled message from a transcript segment or insight. */
@@ -358,6 +384,7 @@ export function SessionDetail({ session }: { session: StudySession }) {
 
   /** Record a flashcard review session and auto-complete the first pending action item. */
   function handleFlashcardReview(reviewed: number) {
+    let completedFirst = false;
     persistWithDerived({
       ...current,
       studyMetrics: {
@@ -365,9 +392,15 @@ export function SessionDetail({ session }: { session: StudySession }) {
         reviewCount: current.studyMetrics.reviewCount + 1,
         lastReviewedAt: new Date().toISOString(),
       },
-      actionItems: current.actionItems.map((item, index) =>
-        index === 1 && item.status === "pending" ? { ...item, status: "completed" } : item
-      ),
+      actionItems: current.actionItems.map((item) => {
+        // Complete the FIRST pending item (the old code hardcoded index 1,
+        // which marked the second item instead).
+        if (!completedFirst && item.status === "pending") {
+          completedFirst = true;
+          return { ...item, status: "completed" };
+        }
+        return item;
+      }),
     });
   }
 

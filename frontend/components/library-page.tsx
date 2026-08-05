@@ -35,7 +35,7 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
   const filtersRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const [sessions, setSessions] = useState(() => getSessions());
+  const [sessions, setSessions] = useState<Awaited<ReturnType<typeof getSessions>>>([]);
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const [libFilter, setLibFilter] = useState<LibraryFilter>("all");
 
@@ -45,10 +45,18 @@ export function LibraryPage({ initialQuery = "" }: { initialQuery?: string }) {
   const query = localQuery.trim().toLowerCase();
 
   useEffect(() => {
+    // Load on mount (client-only) and keep in sync afterwards
     function sync() { setSessions(getSessions()); }
+    sync();
     window.addEventListener(SESSIONS_UPDATED_EVENT, sync);
     return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, sync);
   }, []);
+
+  // Sync when the URL search param changes while already on this page
+  // (App Router does not remount the component on same-route navigation).
+  useEffect(() => {
+    setLocalQuery(initialQuery);
+  }, [initialQuery]);
 
   const filtered = useMemo(() => {
     let list = sessions;

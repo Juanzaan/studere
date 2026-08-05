@@ -213,9 +213,30 @@ export default function Md({
           <li className="leading-7" {...props}>{inner}</li>
         ),
         hr: () => <hr className="my-5 border-slate-200 dark:border-slate-800" />,
-        a: ({ children: inner, ...props }: ComponentPropsWithoutRef<"a">) => (
-          <a className="font-medium text-violet-600 underline decoration-violet-300 hover:text-violet-800 dark:text-violet-400 dark:decoration-violet-600 dark:hover:text-violet-300" {...props}>{inner}</a>
-        ),
+        a: ({ children: inner, href, ...props }: ComponentPropsWithoutRef<"a">) => {
+          // Sanitize href — content is AI/user-generated. Only allow safe
+          // schemes (http/https/mailto/#/relative); javascript: etc. drops the link.
+          let safeHref = href;
+          if (safeHref) {
+            const trimmed = safeHref.trim().toLowerCase();
+            const allowed =
+              trimmed.startsWith("http://") ||
+              trimmed.startsWith("https://") ||
+              trimmed.startsWith("mailto:") ||
+              trimmed.startsWith("#") ||
+              trimmed.startsWith("/");
+            if (!allowed) safeHref = undefined;
+          }
+          return (
+            <a
+              className="font-medium text-violet-600 underline decoration-violet-300 hover:text-violet-800 dark:text-violet-400 dark:decoration-violet-600 dark:hover:text-violet-300"
+              {...props}
+              href={safeHref}
+            >
+              {inner}
+            </a>
+          );
+        },
       }}
     >
       {children}

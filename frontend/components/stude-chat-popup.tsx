@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { Brain, Copy, GripVertical, Loader2, Minus, X } from "lucide-react";
 import { BRAIN_PROMPT_TEMPLATES, buildBrainReply, createChatMessage } from "@/lib/session-utils";
 import { sendStudeChat } from "@/lib/api";
@@ -80,11 +80,12 @@ function detectChartRequest(message: string): string | null {
 export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, onChartDetected, initialMessage }: StudeChatPopupProps) {
   const toast = useToastContext();
   const { user } = useUser();
+  const { getToken } = useAuth();
   const [input, setInput] = useState("");
   const [minimized, setMinimized] = useState(false);
   const [thinking, setThinking] = useState(false);
+  const thinkingRef = useRef(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const initialSentRef = useRef(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -141,12 +142,16 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
     };
   }, [onClose]);
 
-  // Auto-send initial message once
+  // Auto-send the initial message on mount, and ALSO when a NEW
+  // initialMessage arrives while the popup is already open (e.g. the user
+  // clicks "Preguntar a Stude" a second time) — the old code tracked only
+  // first mount and silently dropped later pre-filled messages.
+  const lastInitialRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (initialMessage && !initialSentRef.current) {
-      initialSentRef.current = true;
-      sendMessage(initialMessage);
-    }
+    if (!initialMessage) return;
+    if (lastInitialRef.current === initialMessage) return;
+    lastInitialRef.current = initialMessage;
+    sendMessage(initialMessage);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialMessage]);
 
@@ -204,15 +209,35 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
     };
   }, []);
 
+  // Local mirror of the conversation. Reading the `chatHistory` prop
+  // directly in sendMessage is racy: two rapid sends would both start
+  // from the stale prop and overwrite each other's updates. The ref is
+  // updated synchronously, so replies are always appended to the latest
+  // list and no user message is lost.
+  const chatRef = useRef(chatHistory);
+  useEffect(() => {
+    chatRef.current = chatHistory;
+  }, [chatHistory]);
+  const msgSeqRef = useRef(0);
+
   async function sendMessage(message: string) {
-    const userMsg = createChatMessage(`user-${Date.now()}`, "user", message);
-    const withUser = [...chatHistory, userMsg];
-    onChatUpdate(withUser);
+    // Re-entrancy guard: quick-prompt buttons and handleSubmit share this
+    // path, so concurrent AI requests (and the early spinner drop when the
+    // first of several requests resolves) are prevented here.
+    if (thinkingRef.current) return;
+    thinkingRef.current = true;
     setThinking(true);
+
+    const seq = msgSeqRef.current++;
+    const userMsg = createChatMessage(`user-${Date.now()}-${seq}`, "user", message);
+    const withUser = [...chatRef.current, userMsg];
+    chatRef.current = withUser;
+    onChatUpdate(withUser);
 
     let reply: string;
     let usedFallback = false;
     try {
+      const token = await getToken();
       reply = await sendStudeChat({
         message,
         userId: user?.id,
@@ -224,7 +249,7 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
           transcriptSnippet: session.transcript.slice(0, 20).map((s) => `[${s.timestamp}] ${s.speaker}: ${s.text}`).join("\n"),
         },
         chatHistory: withUser.slice(-16).map((m) => ({ role: m.role, content: m.content })),
-      });
+      }, token || undefined);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast.warning("Chat con IA no disponible", `${errorMessage}. Usando respuestas locales.`);
@@ -234,10 +259,16 @@ export function StudeChatPopup({ session, chatHistory, onChatUpdate, onClose, on
       usedFallback = true;
     }
 
+    // Always persist the reply — the parent (session detail) stays mounted
+    // even if this popup unmounts, and losing the answer would strand the
+    // user's message. Only UI state is guarded by the mounted check.
+    const assistantMsg = createChatMessage(`assistant-${Date.now()}-${seq}`, "assistant", reply);
+    chatRef.current = [...chatRef.current, assistantMsg];
+    onChatUpdate(chatRef.current);
+
+    thinkingRef.current = false;
     if (!isMountedRef.current) return;
     setThinking(false);
-    const assistantMsg = createChatMessage(`assistant-${Date.now() + 1}`, "assistant", reply);
-    onChatUpdate([...withUser, assistantMsg]);
 
     // Check if this is a chart request
     const chartType = detectChartRequest(message);

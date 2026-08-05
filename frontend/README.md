@@ -91,21 +91,20 @@ components/
 ├── tutorial-overlay.tsx         # Tour interactivo (spotlight, teclado, persistencia)
 ├── flashcard-viewer.tsx         # Spaced repetition con 4 niveles de confianza
 ├── quiz-viewer.tsx              # A/B/C/D con feedback instantáneo
-├── mind-map-canvas.tsx          # ReactFlow + MiniMap + MutationObserver a11y
-├── stude-chat-popup.tsx         # Chat con focus trap, drag/resize, chart detection
-├── audio-recorder-widget.tsx    # Grabación con visualización y chunking
-├── session-skeleton.tsx         # Skeleton para estados transcribing/generating
-├── empty-state.tsx              # GSAP particles + bounce icon
+├── mind-map-graph.tsx             # Mind map con ECharts (theme-aware)
+├── stude-chat-popup.tsx           # Chat con focus trap, drag/resize, chart detection
+├── audio-recorder-widget.tsx      # Grabación con visualización y chunking
+├── session-skeleton.tsx           # Skeleton para estados transcribing/generating
+├── empty-state.tsx                # GSAP particles + bounce icon
 ├── toast.tsx / toast-provider.tsx # Sistema de notificaciones slide-in
-├── confirmation-dialog.tsx      # Modal de confirmación reutilizable
-├── error-boundary.tsx           # React error boundary con themed fallback
-├── skip-links.tsx               # Skip-to-content para teclado
-├── md-renderer.tsx              # Markdown con LaTeX, syntax highlight, tablas
-├── stude-chart-window.tsx       # Ventana de gráficos desde el chat
-├── session-records-table.tsx    # Tabla responsive con columnas colapsables
-├── 404-scene.tsx                # Página no encontrada animada
-├── not-found-scene.tsx          # Ilustración 404
-└── illustration-scene.tsx       # Escenas decorativas con GSAP
+├── confirmation-dialog.tsx        # Modal de confirmación reutilizable
+├── error-boundary.tsx             # React error boundary con themed fallback
+├── skip-links.tsx                 # Skip-to-content para teclado
+├── md-renderer.tsx                # Markdown con LaTeX, syntax highlight, tablas
+├── stude-chart-window.tsx         # Ventana de gráficos desde el chat
+├── session-records-table.tsx      # Tabla responsive con columnas colapsables
+├── not-found-scene.tsx            # Ilustración 404
+└── illustration-scene.tsx         # Escenas decorativas con GSAP
 ```
 
 ---

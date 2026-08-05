@@ -111,7 +111,11 @@ describe('api.ts', () => {
       });
 
       expect(mockServerSide).toHaveBeenCalledOnce();
-      expect(mockServerSide).toHaveBeenCalledWith(largeFile, 'es', undefined);
+      // Reference-equality checks (deep equality on a 15MB File hangs in vitest + happy-dom)
+      const callArgs = mockServerSide.mock.calls[0];
+      expect(callArgs[0]).toBe(largeFile);
+      expect(callArgs[1]).toBe('es');
+      expect(callArgs[2]).toBeUndefined();
       expect(result.text).toBe('Server-side transcription result');
       expect(result.language).toBe('en');
       expect(result.duration).toBe(600);
@@ -154,7 +158,7 @@ describe('api.ts', () => {
       });
 
       expect(mockBase64).toHaveBeenCalledOnce();
-      expect(mockBase64).toHaveBeenCalledWith(medFile);
+      expect(mockBase64.mock.calls[0][0]).toBe(medFile);
       expect(result.text).toBe('Transcribed text from audio');
       // The mock base64 was sent; the server responded normally
     });

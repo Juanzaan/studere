@@ -6,10 +6,14 @@
  */
 
 import { QuizAttempt, FlashcardAttempt } from "@/lib/types";
-import { canUseStorage, safeSetItem } from "@/lib/local-storage-guard";
+import { canUseStorage, safeGetItem, safeSetItem } from "@/lib/local-storage-guard";
 
 const QUIZ_KEY = "studere.quiz-attempts.v1";
 const FLASHCARD_KEY = "studere.flashcard-attempts.v1";
+const MAX_ATTEMPTS = 200;
+
+/** @internal — exported for seed-data.ts */
+export { QUIZ_KEY, FLASHCARD_KEY };
 
 /** Custom event dispatched on successful analytics write. */
 export const ANALYTICS_UPDATED_EVENT = "studere:analytics-updated";
@@ -25,7 +29,7 @@ function emitAnalyticsUpdated() {
  */
 export function getQuizAttempts(): QuizAttempt[] {
   if (!canUseStorage()) return [];
-  const raw = window.localStorage.getItem(QUIZ_KEY);
+  const raw = safeGetItem(QUIZ_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as QuizAttempt[];
@@ -35,12 +39,13 @@ export function getQuizAttempts(): QuizAttempt[] {
   }
 }
 
-/** Append a quiz attempt to the history. */
+/** Append a quiz attempt to the history (keeps the last {@link MAX_ATTEMPTS}). */
 export function saveQuizAttempt(attempt: QuizAttempt) {
   if (!canUseStorage()) return;
   const attempts = getQuizAttempts();
   attempts.push(attempt);
-  const success = safeSetItem(QUIZ_KEY, JSON.stringify(attempts));
+  const trimmed = attempts.slice(-MAX_ATTEMPTS);
+  const success = safeSetItem(QUIZ_KEY, JSON.stringify(trimmed));
   if (success) {
     emitAnalyticsUpdated();
   }
@@ -52,7 +57,7 @@ export function saveQuizAttempt(attempt: QuizAttempt) {
  */
 export function getFlashcardAttempts(): FlashcardAttempt[] {
   if (!canUseStorage()) return [];
-  const raw = window.localStorage.getItem(FLASHCARD_KEY);
+  const raw = safeGetItem(FLASHCARD_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as FlashcardAttempt[];
@@ -62,12 +67,13 @@ export function getFlashcardAttempts(): FlashcardAttempt[] {
   }
 }
 
-/** Append a flashcard attempt to the history. */
+/** Append a flashcard attempt to the history (keeps the last {@link MAX_ATTEMPTS}). */
 export function saveFlashcardAttempt(attempt: FlashcardAttempt) {
   if (!canUseStorage()) return;
   const attempts = getFlashcardAttempts();
   attempts.push(attempt);
-  const success = safeSetItem(FLASHCARD_KEY, JSON.stringify(attempts));
+  const trimmed = attempts.slice(-MAX_ATTEMPTS);
+  const success = safeSetItem(FLASHCARD_KEY, JSON.stringify(trimmed));
   if (success) {
     emitAnalyticsUpdated();
   }

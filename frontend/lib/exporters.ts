@@ -15,21 +15,28 @@ import { StudySession } from "@/lib/types";
  * Includes: title, course, summary, key concepts, flashcards, quiz, and transcript.
  */
 export function sessionToMarkdown(session: StudySession) {
-  const summary = session.summary || "(Sin resumen)";
+  // Escape characters that would break Markdown structure when content is
+  // user/AI-generated (leading #, >, -, |, *, _, backticks, [ ] etc.)
+  const esc = (s: string) =>
+    s.replace(/([\\`*_\[\]#|])/g, "\\$1")
+      .replace(/^(\s*)([>\-+])/gm, "$1\\$2")
+      .replace(/\r?\n/g, "\n");
+  const escLine = (s: string) => esc(s).replace(/\r?\n/g, "<br>");
+  const summary = esc(session.summary || "(Sin resumen)");
   const concepts = session.keyConcepts
-    .map((item) => `- **${item.term}**: ${item.description}`)
+    .map((item) => `- **${escLine(item.term)}**: ${escLine(item.description)}`)
     .join("\n");
   const flashcards = session.flashcards
-    .map((item, index) => `${index + 1}. ${item.question}\n   - ${item.answer}`)
+    .map((item, index) => `${index + 1}. ${escLine(item.question)}\n   - ${escLine(item.answer)}`)
     .join("\n");
   const quiz = session.quiz
-    .map((item, index) => `${index + 1}. ${item.question}\n   - Respuesta: ${item.options?.[item.correct] || ""} ${item.explanation ? `— ${item.explanation}` : ""}`)
+    .map((item, index) => `${index + 1}. ${escLine(item.question)}\n   - Respuesta: ${escLine(item.options?.[item.correct] || "")} ${item.explanation ? `— ${escLine(item.explanation)}` : ""}`)
     .join("\n");
   const transcript = session.transcript
-    .map((item) => `- [${item.timestamp}] ${item.speaker}: ${item.text}`)
+    .map((item) => `- [${item.timestamp}] ${item.speaker}: ${escLine(item.text)}`)
     .join("\n");
 
-  return `# ${session.title}\n\n## Materia\n${session.course || "Sin materia"}\n\n## Resumen\n${summary}\n\n## Conceptos clave\n${concepts}\n\n## Flashcards\n${flashcards}\n\n## Quiz\n${quiz}\n\n## Transcripción\n${transcript}\n`;
+  return `# ${escLine(session.title)}\n\n## Materia\n${escLine(session.course || "Sin materia")}\n\n## Resumen\n${summary}\n\n## Conceptos clave\n${concepts}\n\n## Flashcards\n${flashcards}\n\n## Quiz\n${quiz}\n\n## Transcripción\n${transcript}\n`;
 }
 
 /** Export flashcards as a CSV string with question/answer columns. Handles CSV escaping. */

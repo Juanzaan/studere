@@ -49,12 +49,12 @@ function filterConcepts(concepts: Concept[]): Concept[] {
     const description = (c.description || "").trim();
     const termWords = term.split(/\s+/).filter(Boolean);
 
-    if (termWords.length < 2) {
-      console.warn(`[Normalizer] Rejected concept: term too short (< 2 words): "${term}"`);
+    if (termWords.length < 1) {
+      console.warn(`[Normalizer] Rejected concept: empty term`);
       continue;
     }
-    if (description.split(/\s+/).filter(Boolean).length < 15) {
-      console.warn(`[Normalizer] Rejected concept: description too short (< 15 words): "${term}"`);
+    if (description.split(/\s+/).filter(Boolean).length < 8) {
+      console.warn(`[Normalizer] Rejected concept: description too short (< 8 words): "${term}"`);
       continue;
     }
     if (isSentenceFragment(description)) {
@@ -107,8 +107,8 @@ function validateQuiz(questions: QuizItem[]): QuizItem[] {
       console.warn(`[Normalizer] Rejected quiz question: correct index out of bounds (${correct}/${options.length}): "${question.slice(0, 60)}..."`);
       continue;
     }
-    if (explanation.split(/\s+/).filter(Boolean).length < 20) {
-      console.warn(`[Normalizer] Rejected quiz question: explanation too short (< 20 words): "${question.slice(0, 60)}..."`);
+    if (explanation.split(/\s+/).filter(Boolean).length < 8) {
+      console.warn(`[Normalizer] Rejected quiz question: explanation too short (< 8 words): "${question.slice(0, 60)}..."`);
       continue;
     }
     validated.push({ question, options, correct, explanation });
@@ -131,6 +131,14 @@ function validateTasks(items: ActionItem[]): ActionItem[] {
     valid.push(item);
   }
   return valid;
+}
+
+/** Normalize a 0-1 scale value to 0-100 and clamp to [0, 100]. */
+function normalizePercentage(value: number | undefined | null): number {
+  if (typeof value !== "number" || Number.isNaN(value)) return 0;
+  let v = value;
+  if (v <= 1) v = v * 100;
+  return Math.min(100, Math.max(0, Math.round(v)));
 }
 
 /**
@@ -160,10 +168,25 @@ export function normalizeSession(raw: StudySession): StudySession {
   const flashcards = dedupeFlashcards(Array.isArray(raw.flashcards) ? raw.flashcards : []);
   const quiz = validateQuiz(Array.isArray(raw.quiz) ? raw.quiz : []);
   const studyMetrics = {
-    completionRate: raw.studyMetrics?.completionRate ?? Math.min(100, Math.max(0, Math.round(((raw.actionItems?.filter((item) => item.status === "completed").length || 0) / Math.max(raw.actionItems?.length || 3, 1)) * 100))),
-    quizAccuracy: raw.studyMetrics?.quizAccuracy ?? 0,
+    completionRate: typeof raw.studyMetrics?.completionRate === "number"
+      ? normalizePercentage(raw.studyMetrics.completionRate)
+      : Math.min(100, Math.max(0, Math.round(((raw.actionItems?.filter((item) => item.status === "completed").length || 0) / Math.max(raw.actionItems?.length || 3, 1)) * 100))),
+    quizAccuracy: normalizePercentage(raw.studyMetrics?.quizAccuracy),
     reviewCount: raw.studyMetrics?.reviewCount ?? 0,
     lastReviewedAt: raw.studyMetrics?.lastReviewedAt,
+  };
+
+  // `undefined` = never had the field (backfill with smart defaults).
+  // Explicit `[]` = the user intentionally emptied it — do NOT resurrect.
+  const hasChatHistory = raw.chatHistory !== undefined && Array.isArray(raw.chatHistory);
+  const hasActionItems = raw.actionItems !== undefined && Array.isArray(raw.actionItems);
+
+  const derivedWordCount = transcript.reduce((sum, item) => sum + item.text.split(/\s+/).filter(Boolean).length, 0);
+  const derivedDuration = Math.max(5, Math.round(derivedWordCount / 110));
+  const stats = {
+    wordCount: raw.stats?.wordCount ?? derivedWordCount,
+    segmentCount: raw.stats?.segmentCount ?? transcript.length,
+    estimatedDurationMinutes: raw.stats?.estimatedDurationMinutes ?? derivedDuration,
   };
 
   const baseSession: StudySession = {
@@ -175,13 +198,13 @@ export function normalizeSession(raw: StudySession): StudySession {
     keyConcepts,
     flashcards,
     quiz,
-    actionItems: validateTasks(raw.actionItems?.length ? raw.actionItems : createActionItems({
+    actionItems: hasActionItems ? validateTasks(raw.actionItems) : createActionItems({
       id: raw.id,
       summary,
       keyConcepts,
       quiz,
       transcript,
-    })),
+    }),
     mindMap: raw.mindMap ?? createMindMap({
       id: raw.id,
       title: raw.title,
@@ -191,25 +214,17 @@ export function normalizeSession(raw: StudySession): StudySession {
     }),
     bookmarks: Array.isArray(raw.bookmarks) ? raw.bookmarks : [],
     comments: Array.isArray(raw.comments) ? raw.comments : [],
-    chatHistory: raw.chatHistory?.length ? raw.chatHistory : createWelcomeChat({
+    chatHistory: hasChatHistory ? raw.chatHistory.slice(-100) : createWelcomeChat({
       id: raw.id,
       title: raw.title,
       course: raw.course,
       summary,
     }),
-    stats: {
-      wordCount: raw.stats?.wordCount ?? transcript.reduce((sum, item) => sum + item.text.split(/\s+/).filter(Boolean).length, 0),
-      segmentCount: raw.stats?.segmentCount ?? transcript.length,
-      estimatedDurationMinutes: raw.stats?.estimatedDurationMinutes ?? Math.max(5, Math.round((raw.stats?.wordCount ?? 0) / 110)),
-    },
+    stats,
     studyMetrics,
     insights: raw.insights?.length ? raw.insights : createInsights({
       keyConcepts,
-      stats: {
-        wordCount: raw.stats?.wordCount ?? transcript.reduce((sum, item) => sum + item.text.split(/\s+/).filter(Boolean).length, 0),
-        segmentCount: raw.stats?.segmentCount ?? transcript.length,
-        estimatedDurationMinutes: raw.stats?.estimatedDurationMinutes ?? Math.max(5, Math.round((raw.stats?.wordCount ?? 0) / 110)),
-      },
+      stats,
       studyMetrics,
       quiz,
       summary,

@@ -17,7 +17,7 @@
  * ```
  */
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 interface FocusContextValue {
@@ -42,10 +42,19 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   const enterFocus = useCallback(() => setIsFocused(true), []);
   const exitFocus = useCallback(() => setIsFocused(false), []);
 
-  // Exit focus on Escape key
+  // Exit focus on Escape key.
+  // If the keydown target is inside a dialog (e.g. the Stude chat popup),
+  // the dialog handles Escape itself — exiting focus too would fire two
+  // actions from one keypress.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isFocused) setIsFocused(false);
+      if (e.key === "Escape" && isFocused) {
+        const target = e.target as HTMLElement | null;
+        if (target && typeof target.closest === "function" && target.closest('[role="dialog"]')) {
+          return;
+        }
+        setIsFocused(false);
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -57,8 +66,10 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     exitFocus();
   }, [pathname, exitFocus]);
 
+  const value = useMemo(() => ({ isFocused, enterFocus, exitFocus }), [isFocused, enterFocus, exitFocus]);
+
   return (
-    <FocusContext.Provider value={{ isFocused, enterFocus, exitFocus }}>
+    <FocusContext.Provider value={value}>
       {children}
     </FocusContext.Provider>
   );

@@ -14,6 +14,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({ getToken: vi.fn().mockResolvedValue("test-token") }),
+}));
+
 vi.mock("gsap", () => ({
   gsap: {
     registerPlugin: vi.fn(),
@@ -41,7 +45,7 @@ vi.mock("@/lib/study-generator", () => ({
   createStudySession: (...args: unknown[]) => mockCreateStudySession(...args),
 }));
 
-const mockUpsertSession = vi.fn();
+const mockUpsertSession = vi.fn((..._args: unknown[]) => true);
 vi.mock("@/lib/storage", () => ({
   upsertSession: (...args: unknown[]) => mockUpsertSession(...args),
 }));
@@ -258,6 +262,7 @@ describe("SessionComposerCard submit with AI (text)", () => {
         expect.objectContaining({
           transcript: expect.stringContaining("sufficiently long text"),
         }),
+        expect.anything(), // Clerk session token (Bearer auth)
       );
     });
 

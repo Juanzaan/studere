@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { getSessionById } from "@/lib/storage";
+import { getSessionById, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 import { SessionDetail } from "@/components/session-detail";
 
@@ -22,7 +22,13 @@ export function SessionPageShell({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<StudySession | null | undefined>(undefined);
 
   useEffect(() => {
-    setSession(getSessionById(sessionId));
+    function load() {
+      setSession(getSessionById(sessionId));
+    }
+    load();
+    // Stay in sync when another tab edits/deletes this session
+    window.addEventListener(SESSIONS_UPDATED_EVENT, load);
+    return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, load);
   }, [sessionId]);
 
   if (session === undefined) {

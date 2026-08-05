@@ -50,6 +50,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
   const [completed, setCompleted] = useState(false);
   const [maxReached, setMaxReached] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
+  const prevIndexRef = useRef(0);
 
   useEffect(() => {
     if (index >= flashcards.length && flashcards.length > 0) {
@@ -76,27 +77,31 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
 
   function next() {
     setFlipped(false);
-    setIndex((i) => {
-      const nextIndex = i < total - 1 ? i + 1 : 0;
-
-      if (nextIndex > maxReached) setMaxReached(nextIndex);
-
-      if (i === total - 1 && !completed) {
-        setCompleted(true);
-        setMaxReached(total - 1);
-        if (sessionId) {
-          saveFlashcardAttempt({
-            sessionId,
-            timestamp: new Date().toISOString(),
-            reviewed: total,
-          });
-        }
-        onReviewComplete?.(total);
-      }
-
-      return nextIndex;
-    });
+    // Updater must stay pure — side effects (analytics, completion, progress)
+    // are handled in the effects below, which dedupe via `completed`.
+    setIndex((i) => (i < total - 1 ? i + 1 : 0));
   }
+
+  // Track max card reached (for the progress bar) + deck completion.
+  // Completion fires when navigating forward PAST the last card.
+  useEffect(() => {
+    const prev = prevIndexRef.current;
+    prevIndexRef.current = index;
+    setMaxReached((m) => Math.max(m, index));
+
+    if (prev === total - 1 && index === 0 && !completed && total > 0) {
+      setCompleted(true);
+      setMaxReached(total - 1);
+      if (sessionId) {
+        saveFlashcardAttempt({
+          sessionId,
+          timestamp: new Date().toISOString(),
+          reviewed: total,
+        });
+      }
+      onReviewComplete?.(total);
+    }
+  }, [index, total, completed, sessionId, onReviewComplete]);
 
   const progress = Math.round(((maxReached + 1) / total) * 100);
 
@@ -213,6 +218,7 @@ export function FlashcardViewer({ flashcards, sessionId, onReviewComplete, onGen
             setIndex(0);
             setCompleted(false);
             setMaxReached(0);
+            prevIndexRef.current = 0;
           }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-c-border text-[11px] text-c-muted hover:bg-c-surface-2"
           aria-label="Reiniciar"

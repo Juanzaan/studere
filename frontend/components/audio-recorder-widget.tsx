@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Mic, MicOff, Square, Loader2 } from "lucide-react";
 import { startAudioCapture, stopAudioCapture, cancelAudioCapture, isRecording } from "@/lib/audio-capture";
 import { createStudySession } from "@/lib/study-generator";
@@ -22,11 +23,13 @@ import { SessionSkeleton } from "@/components/session-skeleton";
 export function AudioRecorderWidget() {
   const router = useRouter();
   const toast = useToastContext();
+  const { getToken } = useAuth();
   const [state, setState] = useState<"idle" | "recording" | "transcribing" | "generating" | "processing" | "error">("idle");
   const [elapsed, setElapsed] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [course, setCourse] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const busyRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -55,14 +58,18 @@ export function AudioRecorderWidget() {
   }, [toast]);
 
   const stopRecording = useCallback(async () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    setState("transcribing");
-
+    // Guard against double-clicks: a second stopAudioCapture would reject
+    // (no active recording) and surface a spurious error mid-flow.
+    if (busyRef.current) return;
+    busyRef.current = true;
     try {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      setState("transcribing");
+
       const result = await stopAudioCapture();
       const fileName = `recording-${Date.now()}.webm`;
 
@@ -70,7 +77,8 @@ export function AudioRecorderWidget() {
       let rawText = "";
       try {
         const audioFile = new File([result.blob], fileName, { type: result.mimeType });
-        const transcription = await transcribeAudio(audioFile);
+        const token = await getToken();
+        const transcription = await transcribeAudio(audioFile, undefined, undefined, { token: token || undefined });
         rawText = transcription.text || "";
         if (rawText.length < 10) {
           toast.warning("Transcripción muy corta", "El audio no generó suficiente texto.");
@@ -96,7 +104,8 @@ export function AudioRecorderWidget() {
       if (rawText.length > 30) {
         setState("generating");
         try {
-          const ai = await generateStudySession({ transcript: rawText, language: "auto" });
+          const token = await getToken();
+          const ai = await generateStudySession({ transcript: rawText, language: "auto" }, token || undefined);
           if (ai.summary?.trim()) session.summary = ai.summary;
           if (ai.keyConcepts.length > 0) session.keyConcepts = ai.keyConcepts;
           if (ai.flashcards.length > 0) session.flashcards = ai.flashcards;
@@ -112,7 +121,13 @@ export function AudioRecorderWidget() {
         }
       }
 
-      upsertSession(session);
+      const saved = upsertSession(session);
+      if (!saved) {
+        toast.error("No se pudo guardar la sesión", "El almacenamiento local está lleno. Eliminá sesiones viejas o exportá el contenido.");
+        setState("error");
+        setErrorMsg("Almacenamiento lleno");
+        return;
+      }
       toast.success("Grabación procesada", "Tu sesión está lista para estudiar.");
       router.push(`/sessions/${session.id}`);
     } catch (err) {
@@ -120,6 +135,8 @@ export function AudioRecorderWidget() {
       setState("error");
       setErrorMsg(errorMessage);
       toast.error("Error procesando grabación", errorMessage);
+    } finally {
+      busyRef.current = false;
     }
   }, [router, course, toast]);
 
