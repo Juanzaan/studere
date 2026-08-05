@@ -45,10 +45,6 @@
 
 ## 🎯 The product
 
-<p align="center">
-  <img src="preview-captures/dashboard-full-page.png" alt="Studere dashboard" width="720" />
-</p>
-
 Studere sits in the gap between "recorded the class and never listened to it again" and "spent three hours making flashcards". Upload an audio file (even 2+ hours), paste a transcript, or drop notes — the platform returns:
 
 | Input | Output |
