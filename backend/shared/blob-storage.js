@@ -4,6 +4,7 @@
  */
 
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { isValidSessionId } = require('./utils');
 
 const CONTAINER_NAME = 'audio-chunks';
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -38,11 +39,15 @@ async function saveChunk(sessionId, chunkIndex, buffer) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
   }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
+  }
 
   const blobName = `${sessionId}/chunk_${String(chunkIndex).padStart(5, '0')}.bin`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
   
-  await blockBlobClient.upload(buffer, buffer.length);
+  // overwrite: true makes retries idempotent (BlobAlreadyExists otherwise)
+  await blockBlobClient.upload(buffer, buffer.length, { overwrite: true });
 }
 
 /**
@@ -51,6 +56,9 @@ async function saveChunk(sessionId, chunkIndex, buffer) {
 async function getSessionMeta(sessionId) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
+  }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
   }
 
   const blobName = `${sessionId}/meta.json`;
@@ -80,6 +88,9 @@ async function saveSessionMeta(sessionId, meta) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
   }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
+  }
 
   const blobName = `${sessionId}/meta.json`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -94,6 +105,9 @@ async function saveSessionMeta(sessionId, meta) {
 async function listChunks(sessionId) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
+  }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
   }
 
   const prefix = `${sessionId}/chunk_`;
@@ -113,6 +127,9 @@ async function downloadChunk(sessionId, chunkIndex) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
   }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
+  }
 
   const blobName = `${sessionId}/chunk_${String(chunkIndex).padStart(5, '0')}.bin`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -127,6 +144,9 @@ async function downloadChunk(sessionId, chunkIndex) {
 async function deleteSession(sessionId) {
   if (!containerClient) {
     throw new Error('Blob storage not initialized');
+  }
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
   }
 
   const prefix = `${sessionId}/`;

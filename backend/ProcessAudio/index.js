@@ -3,26 +3,15 @@
  * Orchestrates the audio processing pipeline
  */
 
-const { jsonResponse, getRequestId, structuredLog } = require("../shared/utils");
+const { jsonResponse, getRequestId, structuredLog, isValidSessionId } = require("../shared/utils");
 const { processAudio } = require("../shared/audio-pipeline");
 
 module.exports = async function (context, req) {
   const requestId = getRequestId(req);
-  
-  structuredLog(context, "info", "ProcessAudio triggered", {}, requestId);
-  
-  // Set CORS headers
-  context.res = context.res || {};
-  context.res.headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Request-ID'
-  };
-  
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    context.res.status = 204;
-    context.res.body = '';
+    jsonResponse(context, 204, "", requestId);
     return;
   }
 
@@ -30,8 +19,15 @@ module.exports = async function (context, req) {
 
   const { sessionId, language } = req.body || {};
 
-  if (!sessionId || typeof sessionId !== 'string') {
-    jsonResponse(context, 400, { error: "sessionId is required" }, requestId);
+  if (!isValidSessionId(sessionId)) {
+    jsonResponse(context, 400, {
+      error: "sessionId is required and must be a valid identifier (letters, numbers, dash, underscore; max 64 chars)."
+    }, requestId);
+    return;
+  }
+
+  if (language !== undefined && typeof language !== "string") {
+    jsonResponse(context, 400, { error: "language must be a string." }, requestId);
     return;
   }
 
@@ -45,7 +41,7 @@ module.exports = async function (context, req) {
     }, requestId);
 
     jsonResponse(context, 500, {
-      error: error.message || "Audio processing failed"
+      error: "Audio processing failed"
     }, requestId);
   }
 };

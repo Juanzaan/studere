@@ -7,7 +7,7 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
-const { structuredLog, withTimeout, retryWithBackoff } = require("./utils");
+const { structuredLog, withTimeout, retryWithBackoff, isValidSessionId } = require("./utils");
 const { getClient, getWhisperDeployment } = require("./openai-client");
 const { downloadChunk, listChunks, deleteSession } = require('./blob-storage');
 
@@ -102,6 +102,34 @@ async function concatenateChunks(sessionId, totalChunks) {
 }
 
 /**
+ * Detect audio container from magic bytes.
+ * WebM/Matroska (MediaRecorder output) and MP3 (ID3/sync) are the
+ * common browser recording formats.
+ */
+function detectContainer(audioBuffer) {
+  if (audioBuffer.length >= 4) {
+    const header = audioBuffer.slice(0, 4);
+    // EBML magic — WebM/Matroska
+    if (header[0] === 0x1A && header[1] === 0x45 && header[2] === 0xDF && header[3] === 0xA3) {
+      return 'webm';
+    }
+  }
+  if (audioBuffer.length >= 2) {
+    // MP3: ID3 tag or MPEG frame sync (0xFFE*)
+    const id3 = audioBuffer[0] === 0x49 && audioBuffer[1] === 0x44 && audioBuffer[2] === 0x33;
+    const mpegSync = audioBuffer[0] === 0xFF && (audioBuffer[1] & 0xE0) === 0xE0;
+    if (id3 || mpegSync) {
+      return 'mp3';
+    }
+  }
+  if (audioBuffer.length >= 4) {
+    const ogg = audioBuffer.toString('latin1', 0, 4);
+    if (ogg === 'OggS') return 'ogg';
+  }
+  return 'unknown';
+}
+
+/**
  * Split audio buffer into segments using FFmpeg
  */
 async function splitAudioWithFFmpeg(audioBuffer, outputDir) {
@@ -111,17 +139,27 @@ async function splitAudioWithFFmpeg(audioBuffer, outputDir) {
   // Write buffer to temp file for FFmpeg
   const inputPath = path.join(outputDir, 'input_audio.bin');
   await fs.writeFile(inputPath, audioBuffer);
+
+  // WebM (MediaRecorder default) uses codecs FFmpeg cannot stream-copy
+  // into MP3 segments — detect and re-encode instead of copying.
+  const container = detectContainer(audioBuffer);
+  const outputOptions = [
+    '-f', 'segment',
+    '-segment_time', String(SEGMENT_DURATION_SECONDS),
+    '-reset_timestamps', '1'
+  ];
+  if (container === 'webm') {
+    outputOptions.push('-vn', '-c:a', 'libmp3lame', '-b:a', '96k');
+  } else {
+    outputOptions.push('-c', 'copy'); // Copy codec (no re-encoding, faster)
+  }
+
   return new Promise((resolve, reject) => {
     const segments = [];
     let segmentIndex = 0;
 
     ffmpeg(inputPath)
-      .outputOptions([
-        '-f', 'segment',
-        '-segment_time', String(SEGMENT_DURATION_SECONDS),
-        '-c', 'copy', // Copy codec (no re-encoding, faster)
-        '-reset_timestamps', '1'
-      ])
+      .outputOptions(outputOptions)
       .output(path.join(outputDir, 'segment_%03d.mp3'))
       .on('start', (cmd) => {
         // FFmpeg started
@@ -202,6 +240,10 @@ async function transcribeSegment(segmentPath, language, context) {
  * Process complete audio file
  */
 async function processAudio(sessionId, language, context, requestId) {
+  if (!isValidSessionId(sessionId)) {
+    throw new Error('Invalid sessionId');
+  }
+
   const tempDir = path.join('/tmp', sessionId);
 
   try {
@@ -288,6 +330,14 @@ async function processAudio(sessionId, language, context, requestId) {
       totalLength: fullText.length
     }, requestId);
 
+    // Cleanup blob storage ONLY on success — on failure the chunks are
+    // kept so the client can retry without re-uploading everything.
+    try {
+      await deleteSession(sessionId);
+    } catch (cleanupError) {
+      structuredLog(context, "warn", "Blob cleanup failed", { error: cleanupError.message }, requestId);
+    }
+
     return {
       sessionId,
       text: fullText,
@@ -296,14 +346,7 @@ async function processAudio(sessionId, language, context, requestId) {
       totalSizeMB: parseFloat(totalSizeMB)
     };
   } finally {
-    // 8. Cleanup blob storage
-    try {
-      await deleteSession(sessionId);
-    } catch (cleanupError) {
-      structuredLog(context, "warn", "Blob cleanup failed", { error: cleanupError.message }, requestId);
-    }
-
-    // 9. Cleanup temp directory
+    // Cleanup temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
     } catch (cleanupError) {
