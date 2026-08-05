@@ -17,7 +17,7 @@ import { ANALYTICS_UPDATED_EVENT, getFlashcardAttempts, getQuizAttempts } from "
 import { getSessions, patchSession, SESSIONS_UPDATED_EVENT } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
 import { calculateStreak } from "@/lib/session-utils";
-import { FREE_PLAN_MINUTES } from "@/lib/constants";
+import { TRIAL_MINUTES } from "@/lib/constants";
 import { AudioRecorderWidget } from "@/components/audio-recorder-widget";
 import { SessionComposerCard } from "@/components/session-composer-card";
 import { SessionRecordsTable } from "@/components/session-records-table";
@@ -120,7 +120,7 @@ export function DashboardHome() {
   }, [recordFilter, sessions]);
 
   const totalMinutes = sessions.reduce((sum, session) => sum + (session.stats?.estimatedDurationMinutes ?? 0), 0);
-  const minutesUsed = Math.min(FREE_PLAN_MINUTES, totalMinutes);
+  const minutesUsed = Math.min(TRIAL_MINUTES, totalMinutes);
   const streak = calculateStreak(sessions);
   const latestSession = sessions[0];
 
@@ -256,13 +256,13 @@ export function DashboardHome() {
           </section>
 
           <section className="right-card rounded-panel border border-c-border bg-c-surface p-4 card-interactive">
-            <p className="text-[11px] font-medium text-c-text">Plan gratuito</p>
+            <p className="text-[11px] font-medium text-c-text">Trial</p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="text-[20px] font-semibold text-c-text">{minutesUsed}</span>
-              <span className="text-[12px] text-c-muted">/ {FREE_PLAN_MINUTES} min</span>
+              <span className="text-[12px] text-c-muted">/ {TRIAL_MINUTES} min</span>
             </div>
-            <div className="mt-3 h-[4px] rounded-full bg-c-surface-2" role="progressbar" aria-valuenow={minutesUsed} aria-valuemin={0} aria-valuemax={FREE_PLAN_MINUTES} aria-label="Minutos usados del plan gratuito">
-              <div className="h-full rounded-full bg-c-blue" style={{ width: `${Math.min(100, (minutesUsed / FREE_PLAN_MINUTES) * 100)}%` }} />
+            <div className="mt-3 h-[4px] rounded-full bg-c-surface-2" role="progressbar" aria-valuenow={minutesUsed} aria-valuemin={0} aria-valuemax={TRIAL_MINUTES} aria-label="Minutos usados del trial">
+              <div className="h-full rounded-full bg-c-blue" style={{ width: `${Math.min(100, (minutesUsed / TRIAL_MINUTES) * 100)}%` }} />
             </div>
             <p className="mt-3 text-[10px] text-c-muted">
               {quizAttemptsCount} intentos de quiz · {flashcardsReviewed} flashcards repasadas.

@@ -9,9 +9,10 @@ import { useScaleBounce } from "@/src/shared/hooks/useAnimations";
 import { CheckCircle2, FileUp, Link2, Loader2, Mic, Plus, ScreenShare, Sparkles, Upload, Video, X } from "lucide-react";
 import { createStudySession } from "@/lib/study-generator";
 import { generateStudySession, transcribeAudio } from "@/lib/api";
-import { upsertSession } from "@/lib/storage";
+import { getSessions, upsertSession } from "@/lib/storage";
 import { StudySession } from "@/lib/types";
-import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
+import { createWelcomeChat, createMindMap, isTrialExhausted } from "@/lib/session-utils";
+import { TRIAL_MINUTES } from "@/lib/constants";
 import { validateAudioFile, getAudioCategoryEmoji, getProcessingDescription, getAudioSizeLabel } from "@/lib/audio-validation";
 import { useToastContext } from "@/components/toast-provider";
 import { SessionSkeleton } from "@/components/session-skeleton";
@@ -118,6 +119,14 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!title.trim()) return;
+
+    if (useAI && isTrialExhausted(getSessions())) {
+      toast.warning(
+        "Trial finalizado",
+        `Alcanzaste los ${TRIAL_MINUTES} minutos del trial. Suscribite para seguir usando la IA.`
+      );
+      return;
+    }
 
     setIsCreating(true);
     setAiStatus("idle");

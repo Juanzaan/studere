@@ -2,7 +2,7 @@
  * Application constants — single source of truth for configuration values.
  *
  * Centralizes magic numbers for:
- * - Plan limits (FREE_PLAN_MINUTES)
+ * - Trial limits (TRIAL_MINUTES)
  * - Spaced repetition intervals (FLASHCARD_INTERVALS)
  * - Quiz accuracy thresholds (QUIZ_ACCURACY_THRESHOLDS)
  * - localStorage storage limits (STORAGE_LIMITS)
@@ -11,8 +11,8 @@
  * - Backend URL resolution (BACKEND_URL)
  */
 
-/** Free plan monthly minute limit for audio processing. */
-export const FREE_PLAN_MINUTES = 120;
+/** Trial minute limit for AI processing. The app is not free — after this, AI features are blocked until the user subscribes. */
+export const TRIAL_MINUTES = 120;
 
 /** Spaced repetition intervals for flashcards in days (SM-2 inspired). */
 export const FLASHCARD_INTERVALS = {

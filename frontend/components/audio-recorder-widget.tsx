@@ -7,8 +7,9 @@ import { Mic, MicOff, Square, Loader2 } from "lucide-react";
 import { startAudioCapture, stopAudioCapture, cancelAudioCapture, isRecording } from "@/lib/audio-capture";
 import { createStudySession } from "@/lib/study-generator";
 import { transcribeAudio, generateStudySession } from "@/lib/api";
-import { upsertSession } from "@/lib/storage";
-import { createWelcomeChat, createMindMap } from "@/lib/session-utils";
+import { getSessions, upsertSession } from "@/lib/storage";
+import { createWelcomeChat, createMindMap, isTrialExhausted } from "@/lib/session-utils";
+import { TRIAL_MINUTES } from "@/lib/constants";
 import { useToastContext } from "@/components/toast-provider";
 import { SessionSkeleton } from "@/components/session-skeleton";
 
@@ -63,6 +64,15 @@ export function AudioRecorderWidget() {
     if (busyRef.current) return;
     busyRef.current = true;
     try {
+      if (isTrialExhausted(getSessions())) {
+        toast.warning(
+          "Trial finalizado",
+          `Alcanzaste los ${TRIAL_MINUTES} minutos del trial. Suscribite para seguir usando la IA.`
+        );
+        busyRef.current = false;
+        return;
+      }
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;

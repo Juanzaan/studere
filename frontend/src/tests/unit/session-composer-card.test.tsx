@@ -5,7 +5,7 @@
  * submit without AI, submit with AI (transcribe + generate),
  * error handling during transcribe/generate.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────
@@ -48,11 +48,13 @@ vi.mock("@/lib/study-generator", () => ({
 const mockUpsertSession = vi.fn((..._args: unknown[]) => true);
 vi.mock("@/lib/storage", () => ({
   upsertSession: (...args: unknown[]) => mockUpsertSession(...args),
+  getSessions: () => [] as unknown[],
 }));
 
 vi.mock("@/lib/session-utils", () => ({
   createWelcomeChat: vi.fn(() => []),
   createMindMap: vi.fn(() => ({ id: "root", label: "Root", children: [] })),
+  isTrialExhausted: vi.fn(() => false),
 }));
 
 const mockToast = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
@@ -91,6 +93,7 @@ import { SessionComposerCard } from "@/components/session-composer-card";
 import { transcribeAudio, generateStudySession } from "@/lib/api";
 import { createStudySession } from "@/lib/study-generator";
 import { upsertSession } from "@/lib/storage";
+import { isTrialExhausted } from "@/lib/session-utils";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Idle render & form validation
@@ -212,6 +215,84 @@ describe("SessionComposerCard submit without AI", () => {
         expect.objectContaining({ id: "test-session-123" }),
       );
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Submit — trial exhausted (AI blocked)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("SessionComposerCard when trial is exhausted", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (isTrialExhausted as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    mockCreateStudySession.mockReturnValue(SAMPLE_SESSION);
+    mockGenerateStudySession.mockResolvedValue({
+      summary: "Should not run",
+      keyConcepts: [],
+      flashcards: [],
+      quiz: [],
+      mindMap: { id: "root", label: "Root", children: [] },
+      actionItems: [],
+      insights: [],
+    });
+  });
+
+  afterEach(() => {
+    (isTrialExhausted as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+  });
+
+  it("should block AI generation with a warning toast when trial is exhausted", async () => {
+    (isTrialExhausted as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
+    const { getByText, getByPlaceholderText } = render(
+      <SessionComposerCard mode="upload" />,
+    );
+
+    const title = getByPlaceholderText("Ej. Marketing digital — clase 3");
+    fireEvent.input(title, { target: { value: "Exhausted trial" } });
+
+    const notes = getByPlaceholderText(
+      "Pegá apuntes, un transcript o contexto para que Studere genere resumen, conceptos, flashcards, quiz y plan de repaso.",
+    );
+    fireEvent.input(notes, {
+      target: { value: "This text is long enough to trigger AI generation when the trial is still active." },
+    });
+
+    fireEvent.click(getByText("Crear con IA"));
+
+    await waitFor(() => {
+      expect(mockToast.warning).toHaveBeenCalledWith(
+        "Trial finalizado",
+        expect.stringContaining("Suscribite"),
+      );
+    });
+    expect(mockGenerateStudySession).not.toHaveBeenCalled();
+    expect(mockUpsertSession).not.toHaveBeenCalled();
+  });
+
+  it("still allows local creation without AI when the trial is exhausted", async () => {
+    (isTrialExhausted as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
+    const { getByText, getByPlaceholderText } = render(
+      <SessionComposerCard mode="upload" />,
+    );
+
+    const title = getByPlaceholderText("Ej. Marketing digital — clase 3");
+    fireEvent.input(title, { target: { value: "Local only" } });
+
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    fireEvent.click(checkboxes[0]);
+
+    fireEvent.click(getByText("Crear sesión"));
+
+    await waitFor(() => {
+      expect(mockCreateStudySession).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Local only" }),
+      );
+    });
+    expect(mockUpsertSession).toHaveBeenCalledTimes(1);
+    expect(mockToast.warning).not.toHaveBeenCalled();
   });
 });
 

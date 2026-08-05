@@ -7,8 +7,11 @@ import {
   createInsights,
   createWelcomeChat,
   calculateStreak,
+  calculateTrialMinutesUsed,
+  isTrialExhausted,
   normalizeSession,
 } from '@/lib/session-utils';
+import { TRIAL_MINUTES } from '@/lib/constants';
 import { StudySession } from '@/lib/types';
 
 describe('session-utils.ts', () => {
@@ -538,6 +541,50 @@ describe('session-utils.ts', () => {
     it('should ignore future-dated sessions when computing the streak', () => {
       const sessions = [{ createdAt: iso(-1) }, { createdAt: iso(1) }];
       expect(calculateStreak(sessions)).toBe(1);
+    });
+  });
+
+  describe('calculateTrialMinutesUsed', () => {
+    function session(minutes: number) {
+      return { stats: { estimatedDurationMinutes: minutes } };
+    }
+
+    it('should return 0 for no sessions', () => {
+      expect(calculateTrialMinutesUsed([])).toBe(0);
+    });
+
+    it('should sum estimatedDurationMinutes across sessions', () => {
+      expect(calculateTrialMinutesUsed([session(45), session(10), session(5)])).toBe(60);
+    });
+
+    it('should treat missing stats as explicit zero minutes', () => {
+      expect(calculateTrialMinutesUsed([{} as StudySession, session(30)])).toBe(30);
+    });
+
+    it('should return the uncapped total even when above the limit', () => {
+      expect(calculateTrialMinutesUsed([session(90), session(90)])).toBe(180);
+    });
+  });
+
+  describe('isTrialExhausted', () => {
+    function session(minutes: number) {
+      return { stats: { estimatedDurationMinutes: minutes } };
+    }
+
+    it('should be false when still under the trial limit', () => {
+      expect(isTrialExhausted([session(20), session(80)])).toBe(false);
+    });
+
+    it('should be true when total reaches exactly the trial limit', () => {
+      expect(isTrialExhausted([session(TRIAL_MINUTES)])).toBe(true);
+    });
+
+    it('should be true when total surpasses the trial limit', () => {
+      expect(isTrialExhausted([session(TRIAL_MINUTES - 10), session(30)])).toBe(true);
+    });
+
+    it('should be false when there are no sessions', () => {
+      expect(isTrialExhausted([])).toBe(false);
     });
   });
 });

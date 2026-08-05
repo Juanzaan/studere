@@ -10,6 +10,7 @@
  * - Re-exports from {@link session-normalizer} and {@link brain-reply}
  */
 
+import { TRIAL_MINUTES } from "@/lib/constants";
 import {
   ActionItem,
   Bookmark,
@@ -326,4 +327,35 @@ export function calculateStreak(sessions: Pick<StudySession, "createdAt">[]): nu
     cursor = shiftDay(cursor, -1);
   }
   return streak;
+}
+
+/**
+ * Total trial minutes consumed by the given sessions.
+ *
+ * Each session counts its `stats.estimatedDurationMinutes` (audio length or,
+ * for pasted text, the duration derived from the word count). Returns the
+ * real accumulated total, uncapped.
+ *
+ * @param sessions - Sessions to sum minutes from
+ * @returns Total minutes consumed
+ */
+export interface TrialSession {
+  stats?: { estimatedDurationMinutes?: number } | null;
+}
+
+export function calculateTrialMinutesUsed(sessions: TrialSession[]): number {
+  return sessions.reduce((sum, session) => sum + (session.stats?.estimatedDurationMinutes ?? 0), 0);
+}
+
+/**
+ * Whether the trial has been exhausted (consumed minutes >= {@link TRIAL_MINUTES}).
+ *
+ * Once exhausted, AI features (transcription and generation) are blocked;
+ * local-only session creation stays available.
+ *
+ * @param sessions - Sessions to evaluate against the trial limit
+ * @returns True when the user has no trial minutes left
+ */
+export function isTrialExhausted(sessions: TrialSession[]): boolean {
+  return calculateTrialMinutesUsed(sessions) >= TRIAL_MINUTES;
 }
