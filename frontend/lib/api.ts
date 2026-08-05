@@ -79,12 +79,21 @@ export async function fileToBase64(file: File): Promise<string> {
   // Para archivos grandes, usar Web Worker
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./base64-worker.ts', import.meta.url));
-    
+
+    // Guard against a hung worker — otherwise the transcription would wait
+    // forever on the base64 step (no fetch timeout covers it).
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      reject(new Error("Conversión a base64 agotó el tiempo. Intentá de nuevo."));
+    }, 30_000);
+
     worker.onmessage = (e) => {
       if (e.data.type === 'success') {
+        clearTimeout(timeout);
         resolve(e.data.base64);
         worker.terminate();
       } else if (e.data.type === 'error') {
+        clearTimeout(timeout);
         reject(new Error(e.data.error));
         worker.terminate();
       }
@@ -92,6 +101,7 @@ export async function fileToBase64(file: File): Promise<string> {
     };
 
     worker.onerror = (error) => {
+      clearTimeout(timeout);
       reject(error);
       worker.terminate();
     };

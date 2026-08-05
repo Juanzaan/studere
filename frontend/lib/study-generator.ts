@@ -297,7 +297,9 @@ export function createStudySession(input: SessionDraftInput): StudySession {
   const estimatedDurationMinutes = Math.max(5, Math.round(wordCount / 110));
   const kind = input.fileType?.startsWith("video") ? "video" : input.fileType?.startsWith("audio") ? "audio" : "text";
 
-  const id = `${slugify(input.title || "sesion")}-${Date.now()}`;
+  // Date.now() alone can collide (same title + same ms → upsert silently
+  // overwrites the previous session, losing its content). Add a random suffix.
+  const id = `${slugify(input.title || "sesion")}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const baseSession = {
     id,
     title: input.title,
