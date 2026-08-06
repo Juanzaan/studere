@@ -98,7 +98,7 @@ backend/
 
 ### State Management
 - **Storage:** localStorage (lib/storage.ts)
-- **No user auth** — single-user local-first app
+- **Auth:** Clerk (custom UI in components/auth/, sign-in/sign-up public routes; backend verifies with `Clerk.verifyToken(token, { secretKey })`)
 - **Emit SESSIONS_UPDATED_EVENT** after storage changes
 
 ### AI Integration
