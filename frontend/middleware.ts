@@ -1,10 +1,24 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 export default clerkMiddleware(async (auth, request) => {
   const { pathname } = new URL(request.url);
 
   // Allow public access to landing page and auth pages
-  if (pathname === "/" || pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
+  if (pathname === "/") {
+    // No Clerk session cookie -> anonymous visitor: serve the standalone
+    // landing (self-contained HTML in public/) without a Clerk handshake.
+    if (!request.cookies.has("__session")) {
+      return NextResponse.rewrite(new URL("/landing-prototype.html", request.url));
+    }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.rewrite(new URL("/landing-prototype.html", request.url));
+    }
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
     return;
   }
 
