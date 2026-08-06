@@ -3,21 +3,2786 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Studere · Landing prototype</title>
+<title>Studere — De la clase al material de estudio</title>
+<meta name="description" content="Studere convierte la grabación de tu clase en transcripción, flashcards, mapa mental, quiz y tutor. App de estudio de pago, con trial de 7 días." />
+<meta name="theme-color" content="#1A1714" />
+<meta property="og:title" content="Studere — De la clase al material de estudio" />
+<meta property="og:description" content="Subí audio, video o apuntes. Salí con un kit de estudio listo. Trial de 7 días." />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Public+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;font-family:system-ui,sans-serif;background:#1A1714;color:#F2E6D4;display:grid;place-items:center;min-height:100vh;padding:24px;}
-  .box{max-width:440px;border:1px solid rgba(242,230,212,.2);border-radius:8px;padding:28px;background:#2C261F;box-shadow:4px 4px 0 rgba(0,0,0,.35);}
-  h1{font-size:20px;margin:0 0 12px;font-style:italic;}
-  p{margin:0 0 10px;line-height:1.5;color:#A89B8C;font-size:14px;}
-  code{background:rgba(0,0,0,.35);padding:2px 6px;border-radius:3px;color:#E8B84A;font-size:13px;}
+  :root{
+    --bg:#1A1714; --bg-2:#241F1A; --card:#2C261F; --card-lift:#352E26;
+    --ink:#F2E6D4; --ink-soft:#A89B8C; --marker:#E8B84A; --moss:#6B9B6E;
+    --thorn:#8B4513; --crimson:#C45B5B;
+    --border:rgba(242,230,212,0.12); --border-strong:rgba(242,230,212,0.22);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; scroll-padding-top:88px; background:var(--bg);}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Public Sans', sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; max-width:100%;}
+  .grain{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5; background-image:radial-gradient(rgba(242,230,212,0.045) 1px, transparent 1px); background-size:22px 22px;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 32px; position:relative; z-index:1;}
+
+  .progress-bar{
+    position:fixed; top:0; left:0; height:2px; background:var(--marker);
+    z-index:100; width:100%; transform:scaleX(0); transform-origin:left center;
+    will-change:transform;
+  }
+
+  /* ---------- NAV ---------- */
+  #nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:18px 32px;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition:background .25s ease, border-color .25s ease;
+    box-sizing:border-box;
+  }
+  #nav.solid{ background:rgba(26,23,20,0.96); border-bottom-color:var(--border); }
+  #nav .wordmark{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+    font-family:'Fraunces', serif; font-style:italic; font-weight:600; font-size:21px;
+    color:var(--ink); text-decoration:none; white-space:nowrap;
+    line-height:1;
+  }
+  #nav .wordmark svg{ width:66px; height:9px; display:block; flex:0 0 auto; }
+  #nav .navlinks{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    align-items:center;
+    gap:24px;
+    flex:0 0 auto;
+    margin-left:auto;
+  }
+  #nav .navlinks > a{
+    color:var(--ink-soft); text-decoration:none; font-size:14px; white-space:nowrap;
+  }
+  #nav .navlinks > a:not(.btn):hover{ color:var(--ink); }
+  #nav .nav-toggle{
+    display:none;
+    background:none; border:1px solid var(--border-strong);
+    border-radius:3px; width:40px; height:36px; padding:0;
+    flex:0 0 auto;
+    flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    cursor:pointer;
+    margin-left:auto;
+  }
+  #nav .nav-toggle span{
+    display:block; width:16px; height:1.5px; background:var(--ink);
+  }
+  #nav.is-open .nav-toggle span:first-child{ transform:translateY(3.25px) rotate(45deg); }
+  #nav.is-open .nav-toggle span:last-child{ transform:translateY(-3.25px) rotate(-45deg); }
+
+  .btn{font-family:'Public Sans', sans-serif; font-size:14px; font-weight:600; padding:11px 22px; border-radius:3px; cursor:pointer; border:1.5px solid var(--ink); transition:transform .18s cubic-bezier(.22,.8,.25,1), box-shadow .18s ease, background .15s ease, border-color .15s ease; display:inline-flex; align-items:center; gap:8px; text-decoration:none; position:relative;}
+  .btn:active{transform:translate(1px,1px) !important; box-shadow:1px 1px 0 rgba(0,0,0,.35) !important;}
+  .btn-primary{background:var(--marker); color:var(--bg); border-color:var(--marker);}
+  .btn-primary:hover{transform:translate(-2px,-2px); box-shadow:4px 4px 0 rgba(0,0,0,.4); background:#f0c45c; border-color:#f0c45c;}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--border-strong);}
+  .btn-ghost:hover{transform:translate(-2px,-2px); box-shadow:4px 4px 0 rgba(0,0,0,.35); border-color:var(--ink); background:rgba(242,230,212,.04);}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:148px 0 76px; display:grid; grid-template-columns:1.05fr .95fr; gap:50px; align-items:center;}
+  .eyebrow{font-family:'Space Mono', monospace; font-size:12px; letter-spacing:.08em; color:var(--ink-soft); display:flex; align-items:center; gap:8px; margin-bottom:22px; text-transform:uppercase;}
+  .rec-dot{width:7px; height:7px; border-radius:50%; background:var(--crimson); animation:pulse 1.8s infinite ease-in-out;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  h1{font-family:'Fraunces', serif; font-weight:500; font-size:clamp(34px,4.2vw,50px); line-height:1.08; margin:0 0 20px; letter-spacing:-.01em;}
+  .mark{position:relative; font-style:italic; font-weight:600; white-space:nowrap; color:var(--bg);}
+  .mark::before{content:""; position:absolute; left:-5px; right:-5px; bottom:.05em; height:.5em; background:var(--marker); transform:skew(-8deg) rotate(-1deg); z-index:-1;}
+  .sub{font-size:17px; line-height:1.6; color:var(--ink-soft); max-width:440px; margin:0 0 30px;}
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px;}
+  .proof{font-family:'Space Mono', monospace; font-size:11.5px; color:var(--ink-soft); letter-spacing:.02em;}
+
+  .hero-stage{
+    position:relative;
+    height:clamp(320px, 52vw, 400px);
+    min-height:300px;
+    perspective:1400px;
+    overflow:visible;
+  }
+  .hs-tilt{position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .3s ease;}
+  .hs-shadow1, .hs-shadow2{position:absolute; inset:0; background:var(--card); border:1px solid var(--border); border-radius:10px; pointer-events:none;}
+  .hs-shadow1{transform:rotate(-5deg) translateY(8px) translateZ(-24px);}
+  .hs-shadow2{transform:rotate(3.5deg) translateY(14px) translateZ(-48px);}
+  .hs-stack{position:absolute; inset:0;}
+  .hs-card{
+    position:absolute; inset:0;
+    background:var(--card); border:1px solid var(--border-strong); border-radius:10px;
+    padding:22px 22px 18px; display:flex; flex-direction:column;
+    box-shadow:4px 4px 0 rgba(0,0,0,.3); overflow:hidden;
+    opacity:0; pointer-events:none;
+    transform:translateY(20px) scale(.98);
+    z-index:1;
+    /* no CSS transition on transform/opacity — GSAP owns swaps */
+  }
+  .hs-card.is-active{
+    opacity:1; pointer-events:auto;
+    transform:none;
+    z-index:3;
+  }
+  .hs-card.is-leaving{
+    z-index:2;
+    pointer-events:none;
+  }
+  .hs-card.is-entering{
+    z-index:4;
+    pointer-events:none;
+  }
+  .hs-label{font-family:'Space Mono', monospace; font-size:11px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .hs-label .live{color:var(--crimson); font-weight:700;}
+  .hs-wave-wrap{height:48px; margin:0 0 10px; border-radius:4px; overflow:hidden; background:rgba(0,0,0,.3); border:1px solid var(--border);}
+  .hs-wave-wrap canvas{display:block; width:100%; height:100%;}
+  .hs-timer{font-family:'Space Mono', monospace; font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
+  .hs-phase{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.06em; color:var(--crimson); margin-bottom:6px; min-height:14px;}
+  .hs-phase.ok{color:var(--moss);}
+  .hs-transcript{
+    flex:1; min-height:0; overflow:hidden; position:relative;
+    font-size:13.5px; line-height:1.6;
+    border-top:1px solid var(--border); padding-top:10px;
+  }
+  #txStream{margin:0; color:var(--ink-soft); min-height:7.2em;}
+  #txStream .f{color:var(--crimson); background:rgba(196,91,91,.16); border-radius:2px; padding:0 2px; transition:opacity .35s ease, font-size .35s ease, padding .35s ease, background .35s ease;}
+  #txStream .f{position:relative;}
+  #txStream .f::after{
+    content:""; position:absolute; left:0; top:55%; height:1.7px; width:0;
+    background:var(--crimson); border-radius:1px;
+    transition:width .5s cubic-bezier(.65,0,.35,1);
+    transition-delay: inherit;
+  }
+  #txStream.striking .f::after{width:100%;}
+  #txStream.striking .f{text-decoration:none; color:var(--crimson);}
+  #txStream.cleaned .f{opacity:0; font-size:0; padding:0; background:transparent;}
+  #txStream.cleaned{color:var(--ink);}
+  #txStream .kw{transition:color .4s ease;}
+  #txStream.cleaned .kw{color:var(--marker); font-weight:600;}
+  #txStream .tx-cursor{
+    display:inline-block; width:2px; height:1.05em; margin-left:1px;
+    background:var(--marker); vertical-align:-2px;
+    animation:txBlink 1s step-end infinite;
+  }
+  @keyframes txBlink{50%{opacity:0;}}
+  .hs-phase{
+    transition:color .3s ease, opacity .3s ease;
+  }
+  .hs-clean-badge{
+    position:absolute; right:0; bottom:0;
+    font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.06em;
+    color:var(--moss); background:rgba(107,155,110,.12); border:1px solid rgba(107,155,110,.35);
+    padding:4px 8px; border-radius:3px; opacity:0; transform:translateY(6px);
+    transition:opacity .4s ease, transform .4s ease;
+  }
+  .hs-clean-badge.show{opacity:1; transform:translateY(0);}
+  .hs-q{font-family:'Fraunces', serif; font-size:21px; font-weight:500; margin:0 0 12px;}
+  .hs-a{font-size:14px; line-height:1.5; color:var(--ink-soft); margin:0;}
+  .hs-check{margin-top:auto; font-family:'Space Mono', monospace; font-size:11px; color:var(--marker);}
+  .hs-flash-body{flex:1; display:flex; flex-direction:column; min-height:0; perspective:1200px;}
+  .hs-flash-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+  .hs-chip{font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.04em; padding:5px 9px; border-radius:3px; border:1px solid var(--border); color:var(--ink-soft);}
+  .hs-chip.on{border-color:rgba(107,155,110,.45); color:var(--moss); background:rgba(107,155,110,.1);}
+
+  /* true 3D flip inside hero flashcard — GSAP drives rotateY; CSS only structure */
+  .hs-flip-shell{
+    flex:1; position:relative; min-height:140px;
+    perspective:1400px;
+  }
+  .hs-flip-card{
+    position:relative; width:100%; height:100%; min-height:140px;
+    transform-style:preserve-3d;
+  }
+  .hs-flip-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:4px 2px;
+  }
+  .hs-flip-face.back{ transform:rotateY(180deg); }
+  .hs-flip-face .face-tag{
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.08em;
+    color:var(--ink-soft); margin-bottom:10px;
+  }
+  /* allow 3D flip to render — overflow:hidden on parent flattens preserve-3d */
+  .hs-card[data-card="flash"]{ overflow:visible; }
+
+  /* slot-into-mazo is driven by GSAP only */
+  .hs-card.is-slotting{
+    pointer-events:none;
+    transform-origin: 85% 90%;
+  }
+  /* toast outside cards; GSAP owns show/hide — no CSS keyframes residual */
+  .mazo-pop{
+    position:absolute; right:14px; bottom:12px; z-index:12;
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.04em;
+    color:var(--bg); background:var(--marker); border:1px solid var(--marker);
+    padding:5px 9px; border-radius:3px; box-shadow:3px 3px 0 rgba(0,0,0,.35);
+    opacity:0; visibility:hidden;
+    pointer-events:none;
+    transform:translateY(8px) scale(.9);
+  }
+
+  /* washi tape on tool cards */
+  .tool-card{position:relative;}
+  .tool-card .washi{
+    position:absolute; top:-8px; right:28px;
+    width:56px; height:14px;
+    background:rgba(232,184,74,.28);
+    border:1px solid rgba(232,184,74,.35);
+    transform:rotate(4deg);
+    pointer-events:none;
+  }
+  .tool-card .washi.alt{
+    right:auto; left:32px; top:-6px;
+    background:rgba(107,155,110,.22);
+    border-color:rgba(107,155,110,.35);
+    transform:rotate(-3deg); width:48px;
+  }
+  .hm-node, .hm-edge, .hm-label{opacity:0;}
+  .hm-node.is-on, .hm-edge.is-on, .hm-label.is-on{opacity:1; transition:opacity .35s ease;}
+  .hm-node.is-on{ pointer-events:auto; }
+  .hs-quiz-opt{padding:9px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--ink-soft); min-height:38px;}
+  .hs-quiz-opt.is-correct{border-color:var(--moss); background:rgba(107,155,110,.12); color:var(--ink); font-weight:600;}
+
+
+  /* ---------- SECTION HEADS ---------- */
+  .section-head{padding:0 0 34px; max-width:720px;}
+  .section-eyebrow{font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:.12em; color:var(--ink-soft); margin-bottom:12px; text-transform:uppercase; display:flex; align-items:center; gap:10px;}
+  .section-eyebrow::before{content:''; width:18px; height:1.5px; background:var(--marker); flex-shrink:0;}
+  h2{font-family:'Fraunces', serif; font-weight:500; font-size:clamp(26px,3.2vw,34px); margin:0; letter-spacing:-0.02em; line-height:1.2;}
+
+  /* ---------- PREVIEW TABS ---------- */
+  .preview{padding:60px 0 78px;}
+  .tabbar{display:flex; gap:4px; padding:0 4px; flex-wrap:wrap;}
+  .tab{font-family:'Space Mono', monospace; font-size:12px; padding:11px 15px; border:1px solid var(--border); border-bottom:none; background:transparent; color:var(--ink-soft); cursor:pointer; border-radius:6px 6px 0 0; position:relative; top:1px;}
+  .tab.active{background:var(--card); color:var(--ink); border-color:var(--border-strong); font-weight:700;}
+  .panel-frame{background:var(--card); border:1px solid var(--border-strong); border-radius:0 10px 10px 10px; padding:22px 24px; min-height:280px; height:280px; overflow:hidden; position:relative; perspective:900px; box-shadow:4px 4px 0 rgba(0,0,0,.25); transition:transform .2s ease;}
+  .panel{display:none;}
+  .panel.show{display:block; animation:panelIn .4s ease both;}
+  @keyframes panelIn{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
+
+  .sum-title{font-family:'Fraunces', serif; font-weight:500; font-size:18px; margin:0 0 16px;}
+  .sum-line{height:11px; background:rgba(242,230,212,0.08); border-radius:2px; margin-bottom:10px;}
+  .sum-bullets{list-style:none; margin:18px 0 0; padding:0;}
+  .sum-bullets li{font-size:14px; color:var(--ink-soft); margin-bottom:8px; padding-left:18px; position:relative; opacity:0; transform:translateY(6px); transition:opacity .4s ease, transform .4s ease;}
+  .sum-bullets li::before{content:""; position:absolute; left:0; top:6px; width:6px; height:6px; border-radius:50%; background:var(--moss);}
+  .sum-bullets.reveal li{opacity:1; transform:translateY(0);}
+  .sum-bullets li:nth-child(1){transition-delay:.05s;}
+  .sum-bullets li:nth-child(2){transition-delay:.18s;}
+  .sum-bullets li:nth-child(3){transition-delay:.31s;}
+
+  .demo-cards{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:28px; align-items:center; height:100%;
+  }
+  .demo-stage{
+    width:100%; max-width:260px; height:168px; margin:0 auto;
+    position:relative; perspective:1000px; cursor:pointer;
+  }
+  .demo-behind{
+    position:absolute; inset:0; background:var(--bg-2); border:1px solid var(--border);
+    border-radius:8px; transform:rotate(5deg) translate(8px,6px);
+  }
+  .demo-behind2{
+    position:absolute; inset:0; background:var(--bg-2); border:1px solid var(--border);
+    border-radius:8px; transform:rotate(-3deg) translate(-4px,4px); opacity:.7;
+  }
+  .demo-flip-inner{position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .65s cubic-bezier(.65,0,.35,1);}
+  .demo-stage.flipped .demo-flip-inner{transform:rotateY(180deg);}
+  .demo-face{
+    position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border-strong);
+    border-radius:8px; background:var(--card); padding:18px;
+    display:flex; flex-direction:column; justify-content:center;
+    box-shadow:4px 4px 0 rgba(0,0,0,.28);
+  }
+  .demo-face.back{transform:rotateY(180deg); background:var(--card-lift);}
+  .demo-face .face-tag{font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:10px;}
+  .demo-meta{display:flex; flex-direction:column; gap:12px; justify-content:center;}
+  .demo-meta .big{font-family:'Fraunces',serif; font-size:28px; font-weight:600; line-height:1;}
+  .demo-meta .sub{font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-soft); letter-spacing:.04em;}
+  .demo-progress{height:4px; background:rgba(242,230,212,.1); border-radius:2px; overflow:hidden; margin-top:6px;}
+  .demo-progress > span{display:block; height:100%; width:12%; background:var(--marker); border-radius:2px;}
+  .demo-hint{font-family:'Space Mono', monospace; font-size:11px; color:var(--ink-soft);}
+  .demo-hint.accent{color:var(--marker);}
+
+  /* notebook margin for resumen */
+  .sum-grid{display:grid; grid-template-columns:1fr 120px; gap:20px; height:100%;}
+  .sum-margin{
+    border-left:1px dashed var(--border); padding-left:14px;
+    font-family:'Space Mono',monospace; font-size:10px; color:var(--ink-soft);
+    display:flex; flex-direction:column; gap:14px; justify-content:center;
+  }
+  .sum-margin .stamp{
+    display:inline-block; padding:4px 8px; border:1px solid rgba(232,184,74,.4);
+    color:var(--marker); border-radius:2px; transform:rotate(-6deg); width:fit-content;
+  }
+  @media (max-width:700px){
+    .demo-cards{grid-template-columns:1fr; gap:16px;}
+    .sum-grid{grid-template-columns:1fr;}
+    .sum-margin{display:none;}
+    .panel-frame{height:auto; min-height:280px;}
+  }
+
+  .map-node{cursor:pointer;}
+  .map-node circle{transition: stroke .2s ease, stroke-width .2s ease; transform-box:fill-box; transform-origin:center;}
+  .map-node:hover circle, .map-node.is-hot circle{stroke-width:2.2; filter:drop-shadow(0 0 6px rgba(232,184,74,.35));}
+  .map-edge{transition:stroke .25s ease, stroke-width .25s ease;}
+  .map-edge.is-hot{stroke:var(--marker); stroke-width:2;}
+  .map-tip{
+    position:absolute; z-index:12; pointer-events:none;
+    background:var(--card-lift); border:1px solid var(--border-strong);
+    border-radius:6px; padding:8px 11px; min-width:140px;
+    box-shadow:3px 3px 0 rgba(0,0,0,.35);
+    opacity:0; transform:translateY(6px) scale(.96);
+    transition:opacity .18s ease, transform .22s cubic-bezier(.34,1.3,.64,1);
+    font-size:12px; color:var(--ink);
+  }
+  .map-tip.show{opacity:1; transform:translateY(0) scale(1);}
+  .map-tip .t-min{font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.06em; color:var(--marker); margin-bottom:4px;}
+  .map-tip .t-body{color:var(--ink-soft); line-height:1.4;}
+  .mapa-wrap{position:relative;}
+
+
+  .quiz-q{font-family:'Fraunces', serif; font-weight:500; font-size:16px; margin:0 0 14px;}
+  .quiz-opt{
+    display:flex; align-items:center; gap:10px; padding:10px 14px;
+    border:1px solid var(--border); border-radius:6px; margin-bottom:7px;
+    font-size:13.5px; cursor:pointer; user-select:none;
+    transition: border-color .2s ease, background .2s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .quiz-opt:hover:not(.is-locked){border-color:var(--border-strong); transform:translateY(-1px);}
+  .quiz-opt:active:not(.is-locked){transform:translateY(1px) scale(.98); box-shadow:none;}
+  .quiz-opt.correct{
+    border-color:var(--moss); background:rgba(107,155,110,0.16); font-weight:600; color:var(--ink);
+    animation: quizPop .45s cubic-bezier(.34,1.4,.64,1) both;
+  }
+  .quiz-opt.wrong{
+    border-color:var(--crimson); background:rgba(196,91,91,0.14);
+    animation: quizShake .4s ease both;
+  }
+  .quiz-opt.is-locked{cursor:default;}
+  .quiz-dot{
+    width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:10px; line-height:1; transition: background .2s ease, border-color .2s ease, transform .25s ease;
+  }
+  .quiz-opt.correct .quiz-dot{
+    background:var(--moss); border-color:var(--moss); color:#1A1714;
+    transform:scale(1.1);
+  }
+  .quiz-opt.wrong .quiz-dot{
+    background:var(--crimson); border-color:var(--crimson); color:#F2E6D4;
+  }
+  .quiz-opt .quiz-mark{font-weight:700; opacity:0; transform:scale(.5); transition:opacity .2s ease .05s, transform .25s cubic-bezier(.34,1.4,.64,1) .05s;}
+  .quiz-opt.correct .quiz-mark, .quiz-opt.wrong .quiz-mark{opacity:1; transform:scale(1);}
+  @keyframes quizPop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.03); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes quizShake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-4px); }
+    50%{ transform:translateX(4px); }
+    75%{ transform:translateX(-2px); }
+  }
+  .quiz-hint{font-family:'Space Mono', monospace; font-size:11px; color:var(--ink-soft); margin-top:14px; opacity:0; transition:opacity .3s ease;}
+  .quiz-hint.show{opacity:1;}
+
+  /* hero quiz opts interactive */
+  .hs-quiz-opt{
+    display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+    transition: border-color .2s ease, background .2s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .hs-quiz-opt:hover:not(.is-locked){border-color:var(--border-strong); transform:translateY(-1px);}
+  .hs-quiz-opt:active:not(.is-locked){transform:translateY(1px) scale(.98);}
+  .hs-quiz-opt.is-correct{
+    border-color:var(--moss); background:rgba(107,155,110,.16); color:var(--ink); font-weight:600;
+    animation: quizPop .45s cubic-bezier(.34,1.4,.64,1) both;
+  }
+  .hs-quiz-opt.is-wrong{
+    border-color:var(--crimson); background:rgba(196,91,91,.14);
+    animation: quizShake .4s ease both;
+  }
+  .hs-quiz-opt.is-locked{cursor:default;}
+  .hs-quiz-opt .quiz-dot{
+    width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:10px; transition: background .2s, border-color .2s, transform .25s;
+  }
+  .hs-quiz-opt.is-correct .quiz-dot{background:var(--moss); border-color:var(--moss); color:#1A1714; transform:scale(1.1);}
+  .hs-quiz-opt.is-wrong .quiz-dot{background:var(--crimson); border-color:var(--crimson); color:#F2E6D4;}
+  .hs-quiz-opt .quiz-mark{opacity:0; transform:scale(.5); transition:opacity .2s ease .05s, transform .25s cubic-bezier(.34,1.4,.64,1) .05s; font-weight:700;}
+  .hs-quiz-opt.is-correct .quiz-mark, .hs-quiz-opt.is-wrong .quiz-mark{opacity:1; transform:scale(1);}
+
+  .bubble{max-width:90%; padding:11px 15px; border-radius:10px; font-size:13.5px; line-height:1.5; margin-bottom:10px;}
+  .bubble.user{background:var(--bg-2); border:1px solid var(--border); margin-left:auto; width:fit-content;}
+  .bubble.stude{background:var(--card-lift); display:flex; gap:9px; align-items:flex-start; max-width:95%;}
+  .chat-source{
+    margin-top:10px;
+    font-family:'Public Sans', sans-serif;
+    font-size:11px;
+    font-weight:400;
+    letter-spacing:0.01em;
+    color:#6E655C;
+    line-height:1.35;
+    opacity:0;
+    transition: opacity .55s ease;
+  }
+  .chat-source.show{ opacity:0.65; }
+
+  .bubble.user{display:flex; flex-direction:column; align-items:flex-end;}
+  #chatBox{display:flex; flex-direction:column; gap:2px; min-height:180px;}
+  #chatA .cursor{display:inline-block; width:7px; height:1em; background:var(--marker); margin-left:2px; vertical-align:-2px; animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  .stude-mark-sm{width:22px; height:22px; border-radius:50%; background:var(--marker); color:var(--bg); font-family:'Fraunces',serif; font-style:italic; font-weight:700; font-size:11.5px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+
+  /* ---------- INPUTS (exact pattern from working old version) ---------- */
+  .inputs{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:0 0 76px;}
+  .ichip{
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:20px 18px; text-align:left; opacity:0;
+    box-shadow:3px 3px 0 rgba(0,0,0,.2);
+    transition:transform .45s cubic-bezier(.22,.8,.25,1), border-color .2s ease, opacity .45s ease, box-shadow .25s ease;
+  }
+  .ichip:nth-child(1){transform:rotate(-2deg) translateY(24px);}
+  .ichip:nth-child(2){transform:rotate(1deg) translateY(24px);}
+  .ichip:nth-child(3){transform:rotate(-1deg) translateY(24px);}
+  .ichip:nth-child(4){transform:rotate(2deg) translateY(24px);}
+  .ichip.in-view:nth-child(1){opacity:1; transform:rotate(-2deg) translateY(0);}
+  .ichip.in-view:nth-child(2){opacity:1; transform:rotate(1deg) translateY(0);}
+  .ichip.in-view:nth-child(3){opacity:1; transform:rotate(-1deg) translateY(0);}
+  .ichip.in-view:nth-child(4){opacity:1; transform:rotate(2deg) translateY(0);}
+  .ichip:hover{
+    transform:rotate(0deg) translateY(-3px) !important;
+    border-color:var(--border-strong);
+    box-shadow:5px 5px 0 rgba(0,0,0,.3);
+  }
+  .ichip svg{margin-bottom:14px; display:block;}
+  .ichip h4{font-family:'Fraunces', serif; font-weight:500; font-size:15.5px; margin:0 0 6px;}
+  .ichip p{font-size:13px; line-height:1.5; color:var(--ink-soft); margin:0;}
+
+  /* ---------- TOOLS STACK (no roots) ---------- */
+  .story{padding-bottom:90px;}
+  .tools-stack{position:relative; display:flex; flex-direction:column; gap:18px; padding:8px 0 10px;}
+  .tools-stack::before{
+    content:""; position:absolute; left:28px; top:12px; bottom:12px; width:2px;
+    background:linear-gradient(to bottom, transparent, var(--border-strong) 8%, var(--border-strong) 92%, transparent);
+  }
+  .tools-spine{display:none;} /* legacy node if present */
+  .tools-stack .tool-row{
+    display:grid; grid-template-columns:56px 1fr; gap:16px; align-items:stretch;
+    opacity:0;
+    transform:translateY(36px);
+    transition:opacity .65s cubic-bezier(.22,.8,.25,1), transform .65s cubic-bezier(.22,.8,.25,1);
+    will-change:opacity, transform;
+  }
+  .tools-stack .tool-row.in-view{
+    opacity:1;
+    transform:translateY(0);
+  }
+  .tool-num{
+    width:56px; display:flex; align-items:flex-start; justify-content:center; position:relative; z-index:1;
+  }
+  .tool-num span{
+    width:36px; height:36px; border-radius:50%;
+    background:var(--card); border:1.5px solid var(--border-strong);
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    transition:background .3s ease, border-color .3s ease, color .3s ease, box-shadow .3s ease;
+  }
+  .tools-stack .tool-row.in-view .tool-num span{
+    background:var(--marker); color:var(--bg); border-color:var(--marker);
+    box-shadow:3px 3px 0 rgba(0,0,0,.3);
+  }
+  .tool-card{
+    background:var(--card); border:1px solid var(--border); border-radius:8px;
+    padding:22px 24px; box-shadow:3px 3px 0 rgba(0,0,0,.22);
+    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+    transform:rotateY(-2deg);
+    transform-style:preserve-3d;
+  }
+  .tool-row:nth-child(even) .tool-card{transform:rotateY(2deg);}
+  .tools-stack .tool-row.in-view .tool-card{transform:rotateY(0);}
+  .tool-card:hover{border-color:var(--border-strong); box-shadow:5px 6px 0 rgba(0,0,0,.32); transform:translateY(-2px) !important;}
+  .ftag{font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:.07em; color:var(--moss); margin-bottom:10px; display:block;}
+  .tool-card h3{font-family:'Fraunces', serif; font-weight:500; font-size:19px; margin:0 0 8px; color:var(--ink);}
+  .tool-card p{font-size:14px; line-height:1.55; color:var(--ink-soft); margin:0;}
+  @media (max-width:760px){
+    .tools-spine{left:18px;}
+    .tool-row{grid-template-columns:40px 1fr; gap:12px;}
+    .tool-num{width:40px;}
+    .tool-num span{width:30px; height:30px; font-size:11px;}
+  }
+
+  /* ---------- STATS ---------- */
+  .stats-strip{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:80px;}
+  .stat-p{padding:30px 14px; text-align:center; border-right:1px solid var(--border);}
+  .stat-p:last-child{border-right:none;}
+  .stat-p .n{display:block; font-family:'Fraunces', serif; font-weight:600; font-size:27px;}
+  .stat-p .l{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.06em; color:var(--ink-soft);}
+
+  /* ---------- TESTIMONIALS ---------- */
+  .notes{display:grid; grid-template-columns:1fr 1fr; gap:36px; padding-bottom:80px;}
+  .note{background:var(--marker); color:var(--bg); padding:24px 22px 22px; border-radius:2px; font-family:'Fraunces', serif; font-size:16.5px; line-height:1.5; box-shadow:5px 5px 0 rgba(0,0,0,.3); opacity:0; transition:opacity .3s ease;}
+  .note.in-view{opacity:1;}
+  .note:nth-child(1){transform:rotate(-2.2deg);}
+  .note:nth-child(2){transform:rotate(1.6deg);}
+  .note p{margin:0 0 16px; font-style:italic;}
+  .note-by{font-family:'Space Mono', monospace; font-size:11.5px; font-style:normal; color:rgba(26,23,20,.72);}
+
+  /* ---------- FINAL CTA ---------- */
+  .stub{background:var(--bg-2); color:var(--ink); border-radius:10px; padding:52px 48px; margin-bottom:80px; text-align:center; border:2px dashed var(--border-strong);}
+  .stub h2{margin-bottom:12px;}
+  .stub p{color:var(--ink-soft); font-size:15.5px; margin:0 0 28px;}
+  .stub .cta-row{justify-content:center; margin-bottom:0;}
+  .stub .btn-primary{background:var(--marker); color:var(--bg); border-color:var(--marker);}
+  .stub .btn-ghost{color:var(--ink); border-color:var(--border-strong);}
+  /* .stub opacity/transform set in scroll-reveal block above */
+
+  footer.site-footer{
+    position:relative;
+    text-align:center;
+    padding:36px 0 48px;
+    border-top:1px solid var(--border);
+    font-size:13px; color:var(--ink-soft);
+    overflow:visible;
+  }
+  .footer-line-wrap{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    height:44px; margin-bottom:14px;
+  }
+  .footer-wave{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+    width:100vw;
+    height:18px;
+    pointer-events:none;
+  }
+  .footer-wave path{
+    fill:none;
+    stroke:var(--ink);
+    stroke-width:1.5;
+    stroke-linecap:round;
+    stroke-opacity:0.55;
+  }
+  /* Wordmark global — misma fuente en nav y footer */
+  .wordmark{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+    letter-spacing:-0.01em;
+  }
+  .footer-wm{
+    position:relative;
+    z-index:1;
+    font-family:'Fraunces', serif !important;
+    font-style:italic !important;
+    font-weight:600 !important;
+    font-size:22px !important;
+    color:var(--ink);
+    background:var(--bg);
+    padding:0 16px;
+    line-height:1;
+    letter-spacing:-0.01em;
+  }
+  .footer-tag{
+    margin:0;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr; gap:28px; padding-top:120px;}
+    .hero-stage{
+      order:-1;
+      height:min(360px, 70vw);
+      min-height:300px;
+      max-width:520px;
+      margin:0 auto;
+      width:100%;
+    }
+    .hs-card{ padding:16px 14px 14px; }
+    .hs-transcript{ font-size:12.5px; }
+    #txStream{ font-size:12.5px; min-height:5.5em; }
+    .hs-q{ font-size:14px !important; }
+  }
+  @media (max-width:520px){
+    .hero-stage{
+      height:min(340px, 88vw);
+      min-height:280px;
+    }
+    .hs-label{ font-size:10px; }
+    .hs-wave-wrap{ height:40px; }
+    .tabbar{flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+    .tabbar::-webkit-scrollbar{display:none;}
+    .tab{flex:0 0 auto;}
+    .cta-row{flex-direction:column;}
+    .cta-row .btn{width:100%; justify-content:center;}
+  }
+  @media (min-width:901px) and (max-width:1100px){
+    .hero{ gap:28px; }
+    .hero-stage{ height:360px; }
+  }
+  @media (max-width:760px){
+    .inputs{grid-template-columns:1fr 1fr;}
+    .stats-strip{grid-template-columns:1fr 1fr;}
+    .stat-p:nth-child(2){border-right:none;}
+    .notes{grid-template-columns:1fr;}
+    .margin-notes{grid-template-columns:1fr;}
+    .compare{grid-template-columns:1fr; gap:14px;}
+    .compare-arrow{display:none;}
+    .tool-card.left, .tool-card.right{max-width:100%; margin-left:0; margin-right:0; transform:none;}
+    .tool-card.left.active, .tool-card.right.active{transform:translateZ(6px);}
+    .knot{display:none;}
+    .root-right{display:none;}
+    #nav{ padding:14px 16px; }
+  }
+  @media (max-width:380px){
+    .inputs{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .rec-dot{animation:none;}
+    .demo-flip-inner, .hs-flip-inner, .hs-flip-card{transition:none;}
+    .sum-bullets li{opacity:1; transform:none; transition:none;}
+    .hs-tilt{transition:none;}
+    .panel.show{animation:none;}
+    .note{opacity:1;}
+    .ichip, .tool-row, .compare-card, .mnote, .faq-item{opacity:1; transform:none; transition:none;}
+    .ichip:nth-child(1), .ichip:nth-child(2), .ichip:nth-child(3), .ichip:nth-child(4){transform:none;}
+  }
+
+  /* ---- washi variants ---- */
+  .washi.tape-blue{
+    background:rgba(120,160,200,.22);
+    border-color:rgba(120,160,200,.35);
+    transform:rotate(-3deg);
+  }
+  .stub{position:relative;}
+  .stub .washi-corner{
+    position:absolute; top:-10px; left:36px;
+    width:64px; height:15px;
+    background:rgba(232,184,74,.3);
+    border:1px solid rgba(232,184,74,.4);
+    transform:rotate(-2deg);
+    pointer-events:none;
+  }
+
+  /* ---- before / after ---- */
+  .compare{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:20px; align-items:stretch;
+    padding:0 0 88px;
+  }
+  .compare-card{
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:22px 20px; position:relative;
+    opacity:0; transform:translateY(22px);
+    transition:opacity .5s ease, transform .5s cubic-bezier(.22,.8,.25,1);
+    box-shadow:3px 3px 0 rgba(0,0,0,.18);
+  }
+  .compare-card.in-view{opacity:1; transform:translateY(0);}
+  .compare-card.is-before{transform:rotate(-1deg) translateY(22px);}
+  .compare-card.is-before.in-view{transform:rotate(-1deg) translateY(0);}
+  .compare-card.is-after{transform:rotate(1deg) translateY(22px);}
+  .compare-card.is-after.in-view{transform:rotate(1deg) translateY(0);}
+  .compare-mid{
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--marker);
+    letter-spacing:.08em;
+  }
+  .compare-tag{
+    font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:12px;
+  }
+  .compare-card.is-after .compare-tag{color:var(--moss);}
+  .compare-card h3{font-family:'Fraunces', serif; font-weight:500; font-size:18px; margin:0 0 12px;}
+  .compare-list{margin:0; padding:0; list-style:none;}
+  .compare-list li{
+    font-size:13.5px; line-height:1.55; color:var(--ink-soft);
+    padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border);
+  }
+  .compare-list li:last-child{border-bottom:none;}
+  .compare-list li::before{content:'·'; position:absolute; left:4px; color:var(--marker);}
+  .compare-card.is-after .compare-list li{color:var(--ink);}
+  .compare-card.is-after .compare-list li::before{content:'✓'; color:var(--moss); font-size:11px; left:2px;}
+
+  /* ---- margin notes ---- */
+  .margin-notes{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+    padding:0 0 72px;
+  }
+  .mnote{
+    border:1px dashed var(--border-strong); border-radius:2px;
+    padding:14px 16px; font-size:13px; line-height:1.5; color:var(--ink-soft);
+    font-family:'Fraunces', serif; font-style:italic;
+    opacity:0; transform:translateY(16px);
+    transition:opacity .45s ease, transform .45s ease, border-color .2s ease;
+  }
+  .mnote.in-view{opacity:1; transform:translateY(0);}
+  .mnote:nth-child(1){transform:rotate(-1.5deg) translateY(16px);}
+  .mnote:nth-child(2){transform:rotate(0.8deg) translateY(16px);}
+  .mnote:nth-child(3){transform:rotate(-0.6deg) translateY(16px);}
+  .mnote:nth-child(1).in-view{transform:rotate(-1.5deg) translateY(0);}
+  .mnote:nth-child(2).in-view{transform:rotate(0.8deg) translateY(0);}
+  .mnote:nth-child(3).in-view{transform:rotate(-0.6deg) translateY(0);}
+  .mnote:hover{border-color:var(--marker); color:var(--ink);}
+  .mnote strong{font-style:normal; font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.08em; color:var(--marker); display:block; margin-bottom:6px; font-weight:400;}
+
+  /* ---- FAQ ---- */
+  .faq{padding:0 0 88px; max-width:640px;}
+  .faq-item{
+    border-bottom:1px solid var(--border);
+    opacity:0; transform:translateY(14px);
+    transition:opacity .4s ease, transform .4s ease;
+  }
+  .faq-item.in-view{opacity:1; transform:none;}
+  .faq-q{
+    width:100%; background:none; border:none; color:var(--ink);
+    font-family:'Public Sans', sans-serif; font-size:15px; font-weight:600;
+    text-align:left; padding:18px 8px 18px 0; cursor:pointer;
+    display:flex; align-items:center; gap:14px;
+  }
+  .faq-num{
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--marker);
+    flex-shrink:0; width:28px;
+  }
+  .faq-q span.label{flex:1;}
+  .faq-q .chev{
+    font-family:'Space Mono', monospace; font-size:14px; color:var(--ink-soft);
+    transition:transform .25s ease;
+  }
+  .faq-item.is-open .chev{transform:rotate(45deg); color:var(--marker);}
+  .faq-a{
+    max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .35s ease, opacity .25s ease, padding .25s ease;
+    font-size:14px; line-height:1.6; color:var(--ink-soft);
+    padding:0 8px 0 42px;
+  }
+  .faq-item.is-open .faq-a{max-height:180px; opacity:1; padding:0 8px 18px 42px;}
+
+  .stat-p .n{font-variant-numeric:tabular-nums;}
+  .stat-p.is-ticking .n{color:var(--marker);}
+
+  .footer-tag{
+    font-family:'Fraunces', serif; font-style:italic; font-size:14px;
+    color:var(--ink-soft); margin:0 0 8px;
+  }
+
+  @media (max-width:760px){
+    .compare{grid-template-columns:1fr; gap:12px;}
+    .compare-mid{padding:4px 0;}
+    .margin-notes{grid-template-columns:1fr; gap:12px;}
+    .mnote:nth-child(1), .mnote:nth-child(2), .mnote:nth-child(3),
+    .mnote:nth-child(1).in-view, .mnote:nth-child(2).in-view, .mnote:nth-child(3).in-view{transform:none;}
+  }
+
+
+/* Pricing */
+  .pricing{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:22px;
+    align-items:start; padding:0 0 88px;
+  }
+  .price-card{
+    position:relative; background:var(--card); border:1px solid var(--border-strong);
+    border-radius:8px; padding:28px 26px 24px;
+    box-shadow:4px 4px 0 rgba(0,0,0,.25);
+  }
+  .price-card.is-featured{ border-color:rgba(232,184,74,.45); }
+  .price-tag{
+    font-family:'Space Mono', monospace; font-size:10px; letter-spacing:.12em;
+    color:var(--marker); margin-bottom:8px;
+  }
+  .price-name{
+    font-family:'Fraunces', serif; font-weight:500; font-size:28px; margin:0 0 8px;
+    letter-spacing:-0.02em;
+  }
+  .price-amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:14px; }
+  .price-num{ font-family:'Fraunces', serif; font-size:42px; font-weight:600; color:var(--ink); }
+  .price-per{ font-family:'Space Mono', monospace; font-size:12px; color:var(--ink-soft); }
+  .price-lead{ font-size:14px; line-height:1.55; color:var(--ink-soft); margin:0 0 18px; }
+  .price-list{ list-style:none; margin:0 0 22px; padding:0; }
+  .price-list li{
+    font-size:13.5px; line-height:1.5; padding:8px 0 8px 18px; position:relative;
+    border-bottom:1px dashed var(--border); color:var(--ink);
+  }
+  .price-list li:last-child{ border-bottom:none; }
+  .price-list li::before{ content:'✓'; position:absolute; left:0; color:var(--moss); font-size:12px; }
+  .price-cta{ width:100%; justify-content:center; }
+  .price-fine{
+    font-family:'Space Mono', monospace; font-size:10.5px; color:var(--ink-soft);
+    margin:12px 0 0; text-align:center; letter-spacing:.03em;
+  }
+  .price-side{ display:flex; flex-direction:column; gap:14px; }
+  .price-note-card{
+    background:var(--bg-2); border:1px dashed var(--border-strong); border-radius:6px;
+    padding:18px 16px;
+  }
+  .price-note-card strong{
+    display:block; font-family:'Space Mono', monospace; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--marker); margin-bottom:8px; font-weight:400;
+  }
+  .price-note-card p{ margin:0; font-size:13.5px; line-height:1.55; color:var(--ink-soft); }
+
+  @media (max-width:820px){
+    #nav .nav-toggle{ display:flex; }
+    #nav .navlinks{
+      display:none;
+      position:fixed; top:60px; left:0; right:0;
+      flex-direction:column; align-items:stretch; gap:0;
+      padding:12px 20px 20px;
+      background:rgba(26,23,20,0.98);
+      border-bottom:1px solid var(--border);
+      z-index:60;
+      margin-left:0;
+    }
+    #nav.is-open .navlinks{ display:flex; }
+    #nav .navlinks > a:not(.btn){ padding:12px 0; }
+    #nav .navlinks > .btn{ width:100%; justify-content:center; margin-top:8px; }
+    .pricing{ grid-template-columns:1fr; }
+  }
+
+  .footer-legal{
+    margin:18px 0 0; font-family:'Space Mono', monospace; font-size:10.5px;
+    letter-spacing:.04em; color:var(--ink-soft);
+  }
+  .footer-legal a{ color:var(--ink-soft); text-decoration:none; }
+  .footer-legal a:hover{ color:var(--marker); }
+
+
+  /* focus visible — teclado */
+  a:focus-visible, button:focus-visible, .tab:focus-visible, .faq-q:focus-visible, .ichip:focus-visible, .hs-quiz-opt:focus-visible {
+    outline: 2px solid var(--marker);
+    outline-offset: 3px;
+  }
+  a:focus:not(:focus-visible), button:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+
+  /* Hero map interactivity */
+  #cardMap{
+    position:relative;
+    overflow:visible;
+  }
+  #cardMap #heroMapSvg{
+    width:100%;
+    height:auto;
+    max-height:min(180px, 42vw);
+    flex:1 1 auto;
+    overflow:visible;
+  }
+  .hs-card[data-card="map"]{
+    overflow:visible;
+  }
+  #heroMapSvg .hm-node{ cursor:pointer; transition: stroke-width .2s ease, filter .2s ease; }
+  #heroMapSvg .hm-label{ pointer-events:none; }
+  #heroMapSvg .hm-node.is-hot,
+  #heroMapSvg .hm-node:hover{
+    stroke-width:2.2; filter:drop-shadow(0 0 6px rgba(232,184,74,.4));
+  }
+  #heroMapSvg .hm-edge{ transition: stroke .2s ease, stroke-width .2s ease; }
+  #heroMapSvg .hm-edge.is-hot{ stroke:var(--marker) !important; stroke-width:2; }
+  .hs-map-tip{
+    position:absolute; z-index:12; pointer-events:none;
+    background:var(--card-lift); border:1px solid var(--border-strong);
+    border-radius:6px; padding:8px 11px; min-width:140px; max-width:min(200px, 90%);
+    box-shadow:3px 3px 0 rgba(0,0,0,.35);
+    opacity:0; transform:translateY(6px) scale(.96);
+    transition:opacity .18s ease, transform .22s cubic-bezier(.34,1.3,.64,1);
+    font-size:12px; color:var(--ink);
+  }
+  .hs-map-tip.show{ opacity:1; transform:translateY(0) scale(1); }
+  .hs-map-tip .t-min{
+    font-family:'Space Mono', monospace; font-size:9px; letter-spacing:.06em;
+    color:var(--marker); margin-bottom:4px;
+  }
+  .hs-map-tip .t-body{ font-size:12px; line-height:1.4; color:var(--ink-soft); }
+  @media (max-width:760px){
+    .hs-map-tip{ max-width:calc(100% - 16px); font-size:11px; }
+  }
+
+
+  #cardQuiz .hs-quiz-opt{
+    font-size:clamp(12px, 2.4vw, 13.5px);
+    padding:8px 10px;
+  }
+  #cardQuiz .hs-q, #quizQ{
+    font-size:clamp(13px, 2.8vw, 16px) !important;
+    line-height:1.35;
+  }
+
 </style>
 </head>
 <body>
-<div class="box">
-  <h1>Studere landing</h1>
-  <p>El prototipo self-contained v4.1 (hero GSAP, slot-into-mazo, tutor, demos) vive en el archivo local:</p>
-  <p><code>artifacts/studere-v4.html</code></p>
-  <p>Abrilo directo en el browser (necesita red para fonts + GSAP CDN). Docs: <code>frontend/docs/LANDING_PROTOTYPE.md</code></p>
+<div class="grain"></div>
+<div class="progress-bar" id="progressBar"></div>
+
+<nav id="nav">
+  <a href="#" class="wordmark">Studere<svg width="66" height="9" viewBox="0 0 70 10" aria-hidden="true"><path d="M2 7 Q 18 1, 35 6 T 68 4" stroke="#F2E6D4" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></a>
+  <div class="navlinks" id="navLinks">
+    <a href="#demo">Cómo funciona</a>
+    <a href="#planes">Planes</a>
+    <a href="#faq">Preguntas</a>
+    <a href="studere-auth.html?mode=login" class="btn btn-ghost">Iniciar sesión</a>
+    <a href="studere-auth.html" class="btn btn-primary">Empezar trial de 7 días</a>
+  </div>
+  <button type="button" class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+    <span></span><span></span>
+  </button>
+</nav>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="rec-dot"></span>AUDIO → APUNTES → REPASO</div>
+      <h1>Grabá la clase.<br>Nosotros hacemos <span class="mark">los apuntes</span>.</h1>
+      <p class="sub">Subí la grabación y en minutos tenés transcripción, resumen, flashcards, mapa mental y quiz — listos para repasar antes del parcial.</p>
+      <div class="cta-row">
+        <a href="studere-auth.html" class="btn btn-primary">Empezar trial de 7 días →</a>
+        <a href="#demo" class="btn btn-ghost">Ver cómo funciona</a>
+      </div>
+      <div class="proof">120+ HRS TRANSCRITAS · 5.000+ FLASHCARDS · 99% PRECISIÓN</div>
+    </div>
+    <div class="hero-stage" id="heroStage">
+      <div class="hs-tilt" id="heroTilt">
+        <div class="hs-shadow1"></div><div class="hs-shadow2"></div>
+        <div class="hs-stack" id="heroStack">
+          <!-- 1 Transcript -->
+          <div class="hs-card is-active" data-card="tx" id="cardTx">
+            <div class="hs-label"><span>CLASE GRABADA</span><span class="live">● LIVE</span></div>
+            <div class="hs-wave-wrap"><canvas id="heroWave" width="560" height="96" aria-hidden="true"></canvas></div>
+            <div class="hs-timer">Biología celular — 12:40</div>
+            <div class="hs-phase" id="hsPhase">TRANSCRIBIENDO…</div>
+            <div class="hs-transcript">
+              <div id="txStream"></div>
+              <span class="hs-clean-badge" id="heroCleanBadge">IA · FILLERS ELIMINADOS</span>
+            </div>
+          </div>
+          <!-- 2 Flashcard: flip then burn -->
+          <div class="hs-card" data-card="flash" id="cardFlash">
+            <div class="hs-label"><span>FLASHCARD</span><span style="color:var(--moss)">01 / 24</span></div>
+            <div class="hs-flash-body">
+              <div class="hs-flip-shell">
+                <div class="hs-flip-card" id="heroFlashFlip">
+                  <div class="hs-flip-face front">
+                    <div class="face-tag">FRENTE</div>
+                    <p class="hs-q" style="margin:0;">¿Qué función cumple la mitocondria?</p>
+                  </div>
+                  <div class="hs-flip-face back">
+                    <div class="face-tag">REVERSO</div>
+                    <p class="hs-a">Produce la energía (ATP) que la célula necesita para funcionar.</p>
+                    <div class="hs-flash-meta" style="margin-top:14px;">
+                      <span class="hs-chip on">BIOLOGÍA</span>
+                      <span class="hs-chip">12:40</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span class="hs-check" id="flashCheck">GIRANDO…</span>
+          </div>
+          <!-- toast lives outside cards so it stays visible while the card slots away -->
+          <div class="mazo-pop" id="mazoPop">+1 MAZO</div>
+          <!-- 3 Mind map richer -->
+          <div class="hs-card" data-card="map" id="cardMap">
+            <div class="hs-label"><span>MAPA MENTAL</span><span style="color:var(--moss)" id="mapStatus">ARMADO</span></div>
+            <div class="map-tip hs-map-tip" id="heroMapTip"><div class="t-min" id="heroMapTipMin"></div><div class="t-body" id="heroMapTipBody"></div></div>
+            <svg id="heroMapSvg" viewBox="-8 -4 356 184" width="100%" height="100%" style="flex:1 1 auto;overflow:visible;min-height:140px;">
+              <!-- edges -->
+              <path class="hm-edge" data-i="0" data-node="nucleo" d="M170 78 L80 36" stroke="#6B9B6E" stroke-width="1.5" fill="none"/>
+              <path class="hm-edge" data-i="1" data-node="mito" d="M170 78 L265 32" stroke="#E8B84A" stroke-width="1.5" fill="none"/>
+              <path class="hm-edge" data-i="2" data-node="membrana" d="M170 78 L170 138" stroke="rgba(242,230,212,0.3)" stroke-width="1.5" fill="none"/>
+              <path class="hm-edge" data-i="3" data-node="adn" d="M80 36 L42 72" stroke="rgba(242,230,212,0.25)" stroke-width="1.3" fill="none"/>
+              <path class="hm-edge" data-i="4" data-node="atp" d="M265 32 L302 70" stroke="rgba(242,230,212,0.25)" stroke-width="1.3" fill="none"/>
+              <path class="hm-edge" data-i="5" data-node="trans" d="M170 138 L120 148" stroke="rgba(242,230,212,0.22)" stroke-width="1.2" fill="none"/>
+              <!-- center -->
+              <circle class="hm-node" data-i="0" data-node="celula" cx="170" cy="78" r="26" fill="#2C261F" stroke="#F2E6D4" stroke-width="1.5"/>
+              <text class="hm-label" data-i="0" x="170" y="82" text-anchor="middle" font-family="Fraunces,serif" font-style="italic" font-size="11" fill="#F2E6D4">Célula</text>
+              <!-- primary -->
+              <circle class="hm-node" data-i="1" data-node="nucleo" cx="80" cy="36" r="18" fill="#2C261F" stroke="#6B9B6E" stroke-width="1.4"/>
+              <text class="hm-label" data-i="1" x="80" y="40" text-anchor="middle" font-family="Space Mono,monospace" font-size="8" fill="#A89B8C">Núcleo</text>
+              <circle class="hm-node" data-i="2" data-node="mito" cx="265" cy="32" r="20" fill="#2C261F" stroke="#E8B84A" stroke-width="1.4"/>
+              <text class="hm-label" data-i="2" x="265" y="36" text-anchor="middle" font-family="Space Mono,monospace" font-size="7.5" fill="#A89B8C">Mitocondria</text>
+              <circle class="hm-node" data-i="3" data-node="membrana" cx="170" cy="138" r="16" fill="#2C261F" stroke="rgba(242,230,212,0.35)" stroke-width="1.3"/>
+              <text class="hm-label" data-i="3" x="170" y="142" text-anchor="middle" font-family="Space Mono,monospace" font-size="7.5" fill="#A89B8C">Membrana</text>
+              <!-- secondary -->
+              <circle class="hm-node" data-i="4" data-node="adn" cx="42" cy="72" r="13" fill="#2C261F" stroke="rgba(242,230,212,0.28)" stroke-width="1.2"/>
+              <text class="hm-label" data-i="4" x="42" y="75" text-anchor="middle" font-family="Space Mono,monospace" font-size="6.5" fill="#A89B8C">ADN</text>
+              <circle class="hm-node" data-i="5" data-node="atp" cx="302" cy="70" r="13" fill="#2C261F" stroke="rgba(232,184,74,0.5)" stroke-width="1.2"/>
+              <text class="hm-label" data-i="5" x="302" y="73" text-anchor="middle" font-family="Space Mono,monospace" font-size="6.5" fill="#A89B8C">ATP</text>
+              <circle class="hm-node" data-i="6" data-node="trans" cx="120" cy="148" r="12" fill="#2C261F" stroke="rgba(242,230,212,0.25)" stroke-width="1.1"/>
+              <text class="hm-label" data-i="6" x="120" y="151" text-anchor="middle" font-family="Space Mono,monospace" font-size="6" fill="#A89B8C">Transporte</text>
+            </svg>
+            <span class="hs-check" id="mapCheck">7 NODOS · CONECTADOS</span>
+          </div>
+          <!-- 4 Quiz (typed live) -->
+          <div class="hs-card" data-card="quiz" id="cardQuiz">
+            <div class="hs-label"><span>QUIZ</span><span style="color:var(--moss)">PREGUNTA 1</span></div>
+            <p class="hs-q" id="quizQ" style="font-size:16px;min-height:2.4em;margin-bottom:10px;"></p>
+            <div id="quizOpts" style="display:flex;flex-direction:column;gap:7px;">
+              <div class="hs-quiz-opt" id="quizO0" data-ok="0"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label"></span></div>
+              <div class="hs-quiz-opt" id="quizO1" data-ok="1"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label"></span></div>
+              <div class="hs-quiz-opt" id="quizO2" data-ok="0"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label"></span></div>
+            </div>
+            <span class="hs-check" id="quizCheck" style="margin-top:14px;opacity:0;">LISTA PARA REPASAR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
+
+<div class="wrap">
+  <section id="demo" class="preview">
+    <div class="section-head"><div class="section-eyebrow">EN VIVO</div><h2>Una grabación, cinco materiales</h2></div>
+    <div class="tabbar" role="tablist">
+      <button class="tab active" data-tab="resumen">Resumen</button>
+      <button class="tab" data-tab="flash">Flashcards</button>
+      <button class="tab" data-tab="mapa">Mapa mental</button>
+      <button class="tab" data-tab="quiz">Quiz</button>
+      <button class="tab" data-tab="chat">Tutor</button>
+    </div>
+    <div class="panel-frame" id="panelFrame">
+
+      <div class="panel show" data-panel="resumen" style="display:block;">
+        <div class="sum-grid">
+          <div>
+            <p class="sum-title">Biología celular — resumen</p>
+            <div class="sum-line" style="width:94%"></div><div class="sum-line" style="width:87%"></div><div class="sum-line" style="width:72%"></div>
+            <ul class="sum-bullets" id="sumBullets">
+              <li>La <span class="mark" style="white-space:normal;">mitocondria</span> produce la energía (ATP) de la célula.</li>
+              <li>El núcleo guarda el ADN y controla la actividad celular.</li>
+              <li>La membrana regula qué entra y qué sale.</li>
+            </ul>
+          </div>
+          <div class="sum-margin">
+            <span class="stamp">CLAVE</span>
+            <div>12:40<br>mitocondria</div>
+            <div>18:02<br>membrana</div>
+            <div style="color:var(--moss)">3 puntos<br>extraídos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="flash">
+        <div class="demo-cards">
+          <div class="demo-stage" id="flashStage">
+            <div class="demo-behind2"></div>
+            <div class="demo-behind"></div>
+            <div class="demo-flip-inner" id="flashInner">
+              <div class="demo-face front">
+                <div class="face-tag">FRENTE · FICHA 3</div>
+                <p style="font-family:'Fraunces',serif; font-size:17px; margin:0; line-height:1.25;">¿Qué es la mitocondria?</p>
+              </div>
+              <div class="demo-face back">
+                <div class="face-tag">REVERSO</div>
+                <p style="font-size:14px; margin:0; color:var(--ink-soft); line-height:1.45;">La organela que produce la energía (ATP) que la célula necesita.</p>
+              </div>
+            </div>
+          </div>
+          <div class="demo-meta">
+            <div>
+              <div class="big">3<span style="font-size:16px;color:var(--ink-soft)"> / 24</span></div>
+              <div class="sub">EN ESTE MAZO</div>
+              <div class="demo-progress"><span></span></div>
+            </div>
+            <div class="demo-hint accent">TOCÁ LA FICHA</div>
+            <div class="demo-hint">Repetición espaciada · Biología</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span class="hs-chip on">NUEVA</span>
+              <span class="hs-chip">DIFÍCIL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="mapa">
+        <div class="mapa-wrap" id="mapaWrap">
+        <div class="map-tip" id="mapTip"><div class="t-min" id="mapTipMin"></div><div class="t-body" id="mapTipBody"></div></div>
+        <svg viewBox="0 0 460 210" width="100%" height="210" style="overflow:visible;" id="demoMapSvg">
+          <path class="map-edge" data-node="nucleo" d="M230 95 L115 48" stroke="var(--border-strong)" stroke-width="1.6"/>
+          <path class="map-edge" data-node="mito" d="M230 95 L350 42" stroke="var(--border-strong)" stroke-width="1.6"/>
+          <path class="map-edge" data-node="membrana" d="M230 95 L230 170" stroke="var(--border-strong)" stroke-width="1.6"/>
+          <path class="map-edge" data-node="adn" d="M115 48 L55 85" stroke="var(--border-strong)" stroke-width="1.3"/>
+          <path class="map-edge" data-node="atp" d="M350 42 L410 80" stroke="var(--border-strong)" stroke-width="1.3"/>
+          <path class="map-edge" data-node="trans" d="M230 170 L160 195" stroke="var(--border-strong)" stroke-width="1.2"/>
+          <g><circle cx="230" cy="95" r="30" fill="var(--card)" stroke="#F2E6D4" stroke-width="1.6"/><text x="230" y="99" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="12" fill="#F2E6D4">Célula</text></g>
+          <g class="map-node" data-node="nucleo"><circle cx="115" cy="48" r="22" fill="var(--card)" stroke="#6B9B6E" stroke-width="1.4"/><text x="115" y="52" text-anchor="middle" font-family="'Space Mono', monospace" font-size="9" fill="var(--ink-soft)">Núcleo</text></g>
+          <g class="map-node" data-node="mito"><circle cx="350" cy="42" r="22" fill="var(--card)" stroke="#E8B84A" stroke-width="1.4"/><text x="350" y="46" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" fill="var(--ink-soft)">Mitocondria</text></g>
+          <g class="map-node" data-node="membrana"><circle cx="230" cy="170" r="20" fill="var(--card)" stroke="var(--border-strong)" stroke-width="1.3"/><text x="230" y="174" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" fill="var(--ink-soft)">Membrana</text></g>
+          <g class="map-node" data-node="adn"><circle cx="55" cy="85" r="16" fill="var(--card)" stroke="var(--border-strong)" stroke-width="1.2"/><text x="55" y="88" text-anchor="middle" font-family="'Space Mono', monospace" font-size="7.5" fill="var(--ink-soft)">ADN</text></g>
+          <g class="map-node" data-node="atp"><circle cx="410" cy="80" r="16" fill="var(--card)" stroke="rgba(232,184,74,.5)" stroke-width="1.2"/><text x="410" y="83" text-anchor="middle" font-family="'Space Mono', monospace" font-size="7.5" fill="var(--ink-soft)">ATP</text></g>
+          <g class="map-node" data-node="trans"><circle cx="160" cy="195" r="14" fill="var(--card)" stroke="var(--border-strong)" stroke-width="1.1"/><text x="160" y="198" text-anchor="middle" font-family="'Space Mono', monospace" font-size="6.5" fill="var(--ink-soft)">Transporte</text></g>
+        </svg>
+        </div>
+        <div class="demo-hint">PASÁ EL MOUSE · MINUTO DE LA CLASE</div>
+      </div>
+
+      <div class="panel" data-panel="quiz" id="quizPanel">
+        <p class="quiz-q">¿Cuál organela produce la energía de la célula?</p>
+        <div class="quiz-opt" data-correct="0"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label">Núcleo</span></div>
+        <div class="quiz-opt" data-correct="1"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label">Mitocondria</span></div>
+        <div class="quiz-opt" data-correct="0"><span class="quiz-dot"><span class="quiz-mark"></span></span><span class="quiz-label">Ribosoma</span></div>
+        <div class="quiz-hint" id="quizHint">78% DE LA CLASE ACERTÓ ESTA PREGUNTA</div>
+      </div>
+
+      <div class="panel" data-panel="chat">
+        <div id="chatBox">
+          <div class="bubble user" id="chatQWrap" style="opacity:0">
+            <div id="chatQ"></div>
+          </div>
+          <div class="bubble stude" id="chatAWrap" style="opacity:0">
+            <span class="stude-mark-sm">S</span>
+            <div style="flex:1;min-width:0;">
+              <span id="chatA"></span>
+              <div class="chat-source" id="chatSource"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section>
+    <div class="section-head"><div class="section-eyebrow">LO QUE LE PODÉS SUBIR</div><h2>Grabación, video, apuntes o una foto del pizarrón</h2></div>
+    <div class="inputs">
+      <div class="ichip"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="9" y="3" width="8" height="13" rx="4" stroke="#F2E6D4" stroke-width="1.6"/><path d="M5 13a8 8 0 0 0 16 0M13 21v3M9 24h8" stroke="#F2E6D4" stroke-width="1.6" stroke-linecap="round"/></svg><h4>Audio de la clase</h4><p>Grabaciones largas: se transcribe por partes, sin trabarse.</p></div>
+      <div class="ichip"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="2" y="5" width="22" height="16" rx="3" stroke="#F2E6D4" stroke-width="1.6"/><path d="M11 10l6 3.5-6 3.5v-7z" stroke="#F2E6D4" stroke-width="1.6" stroke-linejoin="round"/></svg><h4>Grabación de pantalla</h4><p>Video de la clase o de tu propia sesión de estudio.</p></div>
+      <div class="ichip"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M5 2h12l4 4v18H5V2z" stroke="#F2E6D4" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 2v4h4M9 13h8M9 17h8M9 9h4" stroke="#F2E6D4" stroke-width="1.6" stroke-linecap="round"/></svg><h4>Apuntes o transcript</h4><p>Pegá texto o subí un .txt / .md, sin pasos extra.</p></div>
+      <div class="ichip"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M3 8h4l2-3h8l2 3h4v14H3V8z" stroke="#F2E6D4" stroke-width="1.6" stroke-linejoin="round"/><circle cx="13" cy="15" r="4" stroke="#F2E6D4" stroke-width="1.6"/></svg><h4>Foto del pizarrón</h4><p>O de un ejercicio resuelto — Studere te lo corrige.</p></div>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <div class="section-head">
+    <div class="section-eyebrow">ANTES → DESPUÉS</div>
+    <h2>De la grabación al material listo</h2>
+  </div>
+  <div class="compare">
+    <div class="compare-card is-before">
+      <div class="washi"></div>
+      <div class="compare-tag">Sin Studere</div>
+      <h3>Apuntes a medias</h3>
+      <ul class="compare-list">
+        <li>Grabaciones que nunca volvés a escuchar</li>
+        <li>Notas sueltas en el celular</li>
+        <li>Repaso la noche anterior, a ciegas</li>
+        <li>No sabés qué conecta con qué</li>
+      </ul>
+    </div>
+    <div class="compare-mid">→</div>
+    <div class="compare-card is-after">
+      <div class="washi tape-blue"></div>
+      <div class="compare-tag">Con Studere</div>
+      <h3>Kit de estudio</h3>
+      <ul class="compare-list">
+        <li>Transcripción limpia de la clase</li>
+        <li>Flashcards y quiz listos</li>
+        <li>Mapa mental con los vínculos</li>
+        <li>Tutor que cita el minuto exacto</li>
+      </ul>
+    </div>
+  </div>
+  <div class="margin-notes">
+    <div class="mnote"><strong>AL MARGEN</strong>Subís audio, video, texto o una foto del pizarrón. Una sola pasada.</div>
+    <div class="mnote"><strong>AL MARGEN</strong>Todo sale de tu clase — no de un banco genérico de preguntas.</div>
+    <div class="mnote"><strong>AL MARGEN</strong>Pensado para finales, no para scrollear tutoriales.</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="story">
+    <div class="section-head"><div class="section-eyebrow">CÓMO SE ARMA</div><h2>Una clase, cinco materiales de estudio</h2></div>
+    <div class="tools-stack" id="toolsStack">
+      <div class="tools-spine" id="toolsSpine" aria-hidden="true"></div>
+      <div class="tool-row"><div class="tool-num"><span>01</span></div><div class="tool-card"><div class="washi"></div><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div><span class="ftag">TRANSCRIPCIÓN</span><h3>Texto completo, en minutos</h3><p>Subí audio o video y obtené la transcripción completa — limpia, sin el ruido de la clase.</p></div><div style="font-family:Space Mono,monospace;font-size:20px;color:var(--moss);opacity:.5;line-height:1;">≈</div></div></div></div>
+      <div class="tool-row"><div class="tool-num"><span>02</span></div><div class="tool-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div><span class="ftag">RESUMEN</span><h3>Lo importante, ordenado</h3><p>Un resumen claro de la clase, no un muro de texto para releer la noche del parcial.</p></div><div style="font-family:Space Mono,monospace;font-size:20px;color:var(--marker);opacity:.55;line-height:1;">¶</div></div></div></div>
+      <div class="tool-row"><div class="tool-num"><span>03</span></div><div class="tool-card"><div class="washi alt"></div><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div><span class="ftag">FLASHCARDS</span><h3>Se arman solas</h3><p>Con repetición espaciada, para que no se te olviden justo cuando más las necesitás.</p></div><div style="font-family:Space Mono,monospace;font-size:20px;color:var(--ink-soft);opacity:.55;line-height:1;">▦</div></div></div></div>
+      <div class="tool-row"><div class="tool-num"><span>04</span></div><div class="tool-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div><span class="ftag">MAPA MENTAL</span><h3>Los temas, conectados</h3><p>Visualizá cómo se relacionan los conceptos, no una lista suelta de apuntes.</p></div><div style="font-family:Space Mono,monospace;font-size:20px;color:var(--moss);opacity:.5;line-height:1;">◉</div></div></div></div>
+      <div class="tool-row"><div class="tool-num"><span>05</span></div><div class="tool-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div><span class="ftag">TUTOR IA</span><h3>Preguntale a Stude</h3><p>Chat con contexto de tu clase para lo que no te quedó claro en el momento.</p></div><div style="font-family:Space Mono,monospace;font-size:20px;color:var(--marker);opacity:.55;line-height:1;">✦</div></div></div></div>
+    </div>
+  </section>
+</div>
+
+<section class="stats-strip" id="statsStrip">
+  <div class="stat-p"><span class="n" data-count="120" data-suffix="+">0</span><span class="l">HORAS TRANSCRITAS</span></div>
+  <div class="stat-p"><span class="n" data-count="5000" data-suffix="+" data-format="dot">0</span><span class="l">FLASHCARDS GENERADAS</span></div>
+  <div class="stat-p"><span class="n" data-count="99" data-suffix="%">0</span><span class="l">PRECISIÓN</span></div>
+  <div class="stat-p"><span class="n" data-count="5" data-pad="2">0</span><span class="l">HERRAMIENTAS EN UNA</span></div>
+</section>
+
+<div class="wrap">
+  <div class="notes">
+    <div class="note"><p>"Studere me salvó el final. Cargué la grabación y en 5 minutos tenía flashcards y resumen."</p><div class="note-by">— Lucía M., Medicina</div></div>
+    <div class="note"><p>"El mapa mental conectó temas que ni sabía que estaban relacionados. Una masa."</p><div class="note-by">— Tomás G., Ing. en Sistemas</div></div>
+  </div>
+</div>
+
+
+<div class="wrap" id="planes">
+  <div class="section-head">
+    <div class="section-eyebrow">PLANES</div>
+    <h2>Una suscripción. Todo el kit.</h2>
+  </div>
+  <div class="pricing">
+    <div class="price-card is-featured">
+      <div class="washi" aria-hidden="true"></div>
+      <div class="price-tag">PRO</div>
+      <h3 class="price-name">Studere</h3>
+      <div class="price-amt"><span class="price-num">$12</span><span class="price-per">/ mes</span></div>
+      <p class="price-lead">Trial de 7 días. Después, un solo plan con todo lo que necesitás para estudiar de verdad.</p>
+      <ul class="price-list">
+        <li>Audio, video, apuntes o foto del pizarrón</li>
+        <li>Transcripción limpia + resumen</li>
+        <li>Flashcards, mapa mental y quiz</li>
+        <li>Tutor con cita al minuto de la clase</li>
+        <li>Grabaciones y material generoso por clase</li>
+      </ul>
+      <a href="studere-auth.html" class="btn btn-primary price-cta">Empezar trial de 7 días →</a>
+      <p class="price-fine">Cancelás cuando quieras. Sin letra chica rara.</p>
+    </div>
+    <div class="price-side">
+      <div class="price-note-card">
+        <strong>¿Por qué de pago?</strong>
+        <p>Modelos, storage y transcripción cuestan. Preferimos un precio claro antes que un “gratis” que después te limita.</p>
+      </div>
+      <div class="price-note-card">
+        <strong>Tu material es tuyo</strong>
+        <p>No usamos tus clases para entrenar modelos públicos. Se procesan para armarte el kit y listo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="section-head">
+    <div class="section-eyebrow">PREGUNTAS</div>
+    <h2>Índice rápido</h2>
+  </div>
+  <div class="faq" id="faq">
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false"><span class="faq-num">01</span><span class="label">¿Es gratis?</span><span class="chev">+</span></button>
+      <div class="faq-a">No. Studere es de pago, con trial de 7 días para probarlo con tu propia clase. Cancelás cuando quieras.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false"><span class="faq-num">02</span><span class="label">¿Qué puedo subir?</span><span class="chev">+</span></button>
+      <div class="faq-a">Audio de la clase, grabación de pantalla, apuntes o transcript, y fotos del pizarrón o de un ejercicio.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false"><span class="faq-num">03</span><span class="label">¿Mis clases se usan para entrenar modelos?</span><span class="chev">+</span></button>
+      <div class="faq-a">No. Tu material es tuyo. Lo procesamos para generarte el kit de estudio; no lo usamos para entrenar modelos públicos.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button" aria-expanded="false"><span class="faq-num">04</span><span class="label">¿Sirve para cualquier materia?</span><span class="chev">+</span></button>
+      <div class="faq-a">Sí. Medicina, derecho, ingeniería, humanas — el flujo es el mismo: de tu clase a resumen, flashcards, mapa, quiz y tutor.</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="stub">
+    <div class="washi-corner" aria-hidden="true"></div>
+    <h2 style="font-family:'Fraunces',serif; font-weight:500; font-size:clamp(26px,3vw,34px); letter-spacing:-0.02em;">Empezá a estudiar distinto</h2>
+    <p>Probá Studere con tu próxima clase. Cancelás cuando quieras.</p>
+    <div class="cta-row"><a href="studere-auth.html" class="btn btn-primary">Empezar trial de 7 días →</a><a href="studere-auth.html?mode=login" class="btn btn-ghost">Ya tengo cuenta</a></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p class="footer-tag">Hecho para estudiar de verdad</p>
+  <div class="footer-line-wrap">
+    <svg class="footer-wave" viewBox="0 0 1200 18" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 9 Q 75 2, 150 9 T 300 9 T 450 9 T 600 9 T 750 9 T 900 9 T 1050 9 T 1200 9"/>
+    </svg>
+    <span class="wordmark footer-wm">Studere</span>
+  </div>
+  <p class="footer-legal"><a href="studere-legal.html#privacidad">Privacidad</a> · <a href="studere-legal.html#terminos">Términos</a> · <a href="studere-auth.html">Trial</a></p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isMobile = window.innerWidth < 760;
+
+  
+  /* ---------- mobile nav ---------- */
+  (function(){
+    var nav = document.getElementById('nav');
+    var btn = document.getElementById('navToggle');
+    if(!nav || !btn) return;
+    btn.addEventListener('click', function(){
+      var open = nav.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    });
+    nav.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        nav.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+
+/* ---------- SCROLL REVEALS ---------- */
+  try {
+    /* --- tools: IntersectionObserver dedicado (uno por uno) --- */
+    (function(){
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.tools-stack .tool-row'));
+      if(!rows.length) return;
+
+      function show(row, i){
+        if(row.classList.contains('in-view')) return;
+        setTimeout(function(){
+          row.classList.add('in-view');
+        }, i * 120);
+      }
+
+      if(typeof IntersectionObserver === 'undefined'){
+        rows.forEach(function(row, i){ show(row, i); });
+        return;
+      }
+
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(!entry.isIntersecting) return;
+          var row = entry.target;
+          var i = rows.indexOf(row);
+          io.unobserve(row);
+          show(row, i < 0 ? 0 : i);
+        });
+      }, {
+        threshold: 0.2,
+        rootMargin: '0px 0px -10% 0px'
+      });
+
+      rows.forEach(function(row){ io.observe(row); });
+
+      /* fallback scroll: si el IO no dispara (algunos browsers) */
+      function scrollFallback(){
+        var vh = window.innerHeight || 800;
+        rows.forEach(function(row, i){
+          if(row.classList.contains('in-view')) return;
+          var r = row.getBoundingClientRect();
+          if(r.top < vh * 0.8 && r.bottom > 60){
+            show(row, i);
+          }
+        });
+      }
+      window.addEventListener('scroll', scrollFallback, { passive: true });
+      setTimeout(scrollFallback, 200);
+    })();
+
+    /* --- resto: chips, notes, compare, faq --- */
+    (function(){
+      var nodes = Array.prototype.slice.call(
+        document.querySelectorAll('.ichip, .note, .compare-card, .mnote, .faq-item')
+      );
+      if(!nodes.length) return;
+
+      function show(el, delay){
+        if(el.classList.contains('in-view')) return;
+        setTimeout(function(){ el.classList.add('in-view'); }, delay || 0);
+      }
+
+      if(typeof IntersectionObserver !== 'undefined'){
+        var io = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry, i){
+            if(!entry.isIntersecting) return;
+            io.unobserve(entry.target);
+            show(entry.target, i * 60);
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+        nodes.forEach(function(el){ io.observe(el); });
+      }
+
+      function scrollFallback(){
+        var vh = window.innerHeight || 800;
+        nodes.forEach(function(el, i){
+          if(el.classList.contains('in-view')) return;
+          var r = el.getBoundingClientRect();
+          if(r.top < vh * 0.85 && r.bottom > 40){
+            show(el, (i % 4) * 50);
+          }
+        });
+      }
+      window.addEventListener('scroll', scrollFallback, { passive: true });
+      setTimeout(scrollFallback, 200);
+    })();
+  } catch (err) { console.warn('reveal init', err); }
+
+  /* ---------- stats count-up ---------- */
+  (function initCountUp(){
+    function formatNum(n, el){
+      var s = String(Math.round(n));
+      if(el.getAttribute('data-pad')){
+        var p = parseInt(el.getAttribute('data-pad'), 10);
+        while(s.length < p) s = '0' + s;
+      }
+      if(el.getAttribute('data-format') === 'dot'){
+        s = s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+      return s + (el.getAttribute('data-suffix') || '');
+    }
+    function animate(el){
+      var target = parseFloat(el.getAttribute('data-count'));
+      if(isNaN(target)) return;
+      var parent = el.closest('.stat-p');
+      if(parent) parent.classList.add('is-ticking');
+      var start = 0;
+      var dur = 1100;
+      var t0 = null;
+      function frame(t){
+        if(!t0) t0 = t;
+        var p = Math.min(1, (t - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = formatNum(start + (target - start) * eased, el);
+        if(p < 1) requestAnimationFrame(frame);
+        else {
+          el.textContent = formatNum(target, el);
+          if(parent) parent.classList.remove('is-ticking');
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    var nums = document.querySelectorAll('.stat-p .n[data-count]');
+    if(!nums.length) return;
+    var once = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(!e.isIntersecting) return;
+        e.target.querySelectorAll('.n[data-count]').forEach(animate);
+        once.unobserve(e.target);
+      });
+    }, { threshold: 0.35 });
+    var strip = document.getElementById('statsStrip');
+    if(strip) once.observe(strip);
+  })();
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.faq-item');
+      var open = item.classList.contains('is-open');
+      document.querySelectorAll('.faq-item.is-open').forEach(function(x){
+        x.classList.remove('is-open');
+        var b = x.querySelector('.faq-q');
+        if(b) b.setAttribute('aria-expanded', 'false');
+      });
+      if(!open){
+        item.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ---------- haptic feedback (mobile) ---------- */
+  function haptic(kind){
+    try{
+      if(!('vibrate' in navigator)) return;
+      // only when coarse pointer / touch likely
+      if(window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+      if(kind === 'light') navigator.vibrate(10);
+      else if(kind === 'ok') navigator.vibrate([12, 30, 18]);
+      else if(kind === 'err') navigator.vibrate([30, 40, 30]);
+      else if(kind === 'press') navigator.vibrate(8);
+      else navigator.vibrate(12);
+    }catch(e){}
+  }
+
+
+
+  /* ---------- progress bar + nav solidify ---------- */
+  var progressBar = document.getElementById('progressBar');
+  var nav = document.getElementById('nav');
+  function updateChrome(){
+    if(progressBar){
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      progressBar.style.transform = 'scaleX(' + p + ')';
+    }
+    if(nav) nav.classList.toggle('solid', window.scrollY > 40);
+  }
+
+  /* ---------- hero LIVE: transcript → flash → map → quiz (GSAP falls) ---------- */
+  var heroStage = document.getElementById('heroStage');
+  var heroTilt = document.getElementById('heroTilt');
+  var heroBadge = document.getElementById('heroCleanBadge');
+  var hsPhase = document.getElementById('hsPhase');
+  var txStream = document.getElementById('txStream');
+  var cardTx = document.getElementById('cardTx');
+  var cardFlash = document.getElementById('cardFlash');
+  var cardMap = document.getElementById('cardMap');
+  var cardQuiz = document.getElementById('cardQuiz');
+  var cards = [cardTx, cardFlash, cardMap, cardQuiz].filter(Boolean);
+  var heroBusy = false;
+  var waveAmp = 1;
+  var heroTimers = [];
+  var hasGsap = typeof gsap !== 'undefined';
+  var heroPaused = false;
+  var heroWaveStopped = false;
+  var waveStartFn = null;
+
+  function later(fn, ms){
+    if(heroPaused) return null;
+    var id = setTimeout(fn, ms);
+    heroTimers.push(id);
+    return id;
+  }
+  function clearHeroTimers(){
+    heroTimers.forEach(clearTimeout);
+    heroTimers = [];
+  }
+
+  /* Waveform */
+  (function initWave(){
+    var canvas = document.getElementById('heroWave');
+    if(!canvas || typeof canvas.getContext !== 'function') return;
+    var ctx = canvas.getContext('2d');
+    if(!ctx) return;
+    var bars = 40;
+    var levels = new Array(bars).fill(0.3);
+    function fit(){
+      var wrap = canvas.parentElement;
+      var cssW = Math.max(200, wrap.clientWidth || 400);
+      var cssH = Math.max(40, wrap.clientHeight || 48);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return {w: cssW, h: cssH};
+    }
+    var size = fit();
+    window.addEventListener('resize', function(){ size = fit(); });
+    var waveLoopId = null;
+    function tick(t){
+      waveLoopId = null;
+      if(heroWaveStopped) return; // paused: halt the rAF loop
+      var w = size.w, h = size.h;
+      ctx.clearRect(0, 0, w, h);
+      var bw = w / bars;
+      for(var i = 0; i < bars; i++){
+        var target = 0.12 + Math.abs(Math.sin(t * 0.004 + i * 0.55)) * 0.55 * waveAmp
+                   + Math.abs(Math.sin(t * 0.007 + i * 0.31)) * 0.3 * waveAmp
+                   + (waveAmp > 0.4 ? Math.random() * 0.12 : 0);
+        levels[i] += (target - levels[i]) * 0.35;
+        var bh = Math.max(3, levels[i] * h * 0.92);
+        ctx.fillStyle = 'rgba(107,155,110,' + (0.35 + waveAmp * 0.55) + ')';
+        ctx.fillRect(i * bw + 1, (h - bh) / 2, Math.max(2, bw - 2.5), bh);
+      }
+      waveLoopId = requestAnimationFrame(tick);
+    }
+    function startWave(){
+      if(waveLoopId) return;
+      heroWaveStopped = false;
+      waveLoopId = requestAnimationFrame(tick);
+    }
+    waveStartFn = startWave;
+    startWave();
+  })();
+
+  var HERO_PACKS = [
+    {
+      id: 'mito',
+      bullets: [
+        'La <span class="mark" style="white-space:normal;">mitocondria</span> produce la energía (ATP) de la célula.',
+        'El <span class="mark" style="white-space:normal;">núcleo</span> guarda el ADN y controla la actividad celular.',
+        'La <span class="mark" style="white-space:normal;">membrana</span> regula qué entra y qué sale.'
+      ],
+      subject: 'Biología celular',
+      time: '12:40',
+      chip: 'BIOLOGÍA',
+      mapLabels: {
+        celula: 'Célula', nucleo: 'Núcleo', mito: 'Mitocondria', membrana: 'Membrana',
+        adn: 'ADN', atp: 'ATP', trans: 'Transporte'
+      },
+      mapTips: {
+        celula:   { min: '01:20', body: 'Unidad básica de la vida — punto de partida del mapa.' },
+        nucleo:   { min: '08:15', body: 'Guarda el ADN y controla la actividad celular.' },
+        mito:     { min: '12:40', body: 'Produce ATP — la energía de la célula.' },
+        membrana: { min: '18:02', body: 'Regula qué entra y qué sale.' },
+        adn:      { min: '09:10', body: 'Material genético dentro del núcleo.' },
+        atp:      { min: '13:05', body: 'Moneda de energía que genera la mitocondria.' },
+        trans:    { min: '18:40', body: 'Transporte activo a través de la membrana.' }
+      },
+      dirty:
+        'Bueno, <span class="f">eh</span>, hoy vamos a ver la <span class="kw">mitocondria</span>.<br>' +
+        'Es, <span class="f">este</span>, la organela que <span class="kw">produce ATP</span>, <span class="f">o sea</span> energía.<br>' +
+        '<span class="f">Eh, digamos, </span>el <span class="kw">núcleo</span> guarda el ADN<span class="f">, ¿no?</span><br>' +
+        '<span class="f">O sea, como que </span>la <span class="kw">membrana</span> controla qué entra.',
+      clean:
+        'Hoy vamos a ver la <span class="kw">mitocondria</span>.<br>' +
+        'Es la organela que <span class="kw">produce ATP</span> — energía.<br>' +
+        'El <span class="kw">núcleo</span> guarda el ADN.<br>' +
+        'La <span class="kw">membrana</span> controla qué entra.',
+      flashQ: '¿Qué función cumple la mitocondria?',
+      flashA: 'Produce la energía (ATP) que la célula necesita para funcionar.',
+      quizQ: '¿Cuál organela produce la energía de la célula?',
+      quizOpts: [
+        { t: 'Núcleo', ok: false },
+        { t: 'Mitocondria', ok: true },
+        { t: 'Ribosoma', ok: false }
+      ]
+    },
+    {
+      id: 'adn',
+      bullets: [
+        'El <span class="mark" style="white-space:normal;">ADN</span> guarda la información genética.',
+        'La <span class="mark" style="white-space:normal;">transcripción</span> copia ADN a ARN mensajero.',
+        'Los <span class="mark" style="white-space:normal;">cromosomas</span> organizan el material en el núcleo.'
+      ],
+      subject: 'Genética',
+      time: '08:15',
+      chip: 'GENÉTICA',
+      mapLabels: {
+        celula: 'Genoma', nucleo: 'Núcleo', mito: 'ARN', membrana: 'Cromatina',
+        adn: 'ADN', atp: 'Gen', trans: 'Mutación'
+      },
+      mapTips: {
+        celula:   { min: '02:00', body: 'Conjunto de información genética de la célula.' },
+        nucleo:   { min: '08:15', body: 'Donde se guarda y organiza el ADN.' },
+        mito:     { min: '11:20', body: 'Mensajero que sale del núcleo hacia el ribosoma.' },
+        membrana: { min: '09:00', body: 'ADN empaquetado con proteínas en el núcleo.' },
+        adn:      { min: '08:40', body: 'Material genético que se copia y se expresa.' },
+        atp:      { min: '14:10', body: 'Unidad de información que codifica rasgos.' },
+        trans:    { min: '16:30', body: 'Cambio en la secuencia que puede alterar la función.' }
+      },
+      dirty:
+        'A ver, <span class="f">este</span>, el <span class="kw">ADN</span> está en el <span class="kw">núcleo</span>, <span class="f">¿no?</span><br>' +
+        'Bueno, <span class="f">eh</span>, la <span class="kw">transcripción</span> copia el mensaje a ARN.<br>' +
+        '<span class="f">O sea, </span>después viene la <span class="kw">traducción</span> en el ribosoma<span class="f">, digamos</span>.<br>' +
+        'Y, <span class="f">como que</span>, las <span class="kw">mutaciones</span> cambian la secuencia.',
+      clean:
+        'El <span class="kw">ADN</span> está en el <span class="kw">núcleo</span>.<br>' +
+        'La <span class="kw">transcripción</span> copia el mensaje a ARN.<br>' +
+        'La <span class="kw">traducción</span> ocurre en el ribosoma.<br>' +
+        'Las <span class="kw">mutaciones</span> cambian la secuencia.',
+      flashQ: '¿Dónde se guarda el material genético en la célula eucariota?',
+      flashA: 'En el núcleo, organizado como cromatina / cromosomas.',
+      quizQ: '¿Qué proceso copia el ADN a ARN mensajero?',
+      quizOpts: [
+        { t: 'Traducción', ok: false },
+        { t: 'Replicación', ok: false },
+        { t: 'Transcripción', ok: true }
+      ]
+    },
+    {
+      id: 'sinapsis',
+      bullets: [
+        'La <span class="mark" style="white-space:normal;">sinapsis</span> es el contacto entre neuronas.',
+        'Los <span class="mark" style="white-space:normal;">neurotransmisores</span> cruzan el espacio sináptico.',
+        'El <span class="mark" style="white-space:normal;">axón</span> conduce el potencial de acción.'
+      ],
+      subject: 'Neurociencia',
+      time: '21:05',
+      chip: 'NEURO',
+      mapLabels: {
+        celula: 'Neurona', nucleo: 'Dendrita', mito: 'Axón', membrana: 'Sinapsis',
+        adn: 'Vesícula', atp: 'NT', trans: 'Receptor'
+      },
+      mapTips: {
+        celula:   { min: '03:10', body: 'Célula del sistema nervioso que transmite señales.' },
+        nucleo:   { min: '05:40', body: 'Ramificaciones que reciben la señal de otras neuronas.' },
+        mito:     { min: '12:00', body: 'Prolonga el potencial de acción hacia la sinapsis.' },
+        membrana: { min: '18:20', body: 'Contacto donde se transmite la señal química.' },
+        adn:      { min: '19:00', body: 'Libera neurotransmisores al espacio sináptico.' },
+        atp:      { min: '19:15', body: 'Neurotransmisor — mensajero químico entre neuronas.' },
+        trans:    { min: '20:05', body: 'Recibe el neurotransmisor en la neurona postsináptica.' }
+      },
+      dirty:
+        'Entonces, <span class="f">eh</span>, la <span class="kw">sinapsis</span> es el contacto entre neuronas.<br>' +
+        'El, <span class="f">este</span>, <span class="kw">neurotransmisor</span> cruza el espacio sináptico<span class="f">, ¿no?</span><br>' +
+        '<span class="f">O sea, </span>el potencial de acción llega al <span class="kw">axón</span>.<br>' +
+        'Y, <span class="f">digamos,</span> la dendrita recibe la señal.',
+      clean:
+        'La <span class="kw">sinapsis</span> es el contacto entre neuronas.<br>' +
+        'El <span class="kw">neurotransmisor</span> cruza el espacio sináptico.<br>' +
+        'El potencial de acción llega al <span class="kw">axón</span>.<br>' +
+        'La dendrita recibe la señal.',
+      flashQ: '¿Qué atraviesa el espacio sináptico entre neuronas?',
+      flashA: 'Neurotransmisores liberados por la neurona presináptica.',
+      quizQ: '¿Qué estructura conduce el potencial de acción hacia la sinapsis?',
+      quizOpts: [
+        { t: 'Dendrita', ok: false },
+        { t: 'Axón', ok: true },
+        { t: 'Mielina sola', ok: false }
+      ]
+    },
+    {
+      id: 'foto',
+      bullets: [
+        'La <span class="mark" style="white-space:normal;">fotosíntesis</span> ocurre en el cloroplasto.',
+        'La <span class="mark" style="white-space:normal;">luz</span> dispara las reacciones luminosas.',
+        'Se libera <span class="mark" style="white-space:normal;">oxígeno</span> como subproducto.'
+      ],
+      subject: 'Fisiología vegetal',
+      time: '15:30',
+      chip: 'BOTÁNICA',
+      mapLabels: {
+        celula: 'Hoja', nucleo: 'Cloroplasto', mito: 'Luz', membrana: 'Estoma',
+        adn: 'CO₂', atp: 'O₂', trans: 'Glucosa'
+      },
+      mapTips: {
+        celula:   { min: '02:30', body: 'Órgano donde ocurre gran parte de la fotosíntesis.' },
+        nucleo:   { min: '06:10', body: 'Organela con clorofila que captura la luz.' },
+        mito:     { min: '07:00', body: 'Energía que dispara las reacciones luminosas.' },
+        membrana: { min: '14:20', body: 'Poro por donde entra el CO₂ y sale el oxígeno.' },
+        adn:      { min: '14:40', body: 'Reactivo gaseoso de la fotosíntesis.' },
+        atp:      { min: '15:10', body: 'Subproducto liberado a la atmósfera.' },
+        trans:    { min: '16:00', body: 'Azúcar producido y usado como energía de la planta.' }
+      },
+      dirty:
+        'Bueno, <span class="f">eh</span>, la <span class="kw">fotosíntesis</span> pasa en el <span class="kw">cloroplasto</span>.<br>' +
+        'La, <span class="f">este</span>, luz se captura en la <span class="kw">clorofila</span><span class="f">, o sea</span>.<br>' +
+        '<span class="f">Digamos que </span>se produce <span class="kw">glucosa</span> y oxígeno.<br>' +
+        'Y, <span class="f">como que</span>, el CO₂ entra por los <span class="kw">estomas</span>.',
+      clean:
+        'La <span class="kw">fotosíntesis</span> ocurre en el <span class="kw">cloroplasto</span>.<br>' +
+        'La luz se captura en la <span class="kw">clorofila</span>.<br>' +
+        'Se produce <span class="kw">glucosa</span> y oxígeno.<br>' +
+        'El CO₂ entra por los <span class="kw">estomas</span>.',
+      flashQ: '¿En qué organela ocurre la fotosíntesis?',
+      flashA: 'En el cloroplasto, usando clorofila para captar la luz.',
+      quizQ: '¿Qué gas libera la fotosíntesis como subproducto?',
+      quizOpts: [
+        { t: 'CO₂', ok: false },
+        { t: 'Nitrógeno', ok: false },
+        { t: 'Oxígeno', ok: true }
+      ]
+    }
+  ];
+  var currentPack = HERO_PACKS[0];
+  var lastPackIdx = 0;
+
+  function pickHeroPack(){
+    if(HERO_PACKS.length < 2){ currentPack = HERO_PACKS[0]; return currentPack; }
+    var idx = lastPackIdx;
+    var guard = 0;
+    while(idx === lastPackIdx && guard++ < 8){
+      idx = Math.floor(Math.random() * HERO_PACKS.length);
+    }
+    lastPackIdx = idx;
+    currentPack = HERO_PACKS[idx];
+    return currentPack;
+  }
+
+function applyHeroPack(pack){
+    if(!pack) pack = currentPack;
+    var timer = document.querySelector('#cardTx .hs-timer');
+    if(timer) timer.textContent = pack.subject + ' — ' + pack.time;
+    var fq = document.querySelector('#heroFlashFlip .hs-flip-face.front .hs-q');
+    var fa = document.querySelector('#heroFlashFlip .hs-flip-face.back .hs-a');
+    if(fq) fq.textContent = pack.flashQ;
+    if(fa) fa.textContent = pack.flashA;
+    var chips = document.querySelectorAll('#heroFlashFlip .hs-chip');
+    if(chips[0]) chips[0].textContent = pack.chip;
+    if(chips[1]) chips[1].textContent = pack.time;
+    // map node labels follow the pack topic
+    if(pack.mapLabels){
+      var svg = document.getElementById('heroMapSvg');
+      if(svg){
+        Object.keys(pack.mapLabels).forEach(function(key){
+          var node = svg.querySelector('.hm-node[data-node="'+key+'"]');
+          if(!node) return;
+          var di = node.getAttribute('data-i');
+          var label = svg.querySelector('.hm-label[data-i="'+di+'"]');
+          if(label) label.textContent = pack.mapLabels[key];
+        });
+      }
+    }
+    }
+
+  function getMapTips(pack){
+    if(pack && pack.mapTips) return pack.mapTips;
+    if(currentPack && currentPack.mapTips) return currentPack.mapTips;
+    return {
+      celula:   { min: '01:20', body: 'Unidad básica de la vida — punto de partida del mapa.' },
+      nucleo:   { min: '08:15', body: 'Guarda el ADN y controla la actividad celular.' },
+      mito:     { min: '12:40', body: 'Produce ATP — la energía de la célula.' },
+      membrana: { min: '18:02', body: 'Regula qué entra y qué sale.' },
+      adn:      { min: '09:10', body: 'Material genético dentro del núcleo.' },
+      atp:      { min: '13:05', body: 'Moneda de energía que genera la mitocondria.' },
+      trans:    { min: '18:40', body: 'Transporte activo a través de la membrana.' }
+    };
+  }
+
+  function typeHtml(html, speed, done){
+    if(!txStream){ if(done) done(); return; }
+    var plain = html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+    var i = 0;
+    txStream.className = 'typing';
+    function step(){
+      i++;
+      txStream.innerHTML = plain.slice(0, i).replace(/\n/g, '<br>') + '<span class="tx-cursor"></span>';
+      if(i >= plain.length){
+        txStream.innerHTML = html;
+        txStream.className = '';
+        if(done) done();
+        return;
+      }
+      var ch = plain[i-1];
+      var d = (ch === '\n') ? 320 : (ch === ' ') ? 40 : ('.—,?'.indexOf(ch) >= 0) ? 180 : speed;
+      later(step, d);
+    }
+    step();
+  }
+
+  /* ---------- motion primitives (GSAP owns transform/opacity; CSS owns rest) ----------
+     Quality rules:
+     - Only animate compositor props (x/y/rotation/scale/opacity)
+     - force3D while moving, clearProps only after settle
+     - killTweensOf before new tween on same node
+     - reduced-motion: shorter, no rotation flourish — not zero motion (WCAG 2.3.3)
+  */
+  var MOTION = reduce
+    ? { enter: 0.28, leave: 0.22, overlap: 0.06, flip: 0.35, slot: 0.45, pop: 0.4, easeIn: 'power2.in', easeOut: 'power2.out' }
+    : { enter: 0.52, leave: 0.5,  overlap: 0.14, flip: 0.7,  slot: 0.8,  pop: 0.9, easeIn: 'power2.in', easeOut: 'power3.out' };
+
+  function resetCards(){
+    cards.forEach(function(c){
+      hardResetCard(c);
+      c.querySelectorAll('.ember').forEach(function(e){ e.remove(); });
+    });
+    hideMazoPop(true);
+    resetFlashFlip(true);
+    if(cardTx) cardTx.classList.add('is-active');
+  }
+
+  function hardResetCard(el){
+    if(!el) return;
+    if(hasGsap) gsap.killTweensOf(el);
+    el.classList.remove('is-active', 'is-leaving', 'is-entering', 'is-exit', 'is-enter-prep', 'is-slotting', 'is-burning');
+    el.style.transform = '';
+    el.style.opacity = '';
+    el.style.filter = '';
+    el.style.clipPath = '';
+    el.style.zIndex = '';
+    el.style.transformOrigin = '';
+    el.style.animation = '';
+    el.style.transition = '';
+    el.style.visibility = '';
+  }
+
+  function settleCard(el, active){
+    if(!el) return;
+    el.classList.remove('is-leaving', 'is-entering', 'is-slotting');
+    if(active) el.classList.add('is-active');
+    else el.classList.remove('is-active');
+    if(hasGsap) gsap.set(el, { clearProps: 'transform,opacity,filter,x,y,rotation,scale,transformOrigin' });
+    else {
+      el.style.transform = '';
+      el.style.opacity = '';
+      el.style.filter = '';
+    }
+  }
+
+  /** Enter only — previous card already gone (post-slot). */
+  function enterCard(toEl, onDone){
+    if(!toEl){ if(onDone) onDone(); return; }
+    hardResetCard(toEl);
+    toEl.classList.add('is-entering');
+
+    var yFrom = reduce ? -12 : -28;
+    var rotFrom = reduce ? 0 : -3;
+    var scaleFrom = reduce ? 0.98 : 0.96;
+
+    if(hasGsap){
+      gsap.set(toEl, { opacity: 0, x: 0, y: yFrom, rotation: rotFrom, scale: scaleFrom, transformOrigin: '50% 50%' });
+      gsap.to(toEl, {
+        y: 0, rotation: 0, opacity: 1, scale: 1,
+        duration: MOTION.enter, ease: MOTION.easeOut, force3D: true, overwrite: 'auto',
+        onComplete: function(){
+          settleCard(toEl, true);
+          if(onDone) onDone();
+        }
+      });
+    } else {
+      toEl.style.transition = 'opacity ' + MOTION.enter + 's ease, transform ' + MOTION.enter + 's ease';
+      toEl.style.opacity = '0';
+      toEl.style.transform = 'translateY(' + yFrom + 'px) scale(' + scaleFrom + ')';
+      requestAnimationFrame(function(){
+        toEl.style.opacity = '1';
+        toEl.style.transform = 'none';
+      });
+      later(function(){
+        settleCard(toEl, true);
+        if(onDone) onDone();
+      }, MOTION.enter * 1000 + 40);
+    }
+  }
+
+  /** Crossfade swap between two cards. */
+  function swapCard(fromEl, toEl, onDone){
+    if(!toEl){ if(onDone) onDone(); return; }
+    if(!fromEl){ enterCard(toEl, onDone); return; }
+
+    hardResetCard(fromEl);
+    hardResetCard(toEl);
+    fromEl.classList.add('is-leaving', 'is-active');
+    toEl.classList.add('is-entering');
+
+    var yOut = reduce ? 24 : 96;
+    var rotOut = reduce ? 0 : 7;
+    var yIn = reduce ? -12 : -32;
+    var rotIn = reduce ? 0 : -4;
+
+    if(hasGsap){
+      gsap.set(fromEl, { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1, transformOrigin: '50% 50%' });
+      gsap.set(toEl, { opacity: 0, x: 0, y: yIn, rotation: rotIn, scale: 0.96, transformOrigin: '50% 50%' });
+
+      var tl = gsap.timeline({
+        defaults: { overwrite: 'auto', force3D: true },
+        onComplete: function(){
+          settleCard(fromEl, false);
+          settleCard(toEl, true);
+          if(onDone) onDone();
+        }
+      });
+      tl.to(fromEl, {
+        y: yOut, rotation: rotOut, opacity: 0, scale: 0.92,
+        duration: MOTION.leave, ease: MOTION.easeIn
+      }, 0);
+      tl.to(toEl, {
+        y: 0, rotation: 0, opacity: 1, scale: 1,
+        duration: MOTION.enter, ease: MOTION.easeOut
+      }, MOTION.overlap);
+    } else {
+      fromEl.style.transition = 'opacity .35s ease, transform .35s ease';
+      toEl.style.transition = 'opacity .4s ease, transform .4s ease';
+      fromEl.style.opacity = '1';
+      toEl.style.opacity = '0';
+      toEl.style.transform = 'translateY(' + yIn + 'px)';
+      requestAnimationFrame(function(){
+        fromEl.style.opacity = '0';
+        fromEl.style.transform = 'translateY(' + yOut + 'px)';
+        toEl.style.opacity = '1';
+        toEl.style.transform = 'none';
+      });
+      later(function(){
+        settleCard(fromEl, false);
+        settleCard(toEl, true);
+        if(onDone) onDone();
+      }, 420);
+    }
+  }
+
+  function resetFlashFlip(instant){
+    var flip = document.getElementById('heroFlashFlip');
+    if(!flip) return;
+    if(hasGsap){
+      gsap.killTweensOf(flip);
+      if(instant){
+        gsap.set(flip, { rotationY: 0, clearProps: 'transform' });
+      } else {
+        gsap.to(flip, { rotationY: 0, duration: 0.2, ease: 'power1.out', onComplete: function(){
+          gsap.set(flip, { clearProps: 'transform' });
+        }});
+      }
+    } else {
+      flip.style.transform = '';
+    }
+    flip.classList.remove('is-flipped');
+  }
+
+  /** Real 3D flip driven by GSAP (CSS transition was killed by overflow/parent transforms). */
+  function flipFlashCard(onDone){
+    var flip = document.getElementById('heroFlashFlip');
+    if(!flip){ if(onDone) onDone(); return; }
+    if(hasGsap){
+      gsap.killTweensOf(flip);
+      gsap.set(flip, { transformPerspective: 1400, transformStyle: 'preserve-3d' });
+      gsap.to(flip, {
+        rotationY: 180,
+        duration: MOTION.flip,
+        ease: reduce ? 'power1.inOut' : 'power2.inOut',
+        force3D: true,
+        onComplete: function(){
+          flip.classList.add('is-flipped');
+          if(onDone) onDone();
+        }
+      });
+    } else {
+      flip.style.transition = 'transform ' + MOTION.flip + 's ease';
+      flip.style.transform = 'rotateY(180deg)';
+      flip.classList.add('is-flipped');
+      later(function(){ if(onDone) onDone(); }, MOTION.flip * 1000);
+    }
+  }
+
+  function hideMazoPop(instant){
+    var pop = document.getElementById('mazoPop');
+    if(!pop) return;
+    if(hasGsap){
+      gsap.killTweensOf(pop);
+      if(instant){
+        gsap.set(pop, { opacity: 0, y: 8, scale: 0.9, visibility: 'hidden' });
+      } else {
+        gsap.to(pop, {
+          opacity: 0, y: -6, scale: 0.95, duration: 0.25, ease: 'power1.in',
+          onComplete: function(){ gsap.set(pop, { visibility: 'hidden' }); }
+        });
+      }
+    } else {
+      pop.style.opacity = '0';
+      pop.style.visibility = 'hidden';
+    }
+    pop.classList.remove('show');
+  }
+
+  function showMazoPop(){
+    var pop = document.getElementById('mazoPop');
+    if(!pop) return;
+    if(hasGsap){
+      gsap.killTweensOf(pop);
+      gsap.set(pop, { opacity: 0, y: 10, scale: 0.85, visibility: 'visible' });
+      gsap.timeline()
+        .to(pop, { opacity: 1, y: 0, scale: 1.05, duration: MOTION.pop * 0.28, ease: 'back.out(1.6)' })
+        .to(pop, { scale: 1, duration: MOTION.pop * 0.2, ease: 'power1.out' })
+        .to(pop, {
+          opacity: 0, y: -6, scale: 0.95,
+          duration: MOTION.pop * 0.3, ease: 'power1.in',
+          delay: MOTION.pop * 0.22,
+          onComplete: function(){ gsap.set(pop, { visibility: 'hidden' }); }
+        });
+    } else {
+      pop.style.visibility = 'visible';
+      pop.style.opacity = '1';
+      later(function(){ hideMazoPop(true); }, 900);
+    }
+  }
+
+  function runHeroCycle(){
+    if(heroBusy) return;
+    if(!cardTx || !txStream || !hsPhase) return;
+    heroBusy = true;
+    clearHeroTimers();
+    // kill any in-flight GSAP on cards before restart
+    if(hasGsap) cards.forEach(function(c){ if(c) gsap.killTweensOf(c); });
+    pickHeroPack();
+    applyHeroPack(currentPack);
+    resetCards();
+    if(heroBadge) heroBadge.classList.remove('show');
+    waveAmp = 1;
+    hsPhase.textContent = 'TRANSCRIBIENDO…';
+    hsPhase.className = 'hs-phase';
+    txStream.innerHTML = '';
+    txStream.className = '';
+    txStream.style.opacity = '1';
+    txStream.style.transition = '';
+
+    // —— PHASE A: type dirty (slow) ——
+    typeHtml(currentPack.dirty, 48, function(){
+      txStream.innerHTML = currentPack.dirty;
+      hsPhase.textContent = 'DETECTANDO FILLERS…';
+      later(function(){
+        // —— PHASE B: animated strikethrough, one filler at a time ——
+        hsPhase.textContent = 'LIMPIANDO…';
+var fillers = Array.prototype.slice.call(txStream.querySelectorAll('.f'));
+        // restart the strike sequence properly: delays must be applied BEFORE
+        // (re)adding .striking so each filler strikethrough animates on its own beat.
+        txStream.classList.remove('striking');
+        fillers.forEach(function(el, idx){
+          el.style.setProperty('transition-delay', (idx * 0.28) + 's');
+        });
+        void txStream.offsetWidth; // force reflow so the reset width flushes first
+        txStream.classList.add('striking');
+        // wait for last strike + read time
+        var strikeWait = 500 + fillers.length * 280 + 900;
+        later(function(){
+          // —— PHASE C: crossfade to clean ——
+          txStream.style.transition = 'opacity .5s ease';
+          txStream.style.opacity = '0';
+          later(function(){
+            txStream.innerHTML = currentPack.clean;
+            txStream.className = 'cleaned';
+            txStream.style.opacity = '1';
+            hsPhase.textContent = 'TRANSCRIPCIÓN LIMPIA';
+            hsPhase.className = 'hs-phase ok';
+            if(heroBadge) heroBadge.classList.add('show');
+            waveAmp = 0.2;
+            later(function(){
+              // —— flashcard: enter → flip → slot into mazo → map ——
+              var flashCheck = document.getElementById('flashCheck');
+              hardResetCard(cardFlash);
+              hideMazoPop(true);
+              resetFlashFlip(true);
+              if(flashCheck) flashCheck.textContent = 'FRENTE · LEÉ LA PREGUNTA';
+
+              swapCard(cardTx, cardFlash, function(){
+                waveAmp = 0.08;
+                // hold front — readable beat
+                later(function(){
+                  if(flashCheck) flashCheck.textContent = 'GIRANDO…';
+                  flipFlashCard(function(){
+                    if(flashCheck) flashCheck.textContent = '✓ LISTA PARA EL MAZO';
+                    // hold answer so user can read
+                    later(function(){
+                      slotIntoMazo(cardFlash, function(){
+                        resetFlashFlip(true);
+                        hideMazoPop(true); // ensure toast is gone before map
+                        document.querySelectorAll('#heroMapSvg .hm-edge, #heroMapSvg .hm-node, #heroMapSvg .hm-label').forEach(function(el){
+                          el.classList.remove('is-on');
+                        });
+                        enterCard(cardMap, function(){
+                          revealMindMap(function(){
+                            later(function(){
+                              resetQuizCard();
+                              swapCard(cardMap, cardQuiz, function(){
+                                typeQuiz(function(){
+                                  later(function(){
+                                    heroBusy = false;
+                                    later(runHeroCycle, 2800);
+                                  }, 3200);
+                                });
+                              });
+                            }, 2200);
+                          });
+                        });
+                      });
+                    }, 2200);
+                  });
+                }, 1800);
+              });
+            }, 3200);
+          }, 500);
+        }, strikeWait);
+      }, 1600);
+    });
+  }
+
+  function slotIntoMazo(el, done){
+    if(!el){ if(done) done(); return; }
+    el.classList.add('is-slotting');
+    haptic('ok');
+    showMazoPop(); // toast lives outside the card — survives the slot
+
+    var t1 = MOTION.slot * 0.4;
+    var t2 = MOTION.slot * 0.6;
+    var x1 = reduce ? 8 : 18, y1 = reduce ? 8 : 14;
+    var x2 = reduce ? 24 : 52, y2 = reduce ? 40 : 78;
+    var rot1 = reduce ? 0 : 4, rot2 = reduce ? 0 : 14;
+
+    if(hasGsap){
+      gsap.killTweensOf(el);
+      gsap.set(el, {
+        opacity: 1, x: 0, y: 0, rotation: 0, scale: 1,
+        transformOrigin: '85% 90%',
+        filter: 'none'
+      });
+      gsap.timeline({
+        defaults: { force3D: true, overwrite: 'auto' },
+        onComplete: function(){
+          hardResetCard(el);
+          if(done) done();
+        }
+      })
+      .to(el, {
+        x: x1, y: y1, scale: 0.88, rotation: rot1,
+        duration: t1, ease: 'power2.out'
+      })
+      .to(el, {
+        x: x2, y: y2, scale: 0.32, rotation: rot2, opacity: 0,
+        filter: reduce ? 'none' : 'brightness(0.85)',
+        duration: t2, ease: 'power2.in'
+      });
+    } else {
+      el.style.transition = 'transform ' + MOTION.slot + 's ease, opacity ' + MOTION.slot + 's ease';
+      el.style.transformOrigin = '85% 90%';
+      requestAnimationFrame(function(){
+        el.style.transform = 'translate(' + x2 + 'px, ' + y2 + 'px) scale(.35) rotate(' + rot2 + 'deg)';
+        el.style.opacity = '0';
+      });
+      later(function(){
+        hardResetCard(el);
+        if(done) done();
+      }, MOTION.slot * 1000 + 40);
+    }
+  }
+
+  function revealMindMap(done){
+    var edges = Array.prototype.slice.call(document.querySelectorAll('#heroMapSvg .hm-edge'));
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('#heroMapSvg .hm-node'));
+    var labels = Array.prototype.slice.call(document.querySelectorAll('#heroMapSvg .hm-label'));
+    // order: center node, edges out, other nodes
+    var seq = [];
+    // center first
+    if(nodes[0]) seq.push(nodes[0]);
+    if(labels[0]) seq.push(labels[0]);
+    edges.forEach(function(e, i){
+      seq.push(e);
+      if(nodes[i+1]) seq.push(nodes[i+1]);
+      if(labels[i+1]) seq.push(labels[i+1]);
+    });
+    // remaining
+    nodes.forEach(function(n, i){ if(i > 0 && seq.indexOf(n) < 0) seq.push(n); });
+    labels.forEach(function(n, i){ if(i > 0 && seq.indexOf(n) < 0) seq.push(n); });
+
+    var i = 0;
+    function step(){
+      if(i >= seq.length){ if(done) done(); return; }
+      seq[i].classList.add('is-on');
+      i++;
+      later(step, 120);
+    }
+    step();
+  }
+
+  function resetQuizCard(){
+    var q = document.getElementById('quizQ');
+    var check = document.getElementById('quizCheck');
+    var wrap = document.getElementById('quizOpts');
+    if(wrap) delete wrap.dataset.answered;
+    if(q) q.textContent = '';
+    ['quizO0','quizO1','quizO2'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      el.className = 'hs-quiz-opt';
+      el.classList.remove('is-correct','is-wrong','is-locked','correct','wrong');
+      var label = el.querySelector('.quiz-label');
+      var mark = el.querySelector('.quiz-mark');
+      if(label) label.textContent = '';
+      if(mark) mark.textContent = '';
+    });
+    if(check) check.style.opacity = '0';
+  }
+
+  function typeQuiz(done){
+    var qText = (currentPack && currentPack.quizQ) ? currentPack.quizQ : '¿Cuál organela produce la energía de la célula?';
+    var opts = (currentPack && currentPack.quizOpts) ? currentPack.quizOpts : [
+      { t: 'Núcleo', ok: false },
+      { t: 'Mitocondria', ok: true },
+      { t: 'Ribosoma', ok: false }
+    ];
+    var qEl = document.getElementById('quizQ');
+    var check = document.getElementById('quizCheck');
+    var wrap = document.getElementById('quizOpts');
+    if(!qEl){ if(done) done(); return; }
+
+    function typeInto(el, text, speed, cb){
+      if(!el){ if(cb) cb(); return; }
+      var i = 0;
+      el.textContent = '';
+      function step(){
+        i++;
+        el.textContent = text.slice(0, i);
+        if(i >= text.length){ if(cb) cb(); return; }
+        later(step, speed);
+      }
+      step();
+    }
+
+    function enableClicks(){
+      var finished = false;
+      function finish(){
+        if(finished) return;
+        finished = true;
+        if(check) check.style.opacity = '1';
+        if(done) later(done, 600);
+      }
+      ['quizO0','quizO1','quizO2'].forEach(function(id, idx){
+        var el = document.getElementById(id);
+        if(!el) return;
+        el.onclick = function(){
+          if(wrap && wrap.dataset.answered === '1') return;
+          if(wrap) wrap.dataset.answered = '1';
+          var pickedOk = el.getAttribute('data-ok') === '1';
+          haptic(pickedOk ? 'ok' : 'err');
+          ['quizO0','quizO1','quizO2'].forEach(function(oid){
+            var o = document.getElementById(oid);
+            if(!o) return;
+            o.classList.add('is-locked');
+            var ok = o.getAttribute('data-ok') === '1';
+            var mark = o.querySelector('.quiz-mark');
+            if(ok){
+              o.classList.add('is-correct');
+              if(mark) mark.textContent = '✓';
+            } else if(o === el){
+              o.classList.add('is-wrong');
+              if(mark) mark.textContent = '✕';
+            }
+          });
+          // also reveal correct if user picked wrong
+          var correct = document.querySelector('#quizOpts .hs-quiz-opt[data-ok="1"]');
+          if(correct && el !== correct){
+            correct.classList.add('is-correct');
+            var cm = correct.querySelector('.quiz-mark');
+            if(cm) cm.textContent = '✓';
+          }
+          finish();
+        };
+      });
+      // auto-demo if no click (hero is unattended)
+      later(function(){
+        if(wrap && wrap.dataset.answered === '1') return;
+        var correct = document.querySelector('#quizOpts .hs-quiz-opt[data-ok="1"]');
+        if(correct) correct.click();
+      }, 3500);
+    }
+
+    typeInto(qEl, qText, 28, function(){
+      var oi = 0;
+      function nextOpt(){
+        if(oi >= opts.length){
+          enableClicks();
+          return;
+        }
+        var el = document.getElementById('quizO' + oi);
+        if(el) el.setAttribute('data-ok', opts[oi].ok ? '1' : '0');
+        var label = el ? el.querySelector('.quiz-label') : null;
+        typeInto(label || el, opts[oi].t, 22, function(){
+          oi++;
+          later(nextOpt, 280);
+        });
+      }
+      later(nextOpt, 350);
+    });
+  }
+
+  later(runHeroCycle, 700);
+
+  /* ---------- pause hero demo when out of view / tab hidden (CPU & battery) ---------- */
+  function pauseHeroDemo(){
+    if(heroPaused) return;
+    heroPaused = true;
+    heroWaveStopped = true;
+    clearHeroTimers();
+    if(hasGsap){
+      cards.forEach(function(c){ if(c) gsap.killTweensOf(c); });
+      ['heroFlashFlip','mazoPop','heroMapTip','heroCleanBadge'].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) gsap.killTweensOf(el);
+      });
+    }
+    heroBusy = false;
+  }
+
+  function resumeHeroDemo(){
+    if(!heroPaused) return;
+    heroPaused = false;
+    heroWaveStopped = false;
+    if(waveStartFn) waveStartFn();
+    heroBusy = false;
+    clearHeroTimers();
+    later(runHeroCycle, 250);
+  }
+
+  function heroInViewport(){
+    if(!heroStage) return false;
+    var r = heroStage.getBoundingClientRect();
+    return r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight);
+  }
+
+  if(typeof IntersectionObserver !== 'undefined' && heroStage){
+    var heroIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting) resumeHeroDemo();
+        else pauseHeroDemo();
+      });
+    }, { rootMargin: '80px 0px', threshold: 0 });
+    heroIO.observe(heroStage);
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) pauseHeroDemo();
+    else if(heroInViewport()) resumeHeroDemo();
+  });
+
+  if(heroStage && heroTilt && !reduce){
+    heroStage.addEventListener('mousemove', function(e){
+      var r = heroStage.getBoundingClientRect();
+      var ox = ((e.clientX - r.left)/r.width - 0.5) * 2;
+      var oy = ((e.clientY - r.top)/r.height - 0.5) * 2;
+      heroTilt.style.transform = 'rotateY(' + (ox*8) + 'deg) rotateX(' + (-oy*8) + 'deg)';
+    });
+    heroStage.addEventListener('mouseleave', function(){
+      heroTilt.style.transform = 'rotateY(0deg) rotateX(0deg)';
+    });
+  }
+
+  /* ---------- demo tabs ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  var flashAutoTimer = null;
+
+  function stopFlashAuto(){ if(flashAutoTimer){ clearInterval(flashAutoTimer); flashAutoTimer = null; } }
+  function startFlashAuto(){
+    if(reduce) return;
+    var stage = document.getElementById('flashStage');
+    if(!stage) return;
+    stopFlashAuto();
+    flashAutoTimer = setInterval(function(){ stage.classList.toggle('flipped'); }, 3600);
+  }
+
+  var mapAutoTimer = null;
+  var mapNodes = ['nucleo','mito','membrana'];
+  var mapIdx = 0;
+  function setMapActive(name){
+    document.querySelectorAll('.map-edge').forEach(function(edge){
+      var on = edge.dataset.node === name;
+      edge.setAttribute('stroke', on ? '#6B9B6E' : 'rgba(242,230,212,0.22)');
+      edge.setAttribute('stroke-width', on ? '2.4' : '1.6');
+    });
+    document.querySelectorAll('.map-node circle').forEach(function(c){
+      var on = c.parentElement.dataset.node === name;
+      c.setAttribute('stroke', on ? '#6B9B6E' : 'rgba(242,230,212,0.22)');
+    });
+  }
+  function stopMapAuto(){ if(mapAutoTimer){ clearInterval(mapAutoTimer); mapAutoTimer = null; } }
+  function startMapAuto(){
+    if(reduce) return;
+    stopMapAuto();
+    mapAutoTimer = setInterval(function(){
+      mapIdx = (mapIdx+1) % mapNodes.length;
+      setMapActive(mapNodes[mapIdx]);
+    }, 1800);
+  }
+  document.querySelectorAll('.map-node').forEach(function(node){
+    node.addEventListener('mouseenter', function(){ stopMapAuto(); setMapActive(node.dataset.node); });
+    node.addEventListener('mouseleave', function(){ startMapAuto(); });
+  });
+
+  var chatPairs = [
+    {
+      q: '¿Por qué la mitocondria tiene ADN propio?',
+      a: 'Porque viene de una bacteria que la célula “adoptó” hace millones de años. Conservó su propio genoma y se hereda por vía materna.',
+      src: 'min 12:40 · audio de la clase'
+    },
+    {
+      q: '¿Qué es el ATP y para qué sirve?',
+      a: 'ATP es la moneda de energía de la célula. La mitocondria lo produce; con eso corre transporte activo y síntesis de proteínas.',
+      src: 'min 14:12 · audio + apuntes'
+    },
+    {
+      q: '¿Esto entra en el parcial?',
+      a: 'Sí. Quedó como concepto clave: mitocondria → ATP y origen endosimbiótico. Te armo flashcards de eso.',
+      src: 'min 12:40–14:20 · de tu grabación'
+    }
+  ];
+  var chatIdx = 0, chatTimer = null, chatTypeTimer = null;
+  function stopChatAuto(){
+    if(chatTimer){ clearTimeout(chatTimer); chatTimer = null; }
+    if(chatTypeTimer){ clearTimeout(chatTypeTimer); chatTypeTimer = null; }
+  }
+  function typeInto(el, text, speed, done){
+    el.textContent = '';
+    var i = 0;
+    function step(){
+      i++;
+      el.textContent = text.slice(0, i);
+      if(i < text.length){
+        chatTypeTimer = setTimeout(step, speed);
+      } else if(done) done();
+    }
+    step();
+  }
+  function startChatAuto(){
+    stopChatAuto();
+    var boxQ = document.getElementById('chatQ');
+    var boxA = document.getElementById('chatA');
+    var wrapQ = document.getElementById('chatQWrap');
+    var wrapA = document.getElementById('chatAWrap');
+    var source = document.getElementById('chatSource');
+    if(!boxQ || !boxA || !wrapQ || !wrapA){
+      console.warn('Tutor chat DOM missing');
+      return;
+    }
+    function typeChat(el, text, speed, done){
+      el.textContent = '';
+      var i = 0;
+      function step(){
+        i++;
+        el.textContent = text.slice(0, i);
+        if(i >= text.length){ if(done) done(); return; }
+        chatTypeTimer = setTimeout(step, speed);
+      }
+      step();
+    }
+    function runPair(){
+      var pair = chatPairs[chatIdx % chatPairs.length];
+      chatIdx++;
+      wrapQ.style.opacity = '0';
+      wrapA.style.opacity = '0';
+      boxQ.textContent = '';
+      boxA.textContent = '';
+      if(source){ source.textContent = ''; source.classList.remove('show'); }
+      chatTimer = setTimeout(function(){
+        wrapQ.style.opacity = '1';
+        typeChat(boxQ, pair.q, 26, function(){
+          chatTimer = setTimeout(function(){
+            wrapA.style.opacity = '1';
+            typeChat(boxA, pair.a, 14, function(){
+              if(source){
+                source.classList.remove('show');
+                source.textContent = pair.src || '';
+                if(pair.src){
+                  requestAnimationFrame(function(){
+                    requestAnimationFrame(function(){ source.classList.add('show'); });
+                  });
+                }
+              }
+              chatTimer = setTimeout(runPair, 3000);
+            });
+          }, 450);
+        });
+      }, 250);
+    }
+    runPair();
+  }
+
+
+  function stopAllAuto(){ stopFlashAuto(); stopMapAuto(); stopChatAuto(); }
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      panels.forEach(function(p){ p.classList.remove('show'); p.style.display = 'none'; });
+      var target = document.querySelector('.panel[data-panel="' + tab.dataset.tab + '"]');
+      if(!target) return;
+      target.style.display = 'block';
+      requestAnimationFrame(function(){ target.classList.add('show'); });
+
+      stopAllAuto();
+      var name = tab.dataset.tab;
+      if(name === 'resumen'){
+        var bullets = document.getElementById('sumBullets');
+        if(bullets){
+          bullets.classList.remove('reveal');
+          requestAnimationFrame(function(){ requestAnimationFrame(function(){ bullets.classList.add('reveal'); }); });
+        }
+      } else if(name === 'flash'){
+        startFlashAuto();
+      } else if(name === 'mapa'){
+        mapIdx = 0; setMapActive(mapNodes[0]); startMapAuto();
+      } else if(name === 'chat'){
+        startChatAuto();
+      }
+    });
+  });
+  // trigger resumen reveal on first load
+  var sumBullets = document.getElementById('sumBullets');
+  if(sumBullets){
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ sumBullets.classList.add('reveal'); }); });
+  }
+
+  // flash: click to flip
+  var flashStage = document.getElementById('flashStage');
+  if(flashStage){
+    flashStage.addEventListener('click', function(){ flashStage.classList.toggle('flipped'); });
+    flashStage.addEventListener('mouseenter', stopFlashAuto);
+    flashStage.addEventListener('mouseleave', function(){ var tab=document.querySelector('.tab[data-tab="flash"]'); if(tab && tab.classList.contains('active')) startFlashAuto(); });
+  }
+
+  // quiz: press → green/red + check/x
+  function gradeQuizOption(opt, rootSel, correctAttr){
+    var root = opt.closest(rootSel) || opt.parentElement;
+    if(!root || root.dataset.answered === '1') return;
+    root.dataset.answered = '1';
+    var opts = root.querySelectorAll('.quiz-opt, .hs-quiz-opt');
+    var pickedCorrect = opt.getAttribute(correctAttr) === '1' || opt.dataset.correct === '1' || opt.dataset.ok === '1';
+    haptic(pickedCorrect ? 'ok' : 'err');
+    opts.forEach(function(o){
+      o.classList.add('is-locked');
+      var isCorrect = o.getAttribute(correctAttr) === '1' || o.dataset.correct === '1' || o.dataset.ok === '1';
+      var mark = o.querySelector('.quiz-mark');
+      if(isCorrect){
+        o.classList.add('correct', 'is-correct');
+        if(mark) mark.textContent = '✓';
+      } else if(o === opt){
+        o.classList.add('wrong', 'is-wrong');
+        if(mark) mark.textContent = '✕';
+      }
+    });
+    var hint = document.getElementById('quizHint');
+    if(hint) hint.classList.add('show');
+    var check = document.getElementById('quizCheck');
+    if(check) check.style.opacity = '1';
+  }
+
+  document.querySelectorAll('#quizPanel .quiz-opt').forEach(function(opt){
+    opt.addEventListener('click', function(){
+      gradeQuizOption(opt, '#quizPanel', 'data-correct');
+    });
+  });
+
+  var quizTab = document.querySelector('.tab[data-tab="quiz"]');
+  if(quizTab){
+    quizTab.addEventListener('click', function(){
+      var panel = document.getElementById('quizPanel');
+      if(panel) delete panel.dataset.answered;
+      document.querySelectorAll('#quizPanel .quiz-opt').forEach(function(o){
+        o.classList.remove('correct','wrong','is-correct','is-wrong','is-locked');
+        var mark = o.querySelector('.quiz-mark');
+        if(mark) mark.textContent = '';
+      });
+      var hint = document.getElementById('quizHint');
+      if(hint) hint.classList.remove('show');
+    });
+  }
+
+  // panel-frame tilt only desktop + fine pointer
+  var panelFrame = document.getElementById('panelFrame');
+  if(!reduce && panelFrame && window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    panelFrame.addEventListener('mousemove', function(e){
+      var r = panelFrame.getBoundingClientRect();
+      var ox = ((e.clientX - r.left)/r.width - 0.5) * 2;
+      var oy = ((e.clientY - r.top)/r.height - 0.5) * 2;
+      panelFrame.style.transform = 'rotateX(' + (-oy*1.2) + 'deg) rotateY(' + (ox*1.2) + 'deg)';
+    });
+    panelFrame.addEventListener('mouseleave', function(){ panelFrame.style.transform = 'rotateX(0) rotateY(0)'; });
+  }
+
+  /* ---------- map node tips (minuto de la clase) ---------- */
+  var MAP_TIPS = {
+    celula:   { min: '01:20', body: 'Unidad básica de la vida — punto de partida del mapa.' },
+    nucleo:   { min: '08:15', body: 'Guarda el ADN y controla la actividad celular.' },
+    mito:     { min: '12:40', body: 'Produce ATP — la energía de la célula.' },
+    membrana: { min: '18:02', body: 'Regula qué entra y qué sale.' },
+    adn:      { min: '09:10', body: 'Material genético dentro del núcleo.' },
+    atp:      { min: '13:05', body: 'Moneda de energía que genera la mitocondria.' },
+    trans:    { min: '18:40', body: 'Transporte activo a través de la membrana.' }
+  };
+  (function initMapTips(){
+    var tip = document.getElementById('mapTip');
+    var tipMin = document.getElementById('mapTipMin');
+    var tipBody = document.getElementById('mapTipBody');
+    var wrap = document.getElementById('mapaWrap');
+    if(!tip || !wrap) return;
+    document.querySelectorAll('#demoMapSvg .map-node').forEach(function(node){
+      var key = node.getAttribute('data-node');
+      var edge = document.querySelector('#demoMapSvg .map-edge[data-node="'+key+'"]');
+      node.addEventListener('mouseenter', function(e){
+        var info = (getMapTips(HERO_PACKS[0]) || MAP_TIPS)[key];
+        if(!info) return;
+        tipMin.textContent = info.min + ' · EN LA CLASE';
+        tipBody.textContent = info.body;
+        node.classList.add('is-hot');
+        if(edge) edge.classList.add('is-hot');
+        var rect = wrap.getBoundingClientRect();
+        var nr = node.getBoundingClientRect();
+        var x = nr.left - rect.left + nr.width/2 - 70;
+        var y = nr.top - rect.top - 58;
+        tip.style.left = Math.max(4, Math.min(x, rect.width - 160)) + 'px';
+        tip.style.top = Math.max(4, y) + 'px';
+        tip.classList.add('show');
+      });
+      node.addEventListener('mouseleave', function(){
+        tip.classList.remove('show');
+        node.classList.remove('is-hot');
+        if(edge) edge.classList.remove('is-hot');
+      });
+      node.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(node.classList.contains('is-hot')){
+          node.classList.remove('is-hot');
+          if(edge) edge.classList.remove('is-hot');
+          tip.classList.remove('show');
+        } else {
+          node.dispatchEvent(new Event('mouseenter'));
+        }
+      });
+    });
+  })();
+
+  /* ---------- hero map interactive tips ---------- */
+  (function initHeroMapTips(){
+    var tip = document.getElementById('heroMapTip');
+    var tipMin = document.getElementById('heroMapTipMin');
+    var tipBody = document.getElementById('heroMapTipBody');
+    var card = document.getElementById('cardMap');
+    var svg = document.getElementById('heroMapSvg');
+    if(!tip || !card || !svg || !tipMin || !tipBody) return;
+
+    var activeKey = null;
+
+    function clearHot(){
+      svg.querySelectorAll('.hm-node.is-hot, .hm-edge.is-hot').forEach(function(el){
+        el.classList.remove('is-hot');
+      });
+      tip.classList.remove('show');
+      activeKey = null;
+    }
+
+    function showTip(node, key){
+      var tips = (typeof getMapTips === 'function' ? getMapTips() : null) || (typeof MAP_TIPS !== 'undefined' ? MAP_TIPS : null);
+      if(!tips) return;
+      var info = tips[key];
+      if(!info) return;
+      var edge = svg.querySelector('.hm-edge[data-node="'+key+'"]');
+      clearHot();
+      tipMin.textContent = info.min + ' · EN LA CLASE';
+      tipBody.textContent = info.body;
+      node.classList.add('is-hot');
+      if(edge) edge.classList.add('is-hot');
+      activeKey = key;
+
+      var crect = card.getBoundingClientRect();
+      var nr = node.getBoundingClientRect();
+      var tipW = 160;
+      var x = nr.left - crect.left + nr.width/2 - tipW/2;
+      var y = nr.top - crect.top - 56;
+      tip.style.left = Math.max(8, Math.min(x, crect.width - tipW - 8)) + 'px';
+      tip.style.top = Math.max(28, Math.min(y, crect.height - 72)) + 'px';
+      tip.classList.add('show');
+    }
+
+    svg.querySelectorAll('.hm-node[data-node]').forEach(function(node){
+      var key = node.getAttribute('data-node');
+      node.addEventListener('mouseenter', function(){ showTip(node, key); });
+      node.addEventListener('mouseleave', function(){ clearHot(); });
+      /* touch / click toggle */
+      node.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(activeKey === key){ clearHot(); return; }
+        showTip(node, key);
+      });
+    });
+
+    /* tap outside closes tip */
+    document.addEventListener('click', function(e){
+      if(!card.contains(e.target)) clearHot();
+    });
+  })();
+
+
+  updateChrome();
+  var ticking = false;
+  function onScroll(){
+    if(!ticking){
+      requestAnimationFrame(function(){ updateChrome(); ticking = false; });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+
+  document.querySelectorAll('.btn, .tab, .quiz-opt, .hs-quiz-opt').forEach(function(el){
+    el.addEventListener('touchstart', function(){ haptic('press'); }, {passive:true});
+  });
+})();
+</script>
 </body>
 </html>

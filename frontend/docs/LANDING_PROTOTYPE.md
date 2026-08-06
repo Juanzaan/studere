@@ -1,11 +1,23 @@
 # Landing prototype
 
-Self-contained HTML prototype:
+Self-contained HTML prototype (canonical fixed version):
 
-- Local: `artifacts/studere-v4.html` (also `studere-OPEN-THIS-v4.html`)
-- Repo: `frontend/public/landing-prototype.html`
+- Repo: `frontend/public/landing-prototype.html` (versioned, all fixes applied)
+- Working copy: `studerelandingwithbugsf1.html` (local scratch during fixes)
 
 Open in a browser (needs network for fonts + GSAP CDN).
+
+## Fix status (2026-08-05)
+
+All known demo bugs fixed, verified in headless browser at 320–1440px:
+
+- Strikethrough stagger in hero transcript (transition-delay per filler + reflow)
+- Hero quiz no longer hardcoded: options typed from `currentPack.quizOpts`, auto-click marks the correct one
+- `applyHeroPack` no longer rewrites the demo section's summary bullets / map tip (demo stays bio)
+- Responsive CSS only (no JS changes): panel-frame auto height ≤700px, tabbar single-row scroll ≤520px, CTA column + inputs 1-col ≤380px
+- Hero demo pauses (cycle + waveform rAF) when out of viewport or tab hidden, resumes clean restart on return
+
+See git history / CHANGELOG for details.
 
 ## Stack choice (hybrid — keep this)
 
