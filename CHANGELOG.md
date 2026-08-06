@@ -2,6 +2,23 @@
 
 All notable changes to the Studere project will be documented in this file.
 
+## [1.4.0] - 2026-08-06
+
+### Added
+- **Custom Clerk auth UI:** the sign-in/sign-up pages now use the studere-auth.html design ported to React (`components/auth/`: AuthShell, AuthCard, auth-fields, auth-errors) replacing the prebuilt Clerk `<SignIn/>`/`<SignUp/>`. Flows: signup with email code verification, login, Google OAuth, and full password reset (email code + new password). 18 Clerk error codes mapped to es-AR with fallback to Clerk's message.
+- **`/sso-callback` route:** public OAuth return leg so Google redirects complete without being bounced by `auth.protect()`.
+- **PR template** (`.github/pull_request_template.md`) with quality-gate checklist.
+
+### Changed
+- **Landing swap:** `/` now serves the fixed standalone landing (`public/landing-prototype.html`) via middleware rewrite for anonymous visitors, and redirects signed-in users to `/dashboard` (`middleware.ts`). The React landing is dead code kept as fallback. Landing CTAs point to the real `/sign-up` and `/sign-in` routes.
+- **Auth middleware:** only `/sign-in`, `/sign-up` and `/sso-callback` are public; everything else stays behind `auth.protect()`.
+- `CODING_STANDARDS.md` updated: auth is Clerk-based (no longer "no user auth / single-user").
+- `netlify.toml` bumped to Node 20 (matching CI, Vitest 4 requires >= 20.12).
+
+### Fixed
+- **Landing demo bugs** (in `landing-prototype.html`): card collapse/jump during tab transitions, toggle overlapping the label, touch targets below 44px, value props hidden on mobile, low placeholder contrast (2.78:1 -> 4.91:1), 100dvh support, and 320-900px breakpoint handling (820 -> 900).
+- **Hero demo pause:** the auto-cycling hero demo now pauses when out of viewport and restarts from the beginning when scrolled back.
+
 ## [1.3.0] - 2026-08-05
 
 ### Added
