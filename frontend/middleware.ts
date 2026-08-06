@@ -18,7 +18,14 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
+  // Auth pages, plus the OAuth return leg. /sso-callback must stay public:
+  // Clerk lands there before a session exists, so protecting it would bounce
+  // the user back to sign-in and never complete the handshake.
+  if (
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/sso-callback")
+  ) {
     return;
   }
 

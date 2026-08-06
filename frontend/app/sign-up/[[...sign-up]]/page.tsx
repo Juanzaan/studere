@@ -1,19 +1,16 @@
-import { SignUp } from "@clerk/nextjs";
+import type { Metadata } from "next";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthCard } from "@/components/auth/auth-card";
+
+export const metadata: Metadata = {
+  title: "Crear cuenta — Studere",
+  description: "Creá tu cuenta Studere. Trial de 7 días, cancelás cuando quieras.",
+};
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4" style={{ backgroundColor: "#C9B99A" }}>
-      <SignUp
-        appearance={{
-          variables: {
-            colorPrimary: "#2C1810",
-            colorBackground: "#D8C9AD",
-            colorInput: "#F3EEDF",
-            colorDanger: "#8B3A3A",
-            borderRadius: "0.375rem",
-          },
-        }}
-      />
-    </div>
+    <AuthShell>
+      <AuthCard initialMode="signup" />
+    </AuthShell>
   );
 }
