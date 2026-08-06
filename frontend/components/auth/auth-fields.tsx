@@ -75,11 +75,15 @@ export function SubmitButton({
   variant?: "primary" | "ghost";
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const kind = variant === "primary" ? styles.btnPrimary : styles.btnGhost;
+  // `disabled` goes after the spread on purpose: callers pass
+  // `disabled={!ready}`, which would otherwise clobber the loading lock and
+  // leave the button clickable (and hover-animating) for the whole request.
   return (
     <button
       className={`${styles.btn} ${kind} ${loading ? styles.btnLoading : ""}`}
-      disabled={loading || rest.disabled}
       {...rest}
+      disabled={loading || rest.disabled}
+      aria-busy={loading || undefined}
     >
       <span className={styles.btnLabel}>{children}</span>
       {loading && <span className={styles.spinner} aria-hidden="true" />}

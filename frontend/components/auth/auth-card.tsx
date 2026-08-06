@@ -31,7 +31,10 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("form");
   const [msg, setMsg] = useState<Msg>(null);
-  const [busy, setBusy] = useState(false);
+  // Which action is in flight. A single boolean put the spinner on the email
+  // submit button even when the user had clicked "Continuar con Google".
+  const [busyAction, setBusyAction] = useState<"form" | "google" | null>(null);
+  const busy = busyAction !== null;
   const [invalid, setInvalid] = useState<string | null>(null);
 
   // form state
@@ -66,7 +69,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
   const fail = useCallback((text: string, field?: string) => {
     setMsg({ kind: "err", text });
     if (field) setInvalid(field);
-    setBusy(false);
+    setBusyAction(null);
   }, []);
 
   /* ── Sign up ────────────────────────────────────────────────────────── */
@@ -84,7 +87,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     if (suPass.toLowerCase() === email.toLowerCase())
       return fail("La contraseña no puede ser igual al email.", "suPass");
 
-    setBusy(true);
+    setBusyAction("form");
     try {
       const first = name.trim().split(" ")[0] || undefined;
       const res = await signUp.create({
@@ -106,7 +109,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       fail(authErrorMessage(err));
       return;
     }
-    setBusy(false);
+    setBusyAction(null);
   }
 
   async function handleVerify(e: React.FormEvent) {
@@ -114,7 +117,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     if (busy || !ready || !signUp) return;
     if (code.trim().length < 6) return fail("Ingresá el código de 6 dígitos.", "code");
 
-    setBusy(true);
+    setBusyAction("form");
     try {
       const res = await signUp.attemptEmailAddressVerification({ code: code.trim() });
       if (res.status === "complete") {
@@ -130,7 +133,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
   async function resendCode() {
     if (busy || !ready || !signUp) return;
-    setBusy(true);
+    setBusyAction("form");
     try {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setMsg({ kind: "ok", text: "Listo, te mandamos otro código." });
@@ -138,7 +141,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       fail(authErrorMessage(err));
       return;
     }
-    setBusy(false);
+    setBusyAction(null);
   }
 
   /* ── Sign in ────────────────────────────────────────────────────────── */
@@ -154,7 +157,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     if (!EMAIL_RE.test(email)) return fail("Ese email no se ve válido.", "liEmail");
     if (!liPass) return fail("Falta la contraseña.", "liPass");
 
-    setBusy(true);
+    setBusyAction("form");
     try {
       const res = await signIn.create({ identifier: email, password: liPass });
       if (res.status === "complete") {
@@ -176,7 +179,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     const email = resetEmail.trim();
     if (!EMAIL_RE.test(email)) return fail("Ese email no se ve válido.", "resetEmail");
 
-    setBusy(true);
+    setBusyAction("form");
     try {
       await signIn.create({ strategy: "reset_password_email_code", identifier: email });
       setStep("resetCode");
@@ -185,7 +188,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       fail(authErrorMessage(err), "resetEmail");
       return;
     }
-    setBusy(false);
+    setBusyAction(null);
   }
 
   async function handleResetConfirm(e: React.FormEvent) {
@@ -194,7 +197,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     if (code.trim().length < 6) return fail("Ingresá el código de 6 dígitos.", "code");
     if (newPass.length < 8) return fail("La contraseña nueva necesita al menos 8 caracteres.", "newPass");
 
-    setBusy(true);
+    setBusyAction("form");
     try {
       const res = await signIn.attemptFirstFactor({
         strategy: "reset_password_email_code",
@@ -216,7 +219,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
   async function handleGoogle() {
     if (busy || !ready) return;
-    setBusy(true);
+    setBusyAction("google");
     try {
       const resource = mode === "signup" ? signUp : signIn;
       if (!resource) throw new Error("clerk not ready");
@@ -320,7 +323,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
             />
             {/* Clerk bot protection mounts here in custom flows. */}
             <div id="clerk-captcha" />
-            <SubmitButton loading={busy} disabled={!ready}>
+            <SubmitButton loading={busyAction === "form"} disabled={!ready || busy}>
               Empezar trial de 7 días →
             </SubmitButton>
             <p className={styles.trialNote}>Sin tarjeta para empezar · cancelás cuando quieras</p>
@@ -328,7 +331,13 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
           <div className={styles.divider}>o</div>
           <div className={styles.oauth}>
-            <SubmitButton variant="ghost" type="button" onClick={handleGoogle} disabled={!ready}>
+            <SubmitButton
+              variant="ghost"
+              type="button"
+              onClick={handleGoogle}
+              loading={busyAction === "google"}
+              disabled={!ready || busy}
+            >
               Continuar con Google
             </SubmitButton>
           </div>
@@ -365,14 +374,20 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
               value={liPass}
               onChange={(e) => setLiPass(e.target.value)}
             />
-            <SubmitButton loading={busy} disabled={!ready}>
+            <SubmitButton loading={busyAction === "form"} disabled={!ready || busy}>
               Entrar a Studere →
             </SubmitButton>
           </form>
 
           <div className={styles.divider}>o</div>
           <div className={styles.oauth}>
-            <SubmitButton variant="ghost" type="button" onClick={handleGoogle} disabled={!ready}>
+            <SubmitButton
+              variant="ghost"
+              type="button"
+              onClick={handleGoogle}
+              loading={busyAction === "google"}
+              disabled={!ready || busy}
+            >
               Continuar con Google
             </SubmitButton>
           </div>
