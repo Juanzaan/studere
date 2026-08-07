@@ -1,4 +1,4 @@
-import { test as setup, type Page } from '@playwright/test';
+import { test as setup, expect, type Page } from '@playwright/test';
 import { clerk, clerkSetup, setupClerkTestingToken } from '@clerk/testing/playwright';
 import path from 'path';
 
@@ -56,11 +56,15 @@ setup('authenticate and save storage state', async ({ page }) => {
     emailAddress: process.env.E2E_CLERK_USER_EMAIL!,
   });
 
-  // Land on a protected route to prove the session took. Both layout variants
-  // (normal and focused) render a <main>, so it survives a focus-mode default;
-  // reaching it at all means the middleware did not bounce us to /sign-in.
+  // Land on a protected route to prove the session took. Assert on the URL and
+  // on Clerk's <UserButton>, which only mounts for a signed-in user: the page
+  // the middleware bounces us to also renders a <main> and an <aside>, so
+  // waiting on those would pass while signed out and save a useless state file.
   await page.goto('/dashboard');
-  await page.waitForSelector('main', { timeout: 15000 });
+  await expect(page).toHaveURL(/\/dashboard(?:[?#]|$)/, { timeout: 30_000 });
+  await expect(page.getByRole('button', { name: 'Open user menu' })).toBeVisible({
+    timeout: 30_000,
+  });
 
   // First-run tutorial: without this flag TutorialOverlay mounts a full-screen
   // z-[60] backdrop on every protected page and swallows the clicks the specs
