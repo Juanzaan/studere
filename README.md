@@ -8,7 +8,6 @@
 <p align="center">
   <a href="https://github.com/Juanzaan/studere/actions/workflows/ci.yml"><img src="https://github.com/Juanzaan/studere/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-DC2626" alt="Proprietary license" /></a>
-  <img src="https://img.shields.io/badge/version-0.2.0-0ea5e9" alt="Version 0.2.0" />
 </p>
 
 # Studere
@@ -56,8 +55,11 @@ Auth is Clerk (email + social). The frontend is local-first for sessions; AI run
 
 ## Stack
 
-**Frontend:** Next.js 14 (App Router), TypeScript, Tailwind, GSAP, Clerk.  
+**Frontend:** Next.js 14 (App Router), TypeScript, Tailwind, GSAP, Clerk. Recharts for the
+dashboard, ECharts for the mind map, KaTeX for formulas.  
 **Backend:** Azure Functions (Node), FFmpeg, Blob Storage, GPT-4o-mini / GPT-4.1-mini / Whisper.
+
+Node 20 or newer — Vitest 4 reads `node:util`'s `styleText`, which Node 18 does not have.
 
 ---
 
@@ -74,11 +76,15 @@ npm run dev                        # http://localhost:3000
 
 # Backend (separate terminal)
 cd ../backend && npm install
-cp .env.example local.settings.json   # Azure OpenAI + Clerk secret
+cp local.settings.example.json local.settings.json   # Azure OpenAI + Clerk secret
 npm start
 ```
 
 Unauthenticated `/` serves the marketing landing. Signed-in users land on `/dashboard`.
+
+Leave `CLERK_SECRET_KEY` empty in the backend settings and it runs with auth disabled, which
+is enough to develop the frontend against it. Set it and every protected Function starts
+requiring a valid bearer token.
 
 More detail: [CONTRIBUTING.md](CONTRIBUTING.md) · [CODING_STANDARDS.md](CODING_STANDARDS.md) · [CHANGELOG.md](CHANGELOG.md)
 
@@ -111,7 +117,7 @@ studere/
 │   ├── components/           # UI, session panels, landing
 │   ├── lib/                  # API client, storage, audio, types
 │   ├── src/tests/            # Vitest unit suites
-│   └── e2e/                  # Playwright specs
+│   └── e2e/                  # Playwright specs + Clerk auth setup
 └── backend/                 # Azure Functions
     ├── GenerateStudySession/
     ├── TranscribeAudio/
@@ -131,11 +137,19 @@ studere/
 
 ```bash
 cd frontend
+npm run typecheck   # tsc --noEmit, strict
 npm test            # Vitest
-npm run test:e2e    # Playwright (needs app running + env)
+npm run test:e2e    # Playwright (starts its own dev server)
 ```
 
-CI runs on GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)).
+CI ([`ci.yml`](.github/workflows/ci.yml)) runs typecheck, Vitest and a production build on Node
+20, then the Playwright suite on Chromium. The E2E job signs in through Clerk's testing helpers
+and reuses one saved session, so specs never drive the sign-in form. CodeQL runs as its own
+workflow.
+
+Playwright targets `127.0.0.1`, not `localhost`. On a dual-stack host `localhost` resolves to
+`::1` first, and over IPv6 the Next dev server sends response headers but never flushes the
+body — every dynamic route hangs while the server log cheerfully reports `200`.
 
 ---
 
@@ -153,8 +167,12 @@ CI runs on GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)).
 
 - Session IDs validated against a strict pattern (no path traversal).
 - Image answers limited to base64 data URLs (no remote fetch / SSRF).
-- Chat and package caches keyed by user identity where relevant.
-- Backend auth is fail-closed when `CLERK_SECRET_KEY` is configured.
+- Chat replies are cached per user: `StudeChat` keys on the Clerk `sub`, so one account cannot
+  serve another's answer. Transcription and generation caches are content-addressed instead —
+  identical input hits the same entry for everybody, which is the intent, and means they hold
+  no per-user data.
+- Backend auth is fail-closed **once `CLERK_SECRET_KEY` is set**. Without it the Functions log a
+  warning and serve unauthenticated, which is a development mode, not a deployment one.
 
 ---
 
