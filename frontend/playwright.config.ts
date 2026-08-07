@@ -13,7 +13,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  // In CI the default `html` reporter writes a file nobody reads until the job
+  // has already failed, and prints almost nothing to the log. Pair it with the
+  // `github` reporter so a failure is annotated on the diff itself; the HTML
+  // report still gets uploaded as an artifact for the details.
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
   // The suite runs against `next dev`, so the first request to each route pays
   // for an on-demand webpack compile (10-45s). The default 30s cap turns that
   // into a page.goto timeout on whichever test happens to hit a route first.
