@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Session Creation Flow (E2E)', () => {
   test.beforeEach(async ({ page }) => {
     // Start with clean slate
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
     
     // Clear any existing sessions in localStorage
     await page.evaluate(() => {
@@ -26,7 +26,7 @@ test.describe('Session Creation Flow (E2E)', () => {
 
   test('should create session from text, view in library, and open detail', async ({ page }) => {
     // STEP 1: Navigate to library/dashboard
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     // STEP 2: Open session composer
@@ -72,7 +72,7 @@ test.describe('Session Creation Flow (E2E)', () => {
 
     // STEP 4: Verify session appears in library
     // Navigate back to library if not already there
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(1000);
 
     // Look for session card
@@ -124,20 +124,23 @@ test.describe('Session Creation Flow (E2E)', () => {
   });
 
   test('should display empty state when no sessions exist', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
-    await page.waitForTimeout(500);
+    await page.goto('/library');
 
-    // Should show empty state or "no sessions" message
-    const emptyState = await page.getByText(/no.*sesiones|sin sesiones|empezar|crear.*primera/i).isVisible({ timeout: 3000 }).catch(() => false);
-    const createButton = await page.getByRole('button', { name: /nueva sesión|crear sesión/i }).isVisible({ timeout: 2000 }).catch(() => false);
+    // The session list is client-rendered from localStorage, so the empty state
+    // only appears after hydration. Wait for the element instead of a fixed
+    // delay, and match "Nueva sesión" as a link — it is an anchor, not a button,
+    // so getByRole('button') never found it.
+    const emptyState = page.getByText(/sin sesiones|no.*sesiones|empezar|crear.*primera/i);
+    const createLink = page.getByRole('link', { name: /nueva sesión|crear sesión/i });
 
-    // At least one should be visible
-    expect(emptyState || createButton).toBe(true);
+    // .first() goes on the union: .or() matches both branches at once, so
+    // per-branch .first() still leaves two elements and trips strict mode.
+    await expect(emptyState.or(createLink).first()).toBeVisible({ timeout: 15_000 });
   });
 
   test('should persist session across page reloads', async ({ page }) => {
     // Create a mock session directly in localStorage
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     
     await page.evaluate(() => {
       const mockSession = {

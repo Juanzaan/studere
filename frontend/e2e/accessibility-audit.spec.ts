@@ -100,7 +100,9 @@ test.describe("🔍 Auditoría de accesibilidad @a11y", () => {
     const labels = [
       "Cambiar tema",
       "Notificaciones",
-      "Perfil de usuario",
+      // The profile control is Clerk's <UserButton>, which ships its own
+      // English label; the old hand-rolled "Perfil de usuario" button is gone.
+      "Open user menu",
     ];
     for (const label of labels) {
       await expect(page.locator(`[aria-label="${label}"]`).first()).toBeVisible();
@@ -114,9 +116,13 @@ test.describe("🔍 Auditoría de accesibilidad @a11y", () => {
     // Hamburger on mobile viewport
     await page.setViewportSize({ width: 375, height: 812 });
     await page.waitForTimeout(200);
-    const hamburger = page.locator('[aria-label="Abrir menú de navegación"]');
+    // Match on aria-expanded, not aria-label: the label flips to "Cerrar menú
+    // de navegación" once open, so a label-based locator stops matching itself
+    // after the click.
+    const hamburger = page.locator('button[aria-expanded][aria-label*="menú de navegación"]');
     await expect(hamburger).toBeVisible();
     await expect(hamburger).toHaveAttribute("aria-expanded", "false");
+    await expect(hamburger).toHaveAttribute("aria-label", "Abrir menú de navegación");
 
     await hamburger.click();
     await expect(hamburger).toHaveAttribute("aria-expanded", "true");
@@ -165,9 +171,10 @@ test.describe("🔍 Auditoría de accesibilidad @a11y", () => {
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
 
-    await expect(page.locator("dl")).toBeVisible();
-    await expect(page.locator("dt")).toBeVisible();
-    await expect(page.locator("dd")).toBeVisible();
+    // One <dl> holding several stat cards, so dt/dd repeat — assert the first.
+    await expect(page.locator("dl").first()).toBeVisible();
+    await expect(page.locator("dt").first()).toBeVisible();
+    await expect(page.locator("dd").first()).toBeVisible();
   });
 
   // ═══ FILTER BUTTONS (aria-pressed) ═══
@@ -239,7 +246,11 @@ test.describe("🔍 Auditoría de accesibilidad @a11y", () => {
     await page.goto("/library");
     await page.waitForLoadState("networkidle");
 
-    await expect(page.locator('[aria-label="Buscar sesiones en la biblioteca"]')).toBeVisible();
+    // The sidebar carries a search input with the same label, so scope to the
+    // page body rather than matching both.
+    await expect(
+      page.locator('main [aria-label="Buscar sesiones en la biblioteca"]')
+    ).toBeVisible();
   });
 
   // ═══ INTEGRATIONS ═══

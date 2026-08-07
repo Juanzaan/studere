@@ -14,7 +14,7 @@ import { mockTranscriptResponse, mockGenerationResponse } from './fixtures/sessi
 test.describe('Audio Transcription Flow (E2E)', () => {
   test.beforeEach(async ({ page }) => {
     // Start with clean slate
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
     
     await page.evaluate(() => {
       localStorage.clear();
@@ -42,7 +42,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
   });
 
   test('should upload small audio file, transcribe, generate session, and redirect to detail', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     // Click "Subir y transcribir" button
@@ -93,7 +93,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const uploadBtn = page.getByRole('button', { name: /subir y transcribir/i });
@@ -126,7 +126,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
   });
 
   test('should show error toast when file format is unsupported', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const uploadBtn = page.getByRole('button', { name: /subir y transcribir/i });
@@ -154,7 +154,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
   });
 
   test('should display upload progress indicator during transcription', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const uploadBtn = page.getByRole('button', { name: /subir y transcribir/i });
@@ -188,7 +188,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
   });
 
   test('should show session in library after successful generation', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const uploadBtn = page.getByRole('button', { name: /subir y transcribir/i });
@@ -213,7 +213,7 @@ test.describe('Audio Transcription Flow (E2E)', () => {
           await page.waitForTimeout(2000);
 
           // Navigate back to library
-          await page.goto('http://localhost:3000/library');
+          await page.goto('/library');
           await page.waitForTimeout(1000);
 
           // Session should be visible
