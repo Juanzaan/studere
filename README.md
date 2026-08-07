@@ -1,367 +1,228 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white" alt="Next.js 14" />
-  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript strict" />
-  <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Auth-Clerk-6C47FF?logo=clerk&logoColor=white" alt="Clerk" />
-  <img src="https://img.shields.io/badge/AI-Azure%20OpenAI-0078D4?logo=microsoftazure&logoColor=white" alt="Azure OpenAI" />
-  <img src="https://img.shields.io/badge/tests-338%20total-2ea44f" alt="Tests" />
-  <img src="https://img.shields.io/badge/license-Studere%20Proprietary-DC2626" alt="Proprietary license" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
+    <img src="docs/assets/hero-light.svg" alt="Studere — record the class, leave with a study pack" width="860">
+  </picture>
 </p>
 
-<div align="center">
-  <h1>📚 Studere</h1>
-  <p><strong>Your AI study partner. Record the class, get the full study package.</strong></p>
-  <p>
-    <a href="https://github.com/Juanzaan/studere">📦 GitHub</a> ·
-    <a href="CHANGELOG.md">📋 Changelog</a> ·
-    <a href="CODING_STANDARDS.md">📐 Coding Standards</a> ·
-    <a href="#-license">🔒 License</a>
-  </p>
-</div>
+<p align="center">
+  <a href="https://github.com/Juanzaan/studere/actions/workflows/ci.yml"><img src="https://github.com/Juanzaan/studere/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-b36205" alt="Proprietary license"></a>
+</p>
 
-<br/>
+Studere turns a class recording into a study pack: a structured summary, flashcards, a
+quiz with explanations, a mind map, action items, and exercises it can grade. It also
+ships Stude, a tutor that answers follow-up questions with that session as context.
 
-**Studere** is a SaaS platform that turns class recordings, transcripts, and notes into complete study packages — AI summaries, flashcards, quizzes, mind maps, and exercises — in minutes. It also includes **Stude**, an AI tutor that answers follow-up questions with the session as context.
+Bring a two-hour lecture, a pasted transcript, or a photo of the whiteboard. Accounts
+are Clerk-backed, so every library is private to whoever recorded it.
 
-> ⚠️ **Proprietary software.** This code is source-available for evaluation only. Commercial use, redistribution, or reuse in other applications is strictly prohibited. See [LICENSE](LICENSE).
+> Proprietary, source-available for evaluation only. Commercial use, redistribution,
+> and reuse in other projects are not permitted — see [LICENSE](LICENSE).
 
----
+## Why it is built this way
 
-## 📑 Table of Contents
+**A long recording cannot be handed to Whisper as-is.** The transcription endpoint caps
+at 25 MB, which a phone recording of a single class blows past. So there are two paths,
+picked by size rather than by user choice: files under the cap go straight through, and
+anything larger is uploaded in 10 MB chunks to Blob Storage, reassembled server-side,
+split with FFmpeg, and transcribed in parallel batches of five. The cost is a second
+pipeline to maintain. The alternative was refusing the recordings people actually make.
 
-- [The product](#-the-product)
-- [Features](#-features)
-- [How it works](#-how-it-works)
-- [Architecture](#-architecture)
-- [Tech stack](#-tech-stack)
-- [Getting started](#-getting-started)
-- [Backend endpoints](#-backend-endpoints)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Security](#-security)
-- [License](#-license)
+**Generated material is worth nothing if it is thin.** Every study pack is scored after
+generation — summary depth, concept count, explanation length — and sections that come
+back weak get a targeted second pass before anything is cached. A quiz whose answer
+explanations are one line each is technically a quiz and practically useless, and the
+model produces those often enough that trusting the first response is not an option.
 
----
+**Sessions live in the browser first.** Study data is persisted client-side and the
+backend stays stateless, which keeps the Functions app cheap and makes the app usable
+while the API is down. The tradeoff is real and known: a library does not follow you to
+another device yet.
 
-## 🎯 The product
+## How it works
 
-Studere sits in the gap between "recorded the class and never listened to it again" and "spent three hours making flashcards". Upload an audio file (even 2+ hours), paste a transcript, or drop notes — the platform returns:
+```
+audio ─┬─ under 25 MB ─→ TranscribeAudio ───────────────────┐
+       │                                                    ├─→ transcript
+       └─ over 25 MB ──→ UploadAudioChunk ─→ ProcessAudio ──┘
+                         (10 MB chunks,      (FFmpeg split,
+                          Blob Storage)       Whisper ×5 in parallel)
 
-| Input | Output |
-|-------|--------|
-| 🎤 Audio / video recording (2h+) | 📝 AI summary with structured headings |
-| 📋 Pasted text or transcript | 🃏 Flashcard deck with spaced repetition |
-| 📄 Class notes (.txt, .md) | ✍️ Multiple-choice quiz with explanations |
-| 📸 Photo of whiteboard / exercise | 🧠 Mind map of key concepts |
-| | ✅ Action items, exercises, AI grading |
-| | 🤖 Stude — contextual AI tutor |
+transcript ─→ GenerateStudySession ─→ quality gate ─┬─ passes ──────→ study pack
+                                          ▲         └─ weak sections ─┐
+                                          └───────── enrichment pass ─┘
 
-Authentication is handled by **Clerk** (email + social), so every user's study library is private and portable.
-
----
-
-## ✨ Features
-
-<div align="center">
-
-| Category | Features |
-|:---|---|
-| **🎓 Study Tools** | AI summaries, spaced-repetition flashcards, quizzes, mind maps, exercises — auto-generated with quality enforcement |
-| **🎙️ Audio Pipeline** | Client-side Whisper proxy for files < 25 MB; chunked upload → Azure Blob → server-side FFmpeg + Whisper for 2h+ recordings |
-| **🤖 AI Tutor** | Stude Chat with session-aware context, chart/mind-map rendering, exercise evaluation with vision (handwritten answers) |
-| **📊 Analytics** | Study metrics, Recharts visualizations (bar, line, pie), progress tracking per session |
-| **🎨 UI/UX** | GSAP animations, dark/light mode, skeleton loading, guided tour, fully responsive |
-| **♿ Accessibility** | WCAG AA contrast, semantic HTML, ARIA, keyboard navigation, screen-reader friendly |
-| **📦 Export** | Markdown and CSV export of all study materials |
-
-</div>
-
----
-
-## 🔄 How it works
-
-```mermaid
-flowchart LR
-    A[🎤 Class recording] --> B{Size?}
-    B -->|< 25 MB| C[TranscribeAudio → Whisper]
-    B -->|> 25 MB| D[UploadAudioChunk → Blob Storage]
-    D --> E[ProcessAudio → FFmpeg split → Whisper]
-    C --> F[Transcript]
-    E --> F
-    F --> G[GenerateStudySession<br/>summary · cards · quiz · mind map]
-    G --> H{Quality check}
-    H -->|weak sections| I[Enrichment pass]
-    I --> J[Study package cached]
-    H -->|passes| J
-    J --> K[📚 Dashboard · 📖 Session detail · 🃏 Study mode]
-    L[💬 Questions?] --> M[Stude Chat · context-aware]
-    N[📸 Exercise photo] --> O[EvaluateExercise · vision grading]
+study pack ─→ summary · flashcards · quiz · mind map · action items · exercises
+              Stude answers follow-ups · EvaluateExercise grades photographed work
 ```
 
----
+Transcription and generation results are content-addressed in an in-process cache, so
+re-submitting the same audio or transcript is free. Chat is cached per user, since the
+same question against the same session is still a different answer for a different
+person.
 
-## 🏗️ Architecture
+## Running it locally
 
-```mermaid
-graph TB
-    subgraph Frontend[Next.js 14 · Vercel]
-        UI[App Router + Tailwind + GSAP]
-        CLERK[Clerk Auth]
-        STORE[Local-first session storage]
-    end
-    subgraph Backend[Azure Functions · Node 18]
-        API1[GenerateStudySession]
-        API2[TranscribeAudio]
-        API3[ProcessAudio + FFmpeg]
-        API4[UploadAudioChunk]
-        API5[StudeChat]
-        API6[EvaluateExercise]
-        SHARED[shared/ · cache · utils · pipeline]
-    end
-    subgraph Azure[Azure Services]
-        AOAI[Azure OpenAI<br/>GPT-4o-mini · GPT-4.1-mini · Whisper]
-        BLOB[Blob Storage · audio-chunks]
-    end
-    UI --> CLERK
-    UI --> API1
-    UI --> API2
-    UI --> API4
-    UI --> API5
-    UI --> API6
-    API3 --> BLOB
-    API1 --> AOAI
-    API2 --> AOAI
-    API3 --> AOAI
-    API5 --> AOAI
-    API6 --> AOAI
-```
-
-### Key design decisions
-
-- **Dual audio pipeline** — small files transcribe directly; large ones are chunked (10 MB), uploaded, reassembled server-side, split with FFmpeg and transcribed in parallel batches of 5.
-- **Quality-enforced generation** — every AI output is scored (summary depth, concept count, explanation length); weak sections are enriched with targeted follow-up calls before caching.
-- **Shared OpenAI client** — a single client + deployment resolution per Function, with retry-with-backoff and timeout on every model call.
-- **Cache everywhere** — transcripts, generated packages, and chat answers are SHA-256 keyed. Chat cache includes the user's identity so no response leaks between accounts.
-- **Security by default** — session IDs validated against a strict pattern (path-traversal proof), image answers restricted to base64 data URLs (SSRF-proof), chunk uploads idempotent.
-
----
-
-## 🛠️ Tech stack
-
-| Layer | Technology |
-|:---|---:|
-| **Frontend** | Next.js 14 (App Router), TypeScript (strict), Tailwind CSS 3.4, GSAP 3.14, React Flow, Recharts, Lucide, KaTeX |
-| **Auth** | Clerk (`@clerk/nextjs` v6) |
-| **Backend** | Azure Functions (Node 18), Azure OpenAI (GPT-4o-mini, GPT-4.1-mini, Whisper), Azure Blob Storage, FFmpeg |
-| **Testing** | Vitest (338 unit tests · 15 suites), Playwright (76 E2E tests per browser · 9 specs) |
-
----
-
-## 🚀 Getting started
-
-### Prerequisites
-
-| Tool | Version | Purpose |
-|:---|---:|:---|
-| Node.js | ≥ 18 | Runtime |
-| Azure Functions Core Tools | v4 | Local backend emulation |
-| Azurite | — | Local Blob Storage emulation |
-| Clerk account | — | Auth keys (frontend) |
-| Azure OpenAI | GPT-4o-mini + Whisper | AI generation (backend) |
-
-### Install
+You need Node 20 or newer (Vitest 4 requires >= 20.12), [Azure Functions Core Tools
+v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local), and
+[Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) for the
+blob emulator. The AI features need a Clerk application and an Azure OpenAI resource
+with a chat deployment and a Whisper deployment; without them the UI runs and sessions
+can be created by hand, but nothing is generated.
 
 ```bash
 git clone https://github.com/Juanzaan/studere.git
 cd studere
 
-# Frontend
 cd frontend && npm install
-
-# Backend
 cd ../backend && npm install
+cp local.settings.example.json local.settings.json   # then fill in the keys
 ```
 
-### Configure — frontend
-
-**`frontend/.env.local`** (see `.env.local.example`):
-
-```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:7071
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-```
-
-> ⚠️ `.env.local` is gitignored. Never commit your Clerk keys.
-
-### Configure — backend
-
-**`backend/local.settings.json`** (gitignored):
-
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "AZURE_OPENAI_ENDPOINT": "https://your-resource.openai.azure.com/",
-    "AZURE_OPENAI_KEY": "your-key",
-    "AZURE_OPENAI_DEPLOYMENT": "gpt-4o-mini",
-    "AZURE_OPENAI_WHISPER_DEPLOYMENT": "whisper",
-    "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
-    "ALLOWED_ORIGIN": "http://localhost:3000",
-    "CLERK_SECRET_KEY": "sk_test_..."
-  }
-}
-```
-
-> 🔑 **Important:** rotate your `CLERK_SECRET_KEY` before any production deployment.
->
-> 🔐 **Backend auth:** all AI endpoints (`generate-study-session`, `transcribe-audio`, `evaluate-exercise`, `stude-chat`, `upload-audio-chunk`, `process-audio`) verify the Clerk session token (`Authorization: Bearer <token>`) sent by the frontend. If `CLERK_SECRET_KEY` is not configured, the backend falls back to unauthenticated dev mode — set it in the Azure Function App settings for production.
-
-### Run locally
+Three terminals:
 
 ```bash
-# Terminal 1 — Storage emulator
-azurite --silent --location ./azurite
-
-# Terminal 2 — Backend
-cd backend && func start
-
-# Terminal 3 — Frontend
-cd frontend && npm run dev
+azurite --silent --location ./azurite   # blob emulator
+cd backend  && func start               # localhost:7071
+cd frontend && npm run dev              # open http://127.0.0.1:3000
 ```
 
-Open **http://localhost:3000** 🎉
+Open the app at `127.0.0.1:3000`, not `localhost:3000`. On a dual-stack host `localhost`
+resolves to `::1` first, and over IPv6 the Next dev server sends response headers but
+never flushes the body — the request hangs while the server log cheerfully reports `200`.
+Playwright's base URL is pinned to the IPv4 address for the same reason.
 
----
+## Configuration
 
-## 🔌 Backend endpoints
+`frontend/.env.local` (copy `.env.local.example`):
 
-| Function | Route | Purpose |
-|:---|---:|:---|
-| `GenerateStudySession` | `POST /api/generate-study-session` | Full study package from transcript (with quality enforcement) |
-| `TranscribeAudio` | `POST /api/transcribe-audio` | Whisper transcription for files < 25 MB |
-| `UploadAudioChunk` | `POST /api/upload-audio-chunk` | Chunked upload (10 MB chunks) → Blob Storage |
-| `ProcessAudio` | `POST /api/process-audio` | Server-side FFmpeg split + parallel Whisper transcription |
-| `StudeChat` | `POST /api/stude-chat` | Context-aware AI tutor with per-user caching |
-| `EvaluateExercise` | `POST /api/evaluate-exercise` | Exercise grading, vision-enabled for photo answers |
-| `HealthCheck` | `GET /api/health` | Health + cache stats |
+| Variable | Required | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_BACKEND_URL` | yes | `http://localhost:7071` for the local Functions host |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | yes | `pk_test_...` from the Clerk dashboard |
+| `CLERK_SECRET_KEY` | yes | `sk_test_...`; server-side only |
+| `NEXT_PUBLIC_CLERK_*_URL` | no | sign-in/sign-up route overrides |
+| `E2E_CLERK_USER_EMAIL` | E2E only | Clerk test user, e.g. `e2e+clerk_test@example.com` |
 
----
+`backend/local.settings.json` (copy `local.settings.example.json`):
 
-## 🧪 Testing
+| Variable | Required | Notes |
+|---|---|---|
+| `AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_KEY` | yes | Azure OpenAI resource |
+| `AZURE_OPENAI_DEPLOYMENT` | yes | chat deployment name |
+| `AZURE_OPENAI_WHISPER_DEPLOYMENT` | yes | transcription deployment name |
+| `AZURE_STORAGE_CONNECTION_STRING` | yes | `UseDevelopmentStorage=true` with Azurite |
+| `ALLOWED_ORIGIN` | yes | exact frontend origin for CORS |
+| `CLERK_SECRET_KEY` | prod | **unset means auth is disabled** — see [Security](#security) |
+| `FFMPEG_PATH` | no | falls back to the bundled binary |
+
+Both files are gitignored. Keys belong in the Clerk and Azure dashboards, in Vercel
+project settings, and in GitHub Actions secrets — never in a commit.
+
+## Stack
+
+| Layer | What |
+|---|---|
+| Frontend | Next.js 14 App Router, TypeScript strict, Tailwind 3.4, GSAP, ECharts (mind map), Recharts (analytics), KaTeX |
+| Auth | Clerk (`@clerk/nextjs` v6) with custom sign-in/sign-up UI |
+| Backend | Azure Functions v4 (Node, CommonJS), Azure OpenAI (chat + Whisper), Azure Blob Storage, FFmpeg |
+| Testing | Vitest + Testing Library, Playwright (Chromium), axe-core |
+| CI | GitHub Actions — typecheck, unit tests, production build, E2E; CodeQL on a separate workflow |
+
+## API surface
+
+All routes are `POST` under the Functions `api` prefix unless noted. Each one verifies
+the caller's Clerk token when `CLERK_SECRET_KEY` is configured.
+
+| Route | Purpose |
+|---|---|
+| `/api/generate-study-session` | Transcript to study pack, with the quality gate |
+| `/api/transcribe-audio` | Whisper transcription for files under 25 MB |
+| `/api/upload-audio-chunk` | Chunked upload to Blob Storage for larger files |
+| `/api/process-audio` | Server-side FFmpeg split plus batched transcription |
+| `/api/stude-chat` | Session-aware tutor |
+| `/api/evaluate-exercise` | Exercise grading, vision-enabled for photographed answers |
+| `GET /api/HealthCheck` | Liveness and cache statistics |
+
+## Layout
+
+```
+frontend/
+  app/           (app)/ dashboard, library, sessions/[id], analytics, upcoming
+                 sign-in/, sign-up/, sso-callback/, api/, dev/
+  components/    UI, session panels, auth screens, mind-map-graph.tsx
+  lib/           API client, local storage, audio pipeline, types
+  src/tests/     Vitest unit suites
+  e2e/           Playwright specs plus the Clerk sign-in setup project
+backend/
+  GenerateStudySession/  TranscribeAudio/  ProcessAudio/  UploadAudioChunk/
+  StudeChat/  EvaluateExercise/  HealthCheck/
+  shared/        OpenAI client, cache, validation, audio pipeline, auth.js
+```
+
+## Tests
 
 ```bash
 cd frontend
-
-# Unit tests (320 tests · 15 suites)
-npm test
-
-# Coverage report
+npm run typecheck        # tsc --noEmit
+npm test                 # Vitest
 npm run test:coverage
-
-# E2E (all browsers)
-npm run test:e2e
-
-# E2E (Chromium only, faster)
-npx playwright test --project=chromium
+npm run test:e2e         # Playwright; needs the Clerk test-user vars
+npm run test:e2e:ui
 ```
 
-**Current status:** 338/338 unit tests pass. 76 E2E tests across 9 specs (critical flows, auth-aware UI, audio transcription, AI generation, flashcards, quiz, session detail, library, a11y). The E2E job is currently disabled in CI pending Clerk test-auth setup — see [issue #3](https://github.com/Juanzaan/studere/issues/3).
+The E2E suite signs in once in a `setup` project using `@clerk/testing`, saves the
+session to `playwright/.clerk/user.json` (gitignored), and every spec inherits it. The
+setup asserts on Clerk's user menu rather than on generic page structure — the page an
+anonymous visitor gets bounced to renders the same landmarks, so a looser check would
+pass while signed out and hand the whole suite a useless session.
 
----
+CI runs typecheck, unit tests and a production build on Node 20, then the Chromium E2E
+suite. CodeQL runs on its own workflow.
 
-## 📦 Deployment
+## Deploying
 
-### Frontend → Vercel
+The frontend targets Vercel: connect the repo, copy the `.env.local` variables into the
+project settings, and it deploys on push to `main`. The backend goes out with
+`func azure functionapp publish <app-name>` from `backend/`; the keys from
+`local.settings.json` become Application Settings in the Function App, with
+`ALLOWED_ORIGIN` pointing at the deployed frontend and `CLERK_SECRET_KEY` set — see
+below for why that last one is not optional in production.
 
-Set the same env vars from `.env.local` in Vercel's project settings and connect the repo. Deploys on push to `main`.
+## Security
 
-```bash
-cd frontend
-npx vercel --prod
-```
+Backend authentication is **fail-closed only when `CLERK_SECRET_KEY` is set**. With the
+key present, every endpoint requires `Authorization: Bearer <token>` and verifies it
+through `@clerk/backend`. With it absent, the backend logs a warning and serves requests
+unauthenticated — that is deliberate for local development and dangerous anywhere else,
+so set it in the Function App settings before deploying.
 
-### Backend → Azure Functions
+- Session identifiers are validated against `^[A-Za-z0-9_-]{1,64}$` before they reach
+  the filesystem or blob storage, which is what keeps path traversal out.
+- Exercise images must be `data:image/...;base64` URLs; remote URLs are rejected, so the
+  grading endpoint cannot be turned into an SSRF probe.
+- Chat cache keys include the user identity. Transcription and generation caches are
+  content-addressed and carry no identity, which is safe precisely because their inputs
+  are supplied by the caller and their outputs derive from nothing else.
+- Chunk uploads are idempotent and failed jobs keep their chunks, so a retry resumes
+  instead of restarting.
+- 500 responses carry generic messages; details stay in the structured logs.
 
-```bash
-cd backend
-func azure functionapp publish your-function-app-name
-```
+Found something? Open a private security advisory rather than a public issue.
 
-Required **Application Settings** (Azure Portal):
+## Docs
 
-```env
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your-key
-AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
-AZURE_OPENAI_WHISPER_DEPLOYMENT=whisper
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=...
-ALLOWED_ORIGIN=https://your-app.vercel.app
-FFMPEG_PATH=/path/to/ffmpeg   # optional — otherwise auto-downloaded to %TEMP%
-```
+- [CONTRIBUTING.md](CONTRIBUTING.md) — branch workflow, commit conventions, release process
+- [CODING_STANDARDS.md](CODING_STANDARDS.md) — conventions this codebase actually follows
+- [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog, semver
+- [AGENTS.md](AGENTS.md) — ground rules for AI agents working in this repo
 
----
+## License
 
-## 🔐 Security
+Proprietary, all rights reserved. You may read and evaluate the code. You may not use
+it commercially, run a service with it, redistribute it, modify it, or reuse any part of
+it elsewhere. See [LICENSE](LICENSE) for the binding terms; contact the author for
+anything beyond evaluation.
 
-- **No secrets in the repo** — Clerk keys live only in gitignored env files; CI and code scans enforce this.
-- **Path traversal protection** — every `sessionId` is validated against `^[A-Za-z0-9_-]{1,64}$` before touching the filesystem or blob storage.
-- **SSRF protection** — exercise images are restricted to base64 data URLs; remote URLs are rejected.
-- **User-isolated caching** — chat cache keys include the user identity.
-- **Graceful failure** — failed audio processing keeps uploaded chunks so clients can retry; uploads are idempotent (`overwrite` semantics).
-- **No error leakage** — 500 responses return generic messages; details stay in structured logs.
-
----
-
-## 📁 Project structure
-
-```
-studere/
-├── .github/                        # CI workflows, issue templates
-├── AGENTS.md                       # Conventions for AI agents working in this repo
-├── frontend/                       # Next.js 14 app
-│   ├── app/
-│   │   ├── page.tsx                 # Marketing landing (auth-aware redirect)
-│   │   ├── (app)/                   # Dashboard, library, starred, upcoming,
-│   │   │                            # analytics, integrations, sessions/[id]
-│   │   ├── sign-in/ · sign-up/      # Clerk pages
-│   │   └── dev/seed/                # Development seed page
-│   ├── components/                  # UI + session panels + landing page
-│   ├── lib/                         # API client, storage, types, audio, utils
-│   ├── src/shared/                  # Hooks (useAnimations, useFadeInStagger)
-│   ├── src/tests/                   # 15 Vitest suites (320 tests)
-│   ├── e2e/                         # 9 Playwright specs (76 tests per browser)
-│   └── scripts/                     # Doc-coverage script
-│
-└── backend/                         # Azure Functions (Node 18)
-    ├── GenerateStudySession/        # Study package + quality enforcement
-    ├── TranscribeAudio/             # Whisper proxy (small files)
-    ├── ProcessAudio/                # Server-side FFmpeg + transcription
-    ├── UploadAudioChunk/            # Chunked upload → Blob Storage
-    ├── StudeChat/                   # AI tutor with session context
-    ├── EvaluateExercise/            # Exercise grading (vision API)
-    ├── HealthCheck/                 # Health + cache stats
-    └── shared/                      # OpenAI client, cache, utils, audio pipeline
-```
-
----
-
-## 🔒 License
-
-**Studere is proprietary software — all rights reserved.**
-
-This project is released under the [Studere Proprietary License](LICENSE). In short:
-
-- ✅ You may **view and study** the code for evaluation.
-- ❌ You may **not** use it commercially, run a competing SaaS with it, redistribute it, modify it, or reuse any part of it in another application.
-- ⚖️ Violations are copyright infringement and breach of contract, and may result in **legal action** (injunctions, damages, attorney's fees).
-
-Contact the author for any licensing requests.
-
-© 2026 [Juan Pablo Zanolli](https://github.com/Juanzaan) — All rights reserved.
-
-<p align="center">
-  <sub>Built with ❤️ for students who want to study smarter.</sub>
-</p>
+Copyright 2026 [Juan Pablo Zanolli](https://github.com/Juanzaan).

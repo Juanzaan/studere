@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 230" width="860" height="230" role="img" aria-label="Studere — Record the class. Leave with a study pack. Record, generate, study pack, Stude.">
+  <rect width="860" height="230" rx="14" fill="#f8fafc"/>
+  <rect x="0.5" y="0.5" width="859" height="229" rx="13.5" fill="none" stroke="#e2e8f0"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">
+    <text x="430" y="92" font-size="48" font-weight="600" letter-spacing="-1.2" fill="#0f172a">Studere</text>
+    <text x="430" y="128" font-size="17" font-weight="400" fill="#64748b">Record the class. Leave with a study pack.</text>
+    <line x1="380" y1="158" x2="480" y2="158" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="430" y="192" font-size="14" font-weight="500" letter-spacing="0.4" fill="#0f172a">Record<tspan fill="#94a3b8" font-weight="400">&#160;&#160;→&#160;&#160;</tspan>Generate<tspan fill="#94a3b8" font-weight="400">&#160;&#160;→&#160;&#160;</tspan>Study pack<tspan fill="#94a3b8" font-weight="400">&#160;&#160;→&#160;&#160;</tspan><tspan fill="#3b5fc0">Stude</tspan></text>
+  </g>
+</svg>
