@@ -23,6 +23,41 @@ const AFTER_SIGN_IN = process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashb
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Clerk's promises can hang indefinitely rather than reject: clerk-js waits for
+ * a captcha token before it even sends the request, so an ad blocker or a
+ * network that filters Cloudflare leaves the user staring at a spinner with no
+ * message and no way to retry. Race every call against a deadline so a stuck
+ * request surfaces as an actionable error instead.
+ */
+const CLERK_TIMEOUT_MS = 25_000;
+
+class ClerkTimeoutError extends Error {
+  constructor() {
+    super("clerk request timed out");
+    this.name = "ClerkTimeoutError";
+  }
+}
+
+const TIMEOUT_MESSAGE =
+  "El servicio de autenticación no respondió. Si usás un bloqueador de anuncios o una VPN, desactivalo para este sitio y probá de nuevo.";
+
+function withTimeout<T>(promise: Promise<T>, ms = CLERK_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new ClerkTimeoutError()), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
 export function AuthCard({ initialMode }: { initialMode: Mode }) {
   const router = useRouter();
   const { isLoaded: signUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
@@ -72,6 +107,15 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     setBusyAction(null);
   }, []);
 
+  // A stuck request and a rejected one both land here; only the wording differs.
+  const failWith = useCallback(
+    (err: unknown, field?: string) => {
+      if (err instanceof ClerkTimeoutError) return fail(TIMEOUT_MESSAGE);
+      fail(authErrorMessage(err), field);
+    },
+    [fail],
+  );
+
   /* ── Sign up ────────────────────────────────────────────────────────── */
 
   async function handleSignUp(e: React.FormEvent) {
@@ -90,11 +134,13 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     setBusyAction("form");
     try {
       const first = name.trim().split(" ")[0] || undefined;
-      const res = await signUp.create({
-        emailAddress: email,
-        password: suPass,
-        ...(first ? { firstName: first } : {}),
-      });
+      const res = await withTimeout(
+        signUp.create({
+          emailAddress: email,
+          password: suPass,
+          ...(first ? { firstName: first } : {}),
+        }),
+      );
 
       if (res.status === "complete") {
         await setSignUpActive({ session: res.createdSessionId });
@@ -102,11 +148,13 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
         return;
       }
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await withTimeout(
+        signUp.prepareEmailAddressVerification({ strategy: "email_code" }),
+      );
       setStep("verify");
       setMsg({ kind: "ok", text: `Te mandamos un código a ${email}.` });
     } catch (err) {
-      fail(authErrorMessage(err));
+      failWith(err);
       return;
     }
     setBusyAction(null);
@@ -119,7 +167,9 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
     setBusyAction("form");
     try {
-      const res = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+      const res = await withTimeout(
+        signUp.attemptEmailAddressVerification({ code: code.trim() }),
+      );
       if (res.status === "complete") {
         await setSignUpActive({ session: res.createdSessionId });
         router.push(AFTER_SIGN_UP);
@@ -127,7 +177,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       }
       fail("No pudimos completar el registro. Probá de nuevo.");
     } catch (err) {
-      fail(authErrorMessage(err), "code");
+      failWith(err, "code");
     }
   }
 
@@ -135,10 +185,12 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     if (busy || !ready || !signUp) return;
     setBusyAction("form");
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await withTimeout(
+        signUp.prepareEmailAddressVerification({ strategy: "email_code" }),
+      );
       setMsg({ kind: "ok", text: "Listo, te mandamos otro código." });
     } catch (err) {
-      fail(authErrorMessage(err));
+      failWith(err);
       return;
     }
     setBusyAction(null);
@@ -159,7 +211,9 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
     setBusyAction("form");
     try {
-      const res = await signIn.create({ identifier: email, password: liPass });
+      const res = await withTimeout(
+        signIn.create({ identifier: email, password: liPass }),
+      );
       if (res.status === "complete") {
         await setSignInActive({ session: res.createdSessionId });
         router.push(AFTER_SIGN_IN);
@@ -167,7 +221,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       }
       fail("Necesitamos un paso más para entrar. Revisá tu email.");
     } catch (err) {
-      fail(authErrorMessage(err), "liPass");
+      failWith(err, "liPass");
     }
   }
 
@@ -181,11 +235,13 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
     setBusyAction("form");
     try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: email });
+      await withTimeout(
+        signIn.create({ strategy: "reset_password_email_code", identifier: email }),
+      );
       setStep("resetCode");
       setMsg({ kind: "ok", text: `Te mandamos un código a ${email}.` });
     } catch (err) {
-      fail(authErrorMessage(err), "resetEmail");
+      failWith(err, "resetEmail");
       return;
     }
     setBusyAction(null);
@@ -199,11 +255,13 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
 
     setBusyAction("form");
     try {
-      const res = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code: code.trim(),
-        password: newPass,
-      });
+      const res = await withTimeout(
+        signIn.attemptFirstFactor({
+          strategy: "reset_password_email_code",
+          code: code.trim(),
+          password: newPass,
+        }),
+      );
       if (res.status === "complete") {
         await setSignInActive({ session: res.createdSessionId });
         router.push(AFTER_SIGN_IN);
@@ -211,7 +269,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       }
       fail("No pudimos cambiar la contraseña. Probá de nuevo.");
     } catch (err) {
-      fail(authErrorMessage(err), "code");
+      failWith(err, "code");
     }
   }
 
@@ -223,13 +281,15 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
     try {
       const resource = mode === "signup" ? signUp : signIn;
       if (!resource) throw new Error("clerk not ready");
-      await resource.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: mode === "signup" ? AFTER_SIGN_UP : AFTER_SIGN_IN,
-      });
+      await withTimeout(
+        resource.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: mode === "signup" ? AFTER_SIGN_UP : AFTER_SIGN_IN,
+        }),
+      );
     } catch (err) {
-      fail(authErrorMessage(err));
+      failWith(err);
     }
   }
 
