@@ -12,7 +12,7 @@ import { mockGenerationResponse } from './fixtures/session-fixture';
 
 test.describe('AI Generation Flow (E2E)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
     
     await page.evaluate(() => {
       localStorage.clear();
@@ -32,7 +32,7 @@ test.describe('AI Generation Flow (E2E)', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     // Click create button
@@ -82,7 +82,7 @@ test.describe('AI Generation Flow (E2E)', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
@@ -122,7 +122,7 @@ test.describe('AI Generation Flow (E2E)', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
@@ -161,7 +161,7 @@ test.describe('AI Generation Flow (E2E)', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
@@ -188,7 +188,7 @@ test.describe('AI Generation Flow (E2E)', () => {
   });
 
   test('should show validation error for empty transcript', async ({ page }) => {
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     await page.waitForTimeout(500);
 
     const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();

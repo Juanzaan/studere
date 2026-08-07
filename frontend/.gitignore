@@ -21,6 +21,8 @@ core
 test-results/
 playwright-report/
 blob-report/
+# Saved Clerk session for E2E — a real session token, never commit it
+playwright/.clerk/
 
 # clerk configuration (can include secrets)
 /.clerk/

@@ -18,7 +18,7 @@ test.describe('Quiz Flow (E2E)', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
     
     // Setup localStorage with session containing quiz
     await page.evaluate((session) => {
