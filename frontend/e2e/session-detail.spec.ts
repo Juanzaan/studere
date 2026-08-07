@@ -43,7 +43,7 @@ const mockSession = {
 test.describe('Session Detail Page', () => {
   test.beforeEach(async ({ page }) => {
     // Setup localStorage with session
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     
     await page.evaluate((session) => {
       localStorage.setItem('studere.sessions.v1', JSON.stringify([session]));

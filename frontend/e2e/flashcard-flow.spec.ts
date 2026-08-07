@@ -19,7 +19,7 @@ test.describe('Flashcard Flow (E2E)', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
     
     // Setup localStorage with session containing flashcards
     await page.evaluate((session) => {
