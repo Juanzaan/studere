@@ -66,7 +66,7 @@ La landing page utiliza una **paleta temática 'papel añejo'** con tonos cálid
 | **Framework** | Next.js 14 (App Router), TypeScript strict |
 | **Estilos** | Tailwind CSS 3.4, CSS custom properties (`--c-primary`, `--c-surface`, etc.) |
 | **Animaciones** | GSAP 3.14 + `@gsap/react` |
-| **Gráficos** | Recharts 3.8 (dashboard), React Flow / xyflow 12 (mind maps) |
+| **Gráficos** | Recharts 3.8 (dashboard), ECharts 6.1 + `echarts-for-react` (mind maps) |
 | **Visualización** | KaTeX (fórmulas matemáticas), react-markdown + remark-math + rehype-katex |
 | **Iconos** | Lucide React 0.408 |
 | **3D** | Three.js, @react-three/fiber, @react-three/drei (illustration scenes) |
