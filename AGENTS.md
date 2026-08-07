@@ -8,6 +8,35 @@
 - **`backend/`** — Azure Functions v4 (Node 18), Azure OpenAI (GPT-4o-mini + Whisper), node-cache, Azure Blob Storage
 - UI en español (es-AR); código y commits en inglés. No agregar emojis a archivos salvo que el usuario lo pida.
 
+## Dos clones, un repo (leer antes de tocar nada)
+
+Hay **dos clones del mismo repo** en esta máquina. Confundirlos ya costó una sesión entera.
+
+| Clon | Ruta | Rol |
+|---|---|---|
+| **Canónico** | `OneDrive\Documentos\Default Project` | Desde acá se verifica, commitea y pushea. Tiene el `.env.local` real. |
+| **De trabajo** | `Projects\studere` | Donde Claude edita. |
+
+Reglas:
+
+1. **Claude edita en `Projects\studere`.** opencode verifica y commitea desde el canónico.
+2. **Sincronizar solo con `git pull --ff-only`.** Si el fast-forward falla, alguien divergió: resolver a mano, no forzar.
+3. **`.env.local` vive únicamente en el canónico.** Copiarlo al clon de trabajo antes de empezar, o el build revienta con `@clerk/nextjs: Missing publishableKey` y falla el prerender de las rutas estáticas.
+4. **Los worktrees no heredan nada ignorado.** Un worktree nuevo arranca sin `node_modules` y sin `.env.local`: `npm install` + copiar el env antes de verificar.
+
+**Trampa de OneDrive:** OneDrive re-escribe mtimes, así que `git status` puede mostrar ~146 archivos como `M` sin un solo cambio real (stat-dirty). **Verificar siempre con `git diff` antes de descartar algo** — un `git checkout .` a ciegas ahí borra trabajo de verdad.
+
+## Handoff entre agentes
+
+El ciclo que funciona:
+
+1. **Claude** propone e implementa el fix en `Projects\studere`.
+2. **opencode** lo revisa y verifica en el canónico: `typecheck` + `build` + suite de tests.
+3. **opencode** commitea con Conventional Commits.
+4. El clon de Claude se pone al día con `git pull --ff-only`.
+
+**Nunca dos agentes editando los mismos archivos a la vez.** Dividir el trabajo por archivo, no por "área" — dos agentes en la misma área terminan en el mismo archivo. Si hace falta trabajo en paralelo, decir explícitamente qué archivos toca cada uno.
+
 ## Comandos (siempre desde `frontend/`)
 
 ```bash
@@ -26,10 +55,11 @@ npm run build            # build de producción
 
 1. **`tsc --noEmit` limpio + suite verde ANTES de dar una tarea por terminada.** Nunca reportar "listo" sin verificar.
 2. **Nunca commitear `node_modules/`, `.env*` reales, artefactos ni capturas.** `git add` con rutas explícitas; revisar `git status` antes de commitear.
-3. **Commits estilo Conventional Commits** (`fix(frontend): ...`, `feat(backend): ...`). Sin amend, sin force-push.
-4. **Antes de usar una librería nueva, verificar que no exista ya en `package.json`.** Seguir los patrones existentes (contexts, hooks, componentes).
-5. **No tocar `components/landing-page.tsx` ni `app/page.tsx`** — el swap de landing está pendiente como tarea aparte.
-6. **Presupuesto:** las sesiones de desarrollo tienen presupuesto en USD. Parar y reportar al llegar al límite, no seguir silenciosamente.
+3. **Los agentes no generan ni rotan keys.** `CLERK_SECRET_KEY` la rota el owner desde el dashboard de Clerk. Un agente nunca inventa una key, nunca la commitea y no imprime su valor completo en logs ni en respuestas.
+4. **Commits estilo Conventional Commits** (`fix(frontend): ...`, `feat(backend): ...`). Sin amend, sin force-push.
+5. **Antes de usar una librería nueva, verificar que no exista ya en `package.json`.** Seguir los patrones existentes (contexts, hooks, componentes).
+6. **No tocar `components/landing-page.tsx` ni `app/page.tsx`** — el swap de landing está pendiente como tarea aparte.
+7. **Presupuesto:** las sesiones de desarrollo tienen presupuesto en USD. Parar y reportar al llegar al límite, no seguir silenciosamente.
 
 ## Convenciones de código
 
@@ -51,3 +81,16 @@ npm run build            # build de producción
 
 - Rama principal: `main` (regla remota: cambios vía PR; el owner puede bypassear). Workflow: rama propia → PR → merge.
 - `frontend/.github/workflows/ci.yml` está en la raíz `.github/workflows/ci.yml` (GitHub solo lee la raíz) — CI corre tsc + vitest + build + E2E.
+
+## Issues abiertas
+
+Cuatro en cola. **Una por sesión de Claude, sin mezclar** — cada una toca archivos distintos y combinarlas hace el review imposible.
+
+| # | Tema |
+|---|---|
+| #7 | Integraciones |
+| #6 | Calendario |
+| #4 | Limpiar git history |
+| #3 | E2E con login de Clerk |
+
+El `config.yml` y los templates de issues ya existen: usarlos en lugar de abrir issues a mano.
