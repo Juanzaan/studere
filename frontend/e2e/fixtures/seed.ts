@@ -45,6 +45,23 @@ export async function openSession(page: Page, session: StudySession) {
   await expect(page.getByRole('heading', { name: session.title, level: 1 })).toBeVisible();
 }
 
+/** Seed any number of sessions and open an arbitrary route. */
+export async function seedAndGoto(page: Page, sessions: StudySession[], path: string) {
+  await seedSessions(page, sessions);
+  await gotoThroughHandshake(page, path);
+}
+
+/**
+ * Open a route with no sessions in storage.
+ *
+ * Still seeds the tutorial flag — the overlay's backdrop is unrelated to whether
+ * there is data, and it swallows clicks either way.
+ */
+export async function gotoEmpty(page: Page, path: string) {
+  await seedSessions(page, []);
+  await gotoThroughHandshake(page, path);
+}
+
 /**
  * Navigate, tolerating Clerk's dev-browser handshake.
  *
