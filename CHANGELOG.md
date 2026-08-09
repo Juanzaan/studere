@@ -2,6 +2,23 @@
 
 All notable changes to the Studere project will be documented in this file.
 
+## [1.5.0] - 2026-08-07
+
+### Added
+- **E2E authentication via Clerk test login** (`frontend/e2e/auth.setup.ts`): a Playwright `setup` project signs in with `@clerk/testing` (`clerkSetup` + `setupClerkTestingToken` + `clerk.signIn()`) and saves the session to `playwright/.clerk/user.json`. Every browser project declares `dependencies: ['setup']` and reuses that `storageState`, so the suite runs signed-in without touching the sign-in form per spec. The saved state also marks the first-run tutorial as completed, which otherwise mounts a full-screen backdrop that swallows the specs' clicks.
+- **`@clerk/testing` and `dotenv` as devDependencies**; `playwright.config.ts` loads `.env.local` explicitly (Playwright does not read it the way `next dev` does).
+- **`.env.example` entries** for `E2E_CLERK_USER_EMAIL` and `CLERK_PUBLISHABLE_KEY`; `playwright/.clerk/` added to `.gitignore` so the saved session never reaches git.
+
+### Changed
+- **CI `e2e` job re-enabled** (`.github/workflows/ci.yml`): runs `--project=setup --project=chromium` on Node 20 after `Test & Build`, installs Chromium only, and uploads the Playwright report as an artifact. Clerk keys come from repo secrets.
+- **Playwright base URL is now `http://127.0.0.1:3000`, not `localhost`.** On a dual-stack host `localhost` resolves to `::1` first, and over IPv6 the Next dev server accepts the connection and sends response headers but never flushes the body — every dynamic route hangs until the client gives up, while the server log reports `200 in 52ms`. The same request over IPv4 returns in ~1s. Spec `page.goto` calls are now relative so they inherit the base URL.
+- **Test timeout raised to 90s and expect timeout to 15s.** The suite runs against `next dev`, so the first request to each route pays for an on-demand webpack compile (10–45s); the defaults turned that into spurious `page.goto` and `toHaveURL` failures under parallel load.
+- **CI reporting and cost guards:** the `github` reporter is added alongside the HTML one under `CI`, so a failure is annotated on the diff instead of being buried in an artifact, and the `e2e` job carries `timeout-minutes: 30` — with `workers: 1` against `next dev` the job is slow by design, and without a cap a hung dev server would sit on GitHub's 360-minute default.
+
+### Fixed
+- **Vacuous assertion in the E2E setup.** `auth.setup.ts` proved the sign-in had taken by waiting for `<main>` on `/dashboard`, but the page the middleware bounces an anonymous visitor to renders a `<main>` too — measured: anonymous hit on `/dashboard` yields `main=1`, user-menu=`0`. The check passed while signed out and would have saved a useless session file for the whole suite to inherit. It now asserts the URL is still `/dashboard` and that Clerk's `<UserButton>` is visible, which only mounts for a signed-in user.
+- **Stale E2E selectors** that had gone unnoticed while the suite was disabled: the profile control is now Clerk's `<UserButton>` (`Open user menu`), not the old `Perfil de usuario` button; the mind map is an ECharts graph (`#mindmap-container`), not ReactFlow (`.react-flow`); the mobile hamburger is matched by `aria-expanded` since its `aria-label` flips on open; and strict-mode violations in the library table headers, `dl`/`dt`/`dd` stat cards, library search input, and the empty-state assertion.
+
 ## [1.4.0] - 2026-08-06
 
 ### Added

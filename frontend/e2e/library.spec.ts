@@ -55,7 +55,7 @@ const mockSessions = [
 test.describe('Library Page', () => {
   test.beforeEach(async ({ page }) => {
     // Setup localStorage with sessions
-    await page.goto('http://localhost:3000/library');
+    await page.goto('/library');
     
     // Set localStorage before page loads
     await page.evaluate((sessions) => {
@@ -114,9 +114,10 @@ test.describe('Library Page', () => {
   });
 
   test('should show session table headers', async ({ page }) => {
-    // Table headers should be visible
-    await expect(page.getByText('Sesión')).toBeVisible();
-    await expect(page.getByText('Fav')).toBeVisible();
+    // By role, not by text: getByText('Sesión') also matches the "Nueva sesión"
+    // link in the header and trips strict mode.
+    await expect(page.getByRole('columnheader', { name: 'Sesión' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Fav' })).toBeVisible();
   });
 
   test('should display session metadata', async ({ page }) => {

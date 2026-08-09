@@ -285,11 +285,12 @@ test.describe("Session detail — panels @critical", () => {
     const mindmapBtn = page.locator('button:has-text("Mapa")').first();
     if (await mindmapBtn.isVisible({ timeout: 2000 })) {
       await mindmapBtn.click();
-      await page.waitForTimeout(500);
 
-      // ReactFlow canvas should be visible
-      const flow = page.locator(".react-flow");
-      await expect(flow).toBeVisible();
+      // The graph is an ECharts force layout (MindMapGraph), not ReactFlow, and
+      // it arrives through a dynamic() import with a loading placeholder — so
+      // wait for its container instead of racing a fixed delay.
+      const flow = page.locator("#mindmap-container");
+      await expect(flow).toBeVisible({ timeout: 30_000 });
       console.log("   ✅ MindMap canvas visible");
     }
   });
