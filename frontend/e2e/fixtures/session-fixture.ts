@@ -195,13 +195,26 @@ export const mockTranscriptResponse = {
 
 /**
  * Mock response for study session generation API
+ *
+ * Written to clear the thresholds `normalizeSession` applies on every read:
+ * concept descriptions and quiz explanations need at least 8 words, action item
+ * titles at least 5, and a description may not end on a comma or a dash. Content
+ * that misses them is dropped on the way out of localStorage, so a shorter
+ * fixture would make the generation specs assert empty panels — see
+ * `ai-generation-flow.spec.ts`, which covers that discard path on purpose.
  */
 export const mockGenerationResponse = {
   output: {
     summary: `# Resumen de la Clase\n\nLa neuroplasticidad es la capacidad del cerebro para reorganizarse formando nuevas conexiones neuronales.`,
     keyConcepts: [
-      { term: 'Neuroplasticidad', description: 'Capacidad del cerebro para adaptarse.' },
-      { term: 'Sinapsis', description: 'Conexión entre neuronas.' },
+      {
+        term: 'Neuroplasticidad',
+        description: 'Capacidad del cerebro para adaptarse y reorganizar sus conexiones a lo largo de la vida.',
+      },
+      {
+        term: 'Sinapsis',
+        description: 'Conexión funcional entre dos neuronas que permite transmitir señales químicas y eléctricas.',
+      },
     ],
     flashcards: [
       { question: '¿Qué es la neuroplasticidad?', answer: 'Capacidad de adaptación del cerebro.' },
@@ -212,7 +225,7 @@ export const mockGenerationResponse = {
         question: '¿Cuál es la función de la sinapsis?',
         options: ['Conectar neuronas', 'Producir energía', 'Almacenar recuerdos', 'Regular temperatura'],
         correct: 0,
-        explanation: 'La sinapsis conecta neuronas para transmitir señales.',
+        explanation: 'La sinapsis conecta dos neuronas y permite transmitir señales químicas entre ellas.',
       },
     ],
     mindMap: {
@@ -224,9 +237,9 @@ export const mockGenerationResponse = {
       ],
     },
     actionItems: [
-      { 
-        id: 'task-1', 
-        title: 'Explicar neuroplasticidad', 
+      {
+        id: 'task-1',
+        title: 'Explicar la neuroplasticidad con tus propias palabras',
         owner: 'student',
         status: 'pending' as const,
         dueLabel: 'Próxima clase',
@@ -234,7 +247,7 @@ export const mockGenerationResponse = {
       },
     ],
     insights: [
-      { 
+      {
         id: 'insight-1',
         label: 'Punto Clave',
         value: 'Neuroplasticidad',
