@@ -16,11 +16,17 @@ const TUTORIAL_KEY = 'studere.tutorial.completed';
  *
  * The tutorial flag goes in alongside it: without it `TutorialOverlay` mounts a
  * full-screen backdrop that swallows every click a spec makes.
+ *
+ * Seeds only when the key is absent. `addInitScript` runs on *every* document,
+ * so writing unconditionally would restore the fixture on each reload and quietly
+ * undo whatever the app had persisted — a test that creates a session and then
+ * reloads would find it gone, and be reporting a bug that only its own fixture
+ * caused. A context starts with empty storage, so the first document still seeds.
  */
 export async function seedSessions(page: Page, sessions: StudySession[]) {
   await page.addInitScript(
     ([sessionsKey, tutorialKey, payload]) => {
-      localStorage.setItem(sessionsKey, payload);
+      if (localStorage.getItem(sessionsKey) === null) localStorage.setItem(sessionsKey, payload);
       localStorage.setItem(tutorialKey, 'true');
     },
     [SESSIONS_KEY, TUTORIAL_KEY, JSON.stringify(sessions)] as const,
