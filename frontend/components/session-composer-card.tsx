@@ -70,6 +70,19 @@ async function readOptionalText(file: File | null) {
   return file.text();
 }
 
+/** Whether the attached file can feed the AI: transcribable media or readable text. */
+function canFileFeedAI(file: File | null): boolean {
+  if (!file) return false;
+  const lower = file.name.toLowerCase();
+  return (
+    file.type.startsWith("audio/") ||
+    file.type.startsWith("video/") ||
+    file.type.startsWith("text/") ||
+    lower.endsWith(".txt") ||
+    lower.endsWith(".md")
+  );
+}
+
 /** Text files larger than this are skipped (localStorage quota + AI payload). */
 const MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024;
 
@@ -144,6 +157,19 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
       let rawText = notes.trim() || fileText;
 
       const isAudioVideo = file && (file.type.startsWith("audio/") || file.type.startsWith("video/"));
+      const isReadableTextFile = file && (file.type.startsWith("text/") || /\.(txt|md)$/i.test(file.name));
+
+      // AI promised but nothing usable attached: a file the app cannot transcribe
+      // or read (e.g. a PDF) would otherwise build a session on boilerplate that
+      // names the file without quoting any of its content.
+      if (useAI && file && !isAudioVideo && !isReadableTextFile && !rawText) {
+        toast.warning(
+          "No se pudo leer el archivo",
+          "Adjuntá un audio, video o texto (.txt/.md) para que la IA genere contenido, o pegá apuntes en Notas."
+        );
+        setIsCreating(false);
+        return;
+      }
 
       // Confirm if large file
       if (audioValidation && audioValidation.requiresConfirmation) {
@@ -171,6 +197,8 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
         } catch (transcribeError) {
           const errorMessage = transcribeError instanceof Error ? transcribeError.message : "Error desconocido";
           toast.error("Error al transcribir audio", errorMessage);
+          setAiStatus("idle");
+          setProgressMsg("");
           setIsCreating(false);
           return;
         }
@@ -190,6 +218,7 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
       // Step 3: AI enhancement if enabled and there's real text
       if (useAI && rawText.length > 30) {
         setAiStatus("generating");
+        setProgressMsg("");
         try {
           const token = await getToken();
           const ai = await generateStudySession({
@@ -233,9 +262,11 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast.error("Error al crear sesión", errorMessage);
+      setAiStatus("idle");
+      setProgressMsg("");
       setIsCreating(false);
     } finally {
-      if (aiStatus !== "idle") setIsCreating(false);
+      setIsCreating(false);
     }
   }
 
@@ -429,12 +460,12 @@ export function SessionComposerCard({ mode, onCreated }: SessionComposerCardProp
             disabled={isCreating || !title.trim()}
             className="inline-flex h-9 items-center gap-2 rounded-btn bg-c-blue px-4 text-[12px] font-medium text-white transition hover:opacity-90 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : useAI && (notes.trim() || file) ? (
+            {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : useAI && (notes.trim() || canFileFeedAI(file)) ? (
               <Sparkles className="h-4 w-4" />
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            {isCreating ? "Creando..." : useAI && (notes.trim() || file) ? "Crear con IA" : "Crear sesión"}
+            {isCreating ? "Creando..." : useAI && (notes.trim() || canFileFeedAI(file)) ? "Crear con IA" : "Crear sesión"}
           </button>
 
           <label className="flex cursor-pointer items-center gap-2">

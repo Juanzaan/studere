@@ -181,17 +181,17 @@ test.describe('Transcripción de audio', () => {
     releaseTranscription();
 
     await expect(card.getByText('Generando con IA...')).toBeVisible();
-    // Down from two: the phase heading moved on, but nothing clears
-    // `progressMsg`, so the transcription's last progress line is still sitting
-    // under the generation heading. Stale, and visible to the user.
-    await expect(card.getByText('Transcribiendo audio...')).toHaveCount(1);
+    // Down to zero: the phase heading moved on and `progressMsg` is cleared on
+    // the transition, so the transcription's last progress line is not left
+    // sitting under the generation heading.
+    await expect(card.getByText('Transcribiendo audio...')).toHaveCount(0);
 
     releaseGeneration();
 
     await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
   });
 
-  test('a failed transcription creates nothing and leaves the composer stuck', async ({ page }) => {
+  test('a failed transcription creates nothing and returns to the form', async ({ page }) => {
     const transcribed = await stubBackend<TranscribeRequest, { error: string }>(
       page,
       TRANSCRIBE_URL,
@@ -221,17 +221,15 @@ test.describe('Transcripción de audio', () => {
     expect(stored).toHaveLength(1);
     expect(stored[0].id).toBe(SEED.id);
 
-    // Asserted because it is wrong, not because it is right: the early return
-    // resets `isCreating` but never `aiStatus`, so the skeleton it was showing
-    // stays on screen with no way back to the form short of a reload. The toast
-    // is the only sign anything failed.
+    // The early return resets `isCreating` and `aiStatus`, so the form comes
+    // back and the user can retry without reloading the page.
+    await expect(submitButton(card)).toBeVisible();
     await expect(
       card.getByText('Esto puede tardar unos segundos. No cerrés la página.'),
-    ).toBeVisible();
-    await expect(submitButton(card)).toBeHidden();
+    ).toBeHidden();
   });
 
-  test('a file the app cannot read is accepted and quietly transcribes nothing', async ({
+  test('a file the app cannot read is rejected instead of promising AI', async ({
     page,
   }) => {
     const transcribed = await stubTranscription(page);
@@ -244,26 +242,26 @@ test.describe('Transcripción de audio', () => {
     // No size classification, because that only runs for audio and video — and
     // no format complaint either, because nothing validates the format.
     await expect(card.getByText('Procesamiento rápido en tu navegador')).toBeHidden();
-    // The button promises AI anyway: the label only asks whether a file is
-    // attached, not whether anything can be read out of it.
-    await expect(submitButton(card)).toHaveText('Crear con IA');
+    // The button no longer promises AI for a file nothing can be read out of:
+    // neither notes nor a usable file are present, so it reads "Crear sesión".
+    await expect(submitButton(card)).toHaveText('Crear sesión');
 
     await submitButton(card).click();
-    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
 
-    // A PDF is neither audio nor readable text, so it is never transcribed and
-    // never yields the 30 characters generation needs. Both endpoints stay idle.
+    // A PDF is neither audio nor readable text, so the composer refuses to
+    // build a session from boilerplate that would have named the file without
+    // quoting any of its content. Both endpoints stay idle and no session is
+    // created.
     expect(transcribed).toEqual([]);
     expect(generated).toEqual([]);
+    await expect(page.getByText('No se pudo leer el archivo', { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
 
-    // What the session gets instead is `buildFallbackTranscript` — five
-    // segments of boilerplate that name the file rather than quote it (four
-    // strings, one of which `splitSentences` breaks in two). The session looks
-    // complete and contains nothing from the PDF.
-    const summary = page.getByRole('region', { name: 'Resumen IA' });
-    await summary.getByRole('button', { name: /^Transcripción/ }).click();
-    await expect(summary.getByText('Transcripción (5 bloques)')).toBeVisible();
-    await expect(summary.getByText(/El archivo apuntes\.pdf quedó asociado/)).toBeVisible();
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('studere.sessions.v1') ?? '[]'),
+    );
+    expect(stored).toHaveLength(1);
+    expect(stored[0].id).toBe(SEED.id);
   });
 
   test('the transcribed session is listed in the library', async ({ page }) => {
