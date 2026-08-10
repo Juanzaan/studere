@@ -1,143 +1,155 @@
 import { test, expect } from '@playwright/test';
+import { createTestSession } from './fixtures/session-fixture';
+import { openPanel, openSession, readStoredJson } from './fixtures/seed';
 
-// Mock session with full data for testing
-const mockSession = {
+/**
+ * E2E: session detail — `components/session-detail.tsx` and the panels it hosts.
+ *
+ * Covers the header (title, metadata, starring, exports, delete), the concepts
+ * sidebar, the panel switcher, and the collapsible transcript.
+ *
+ * Expected strings are read off the fixture rather than written out, so the spec
+ * cannot drift from the data it seeds.
+ */
+
+const SESSION = createTestSession({
   id: 'test-session-detail',
   title: 'Neurociencia Cognitiva - Clase 1',
-  course: 'Psicología',
-  createdAt: new Date().toISOString(),
-  starred: false,
-  sourceFileName: 'clase1.mp3',
-  sourceFileType: 'audio/mp3',
-  sourceKind: 'audio',
-  templateId: 'class-summary',
-  summary: '# Resumen\n\nLa neuroplasticidad es fundamental.',
-  keyConcepts: [
-    { term: 'Neuroplasticidad', description: 'Capacidad del cerebro de adaptarse.' },
-    { term: 'Sinapsis', description: 'Conexión entre neuronas.' },
-  ],
-  flashcards: [
-    { question: '¿Qué es neuroplasticidad?', answer: 'Capacidad de adaptación del cerebro.' },
-  ],
-  quiz: [
-    {
-      question: '¿Cuál es la función de la sinapsis?',
-      options: ['Conectar neuronas', 'Producir energía', 'Almacenar recuerdos', 'Regular temperatura'],
-      correct: 0,
-      explanation: 'La sinapsis conecta neuronas para transmitir señales.',
-    },
-  ],
-  transcript: [
-    { id: 'seg-1', text: 'Hoy vamos a hablar de neuroplasticidad', speaker: 'Profesor', timestamp: '00:00' },
-  ],
-  bookmarks: [],
-  comments: [],
-  insights: [],
-  actionItems: [],
-  mindMap: { id: 'root', label: 'Neurociencia' },
-  chatHistory: [],
-  stats: { wordCount: 250, segmentCount: 1, estimatedDurationMinutes: 15 },
-  studyMetrics: { completionRate: 0, quizAccuracy: 0, reviewCount: 0 },
-};
+});
 
 test.describe('Session Detail Page', () => {
-  test.beforeEach(async ({ page }) => {
-    // Setup localStorage with session
-    await page.goto('/library');
-    
-    await page.evaluate((session) => {
-      localStorage.setItem('studere.sessions.v1', JSON.stringify([session]));
-    }, mockSession);
-    
-    // Reload to load session
-    await page.reload();
-    
-    // Wait for session to load
-    await page.waitForTimeout(1000);
-    
-    // Navigate to session detail by clicking the session link
-    const firstSessionLink = page.locator('a[href^="/sessions/"]').first();
-    if (await firstSessionLink.isVisible()) {
-      await firstSessionLink.click();
-      await page.waitForTimeout(800);
+  test('renders the header with title and source metadata', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(SESSION.title);
+    await expect(
+      page.getByText(
+        `${SESSION.course} · ${SESSION.sourceFileName} · ${SESSION.stats.estimatedDurationMinutes} min · ${SESSION.stats.wordCount} palabras`,
+      ),
+    ).toBeVisible();
+  });
+
+  test('starring the session persists', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    await page.getByRole('button', { name: 'Marcar' }).click();
+
+    await expect(page.getByRole('button', { name: 'Destacada' })).toBeVisible();
+    const stored = await readStoredJson<Array<{ starred: boolean }>>(
+      page,
+      'studere.sessions.v1',
+      (value) => value?.[0]?.starred === true,
+    );
+    expect(stored[0].starred).toBe(true);
+  });
+
+  test('lists the key concepts in the sidebar', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    await expect(page.getByText('Conceptos', { exact: true })).toBeVisible();
+    for (const concept of SESSION.keyConcepts) {
+      // Exact match on purpose: the summary prose mentions the same words in
+      // running text, and only the sidebar renders a term on its own.
+      await expect(page.getByText(concept.term, { exact: true })).toBeVisible();
     }
   });
 
-  test('should display session header with title', async ({ page }) => {
-    // Check for session title (use h1 or main heading)
-    const mainHeading = page.locator('h1').first();
-    await expect(mainHeading).toBeVisible();
-    await expect(mainHeading).toContainText(/neurociencia|clase/i);
+  test('switches between every focus panel', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    // Summary is the default, so it is a region before anything is clicked.
+    await expect(page.getByRole('region', { name: 'Resumen IA' })).toBeVisible();
+
+    for (const label of ['Flashcards', 'Quiz', 'Mapa Mental', 'Tareas', 'Insights', 'Mis Notas']) {
+      await openPanel(page, label);
+      // One panel at a time: the previous region is unmounted, not just hidden.
+      await expect(page.getByRole('region', { name: 'Resumen IA' })).toBeHidden();
+    }
+
+    await openPanel(page, 'Resumen IA');
+    await expect(page.getByRole('region', { name: 'Mis Notas' })).toBeHidden();
   });
 
-  test('should switch between focus panels', async ({ page }) => {
-    // Wait for page to load
-    await page.waitForTimeout(500);
-    
-    // Look for panel switcher buttons (Resumen/Flashcards/Quiz/etc)
-    const flashcardsBtn = page.getByRole('button', { name: /flashcards/i });
-    if (await flashcardsBtn.isVisible()) {
-      await flashcardsBtn.click();
-      await page.waitForTimeout(300);
-      
-      // Should show flashcard content (check for card structure)
-      const flashcardContainer = page.locator('[class*="flashcard"], [data-testid*="flashcard"]').first();
-      if (await flashcardContainer.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await expect(flashcardContainer).toBeVisible();
-      }
-    }
-    
-    // Switch to Quiz
-    const quizBtn = page.getByRole('button', { name: /quiz/i });
-    if (await quizBtn.isVisible()) {
-      await quizBtn.click();
-      await page.waitForTimeout(300);
-    }
+  test('renders the summary markdown in the default panel', async ({ page }) => {
+    await openSession(page, SESSION);
+    const panel = page.getByRole('region', { name: 'Resumen IA' });
+
+    // The fixture's summary is Markdown; the renderer should turn its `#` and
+    // `##` lines into real headings rather than print the hashes.
+    await expect(panel.getByRole('heading', { name: 'Resumen de la Clase' })).toBeVisible();
+    await expect(panel.getByRole('heading', { name: 'Puntos Clave' })).toBeVisible();
+    await expect(panel.getByText(SESSION.sourceFileName!)).toBeVisible();
   });
 
-  test('should display concepts in sidebar', async ({ page }) => {
-    // Wait for concepts to load
-    await page.waitForTimeout(500);
-    
-    // Check for concepts sidebar/panel (use first match to avoid strict mode)
-    const conceptText = page.getByText(/neuroplasticidad/i).first();
-    if (await conceptText.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await expect(conceptText).toBeVisible();
-    }
-  });
+  test('transcript is collapsed until opened, then shows every segment', async ({ page }) => {
+    await openSession(page, SESSION);
+    const panel = page.getByRole('region', { name: 'Resumen IA' });
+    const first = SESSION.transcript[0];
 
-  test('should export session as markdown', async ({ page }) => {
-    // Find export button
-    const exportBtn = page.getByRole('button', { name: /markdown/i });
-    
-    if (await exportBtn.isVisible()) {
-      // Setup download listener
-      const downloadPromise = page.waitForEvent('download');
-      await exportBtn.click();
-      
-      const download = await downloadPromise;
-      expect(download.suggestedFilename()).toContain('.md');
+    await expect(panel.getByText(first.text)).toBeHidden();
+
+    await panel
+      .getByRole('button', { name: `Transcripción (${SESSION.transcript.length} bloques)` })
+      .click();
+
+    for (const segment of SESSION.transcript) {
+      await expect(panel.getByText(segment.text)).toBeVisible();
     }
   });
 
-  test('should display session metadata', async ({ page }) => {
-    // Wait for page to load
-    await page.waitForTimeout(500);
-    
-    // Should show stats or metadata
-    // Check that the session detail page loaded successfully
-    const sessionContent = page.locator('main, [role="main"]');
-    await expect(sessionContent).toBeVisible();
+  test('filters the transcript by search', async ({ page }) => {
+    await openSession(page, SESSION);
+    const panel = page.getByRole('region', { name: 'Resumen IA' });
+    const [first, second] = SESSION.transcript;
+
+    await panel
+      .getByRole('button', { name: `Transcripción (${SESSION.transcript.length} bloques)` })
+      .click();
+    await panel.getByPlaceholder('Buscar en la transcripción...').fill(first.text.slice(0, 20));
+
+    await expect(panel.getByText(first.text)).toBeVisible();
+    await expect(panel.getByText(second.text)).toBeHidden();
   });
 
-  test('should show transcript if available', async ({ page }) => {
-    // Wait for page load
-    await page.waitForTimeout(500);
-    
-    // Transcript should be visible (or transcript tab)
-    const transcriptText = page.getByText(/hoy vamos a hablar/i);
-    if (await transcriptText.isVisible()) {
-      await expect(transcriptText).toBeVisible();
-    }
+  test('exports the session as Markdown', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Markdown' }).click();
+
+    expect((await download).suggestedFilename()).toBe(`${SESSION.id}.md`);
+  });
+
+  test('exports the flashcards as CSV', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'CSV' }).click();
+
+    expect((await download).suggestedFilename()).toBe(`${SESSION.id}-flashcards.csv`);
+  });
+
+  test('delete asks for confirmation before removing the session', async ({ page }) => {
+    await openSession(page, SESSION);
+
+    await page.getByRole('button', { name: 'Eliminar' }).click();
+
+    // First click only arms the action.
+    await expect(page.getByRole('button', { name: 'Confirmar' })).toBeVisible();
+    await expect(page).toHaveURL(/\/sessions\/test-session-detail/);
+
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByRole('button', { name: 'Eliminar' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Eliminar' }).click();
+    await page.getByRole('button', { name: 'Confirmar' }).click();
+
+    await expect(page).toHaveURL(/\/dashboard/);
+    const stored = await readStoredJson<unknown[]>(
+      page,
+      'studere.sessions.v1',
+      (value) => Array.isArray(value) && value.length === 0,
+    );
+    expect(stored).toHaveLength(0);
   });
 });

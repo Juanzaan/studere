@@ -1,228 +1,172 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { createTestSession } from './fixtures/session-fixture';
+import { openPanel, openSession, readStoredJson } from './fixtures/seed';
 
 /**
- * E2E Test: Quiz Flow
- * 
- * Tests the interactive quiz feature:
- * 1. Display quiz questions
- * 2. Answer selection and submission
- * 3. Feedback display
- * 4. Score tracking
+ * E2E: quiz flow — `components/quiz-viewer.tsx`.
+ *
+ * The viewer has no submit step and no per-question navigation: all questions
+ * render at once, clicking an option answers it immediately and irreversibly
+ * (every option in that question is then `disabled`), and the explanation plus
+ * the score summary appear on their own.
+ *
+ * Assertions are scoped to the Quiz region — the concepts sidebar and the
+ * summary panel repeat the same vocabulary, so unscoped text matching is
+ * ambiguous.
  */
 
+const SESSION = createTestSession({
+  id: 'test-quiz-session',
+  title: 'Quiz Test Session',
+});
+
+const QUIZ = SESSION.quiz;
+
+/** The card wrapping one question, located by that question's own text. */
+function questionCard(panel: Locator, index: number): Locator {
+  return panel.locator('div').filter({ hasText: QUIZ[index].question }).last();
+}
+
+/** Answer one question by option index. */
+async function answer(panel: Locator, questionIndex: number, optionIndex: number) {
+  const option = QUIZ[questionIndex].options![optionIndex];
+  await questionCard(panel, questionIndex).getByRole('button', { name: option }).click();
+}
+
+/** Answer every question correctly. */
+async function answerAllCorrectly(panel: Locator) {
+  for (let i = 0; i < QUIZ.length; i++) {
+    await answer(panel, i, QUIZ[i].correct);
+  }
+}
+
+async function openQuiz(page: Page): Promise<Locator> {
+  await openSession(page, SESSION);
+  await openPanel(page, 'Quiz');
+  return page.getByRole('region', { name: 'Quiz' });
+}
+
 test.describe('Quiz Flow (E2E)', () => {
-  const mockSession = createTestSession({
-    id: 'test-quiz-session',
-    title: 'Quiz Test Session',
+  test('renders every question with its options', async ({ page }) => {
+    const panel = await openQuiz(page);
+
+    for (const [i, item] of QUIZ.entries()) {
+      await expect(panel.getByText(`${i + 1}. ${item.question}`)).toBeVisible();
+      for (const option of item.options!) {
+        await expect(panel.getByRole('button', { name: option })).toBeVisible();
+      }
+    }
+    await expect(panel.getByText('0 / 3 respondidas')).toBeVisible();
   });
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/dashboard');
-    
-    // Setup localStorage with session containing quiz
-    await page.evaluate((session) => {
-      localStorage.setItem('studere.sessions.v1', JSON.stringify([session]));
-    }, mockSession);
-    
-    await page.reload();
-    await page.waitForTimeout(1000);
-    
-    // Navigate to session detail
-    const sessionCard = page.locator('[data-testid="session-card"]').first();
-    if (await sessionCard.isVisible({ timeout: 2000 })) {
-      await sessionCard.click();
-      await page.waitForTimeout(800);
+  test('answering locks the question and reveals the explanation', async ({ page }) => {
+    const panel = await openQuiz(page);
+    const card = questionCard(panel, 0);
+
+    await expect(card.getByText('Explicación')).toBeHidden();
+
+    await answer(panel, 0, 0);
+
+    await expect(card.getByText('Explicación')).toBeVisible();
+    await expect(card.getByText(QUIZ[0].explanation!)).toBeVisible();
+    // Every option in the answered question is locked, right one included, so a
+    // second click cannot change the score.
+    for (const option of QUIZ[0].options!) {
+      await expect(card.getByRole('button', { name: option })).toBeDisabled();
     }
   });
 
-  test('should display all quiz questions', async ({ page }) => {
-    // Click Quiz tab
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('counts a correct answer', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Should show quiz questions (we have 3 in fixture)
-      const questionText = await page.getByText(/función.*sinapsis|aprendizaje activo|neuroplasticidad/i).isVisible({ timeout: 2000 }).catch(() => false);
-      expect(questionText).toBeTruthy();
-    }
+    await answer(panel, 0, QUIZ[0].correct);
+
+    await expect(panel.getByText('1 / 3 respondidas')).toBeVisible();
+    await expect(panel.getByText('1 correctas')).toBeVisible();
   });
 
-  test('should highlight selected answer', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('does not count a wrong answer', async ({ page }) => {
+    const panel = await openQuiz(page);
+    const wrong = QUIZ[0].correct === 0 ? 1 : 0;
 
-      // Look for answer options (buttons or radio inputs)
-      const answerOption = page.locator('button:has-text("Conectar neuronas"), input[type="radio"]').first();
-      if (await answerOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await answerOption.click();
-        await page.waitForTimeout(300);
+    await answer(panel, 0, wrong);
 
-        // Check if option is highlighted/selected
-        const isSelected = await answerOption.evaluate((el) => {
-          return el.classList.contains('selected') || 
-                 el.classList.contains('active') ||
-                 el.getAttribute('aria-checked') === 'true' ||
-                 (el as HTMLInputElement).checked === true;
-        }).catch(() => false);
-
-        expect(isSelected).toBeTruthy();
-      }
-    }
+    await expect(panel.getByText('1 / 3 respondidas')).toBeVisible();
+    await expect(panel.getByText('0 correctas')).toBeVisible();
+    // The explanation still names the right option, which is the point of
+    // answering wrong.
+    await expect(questionCard(panel, 0).getByText(QUIZ[0].explanation!)).toBeVisible();
   });
 
-  test('should show green feedback and explanation for correct answer', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('shows the score summary once every question is answered', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Select correct answer (index 0 for first question)
-      const correctAnswer = page.locator('button:has-text("Conectar neuronas")').first();
-      if (await correctAnswer.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await correctAnswer.click();
-        await page.waitForTimeout(300);
+    await answerAllCorrectly(panel);
 
-        // Submit answer
-        const submitBtn = page.getByRole('button', { name: /verificar|comprobar|enviar/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(500);
-
-          // Should show correct feedback
-          const correctFeedback = await page.getByText(/correcto|bien|excelente/i).isVisible({ timeout: 2000 }).catch(() => false);
-          const explanation = await page.getByText(/conecta neuronas|transmitir señales/i).isVisible({ timeout: 2000 }).catch(() => false);
-
-          expect(correctFeedback || explanation).toBeTruthy();
-        }
-      }
-    }
+    await expect(panel.getByText('3 de 3 correctas')).toBeVisible();
+    await expect(panel.getByText('100%')).toBeVisible();
+    await expect(panel.getByText('¡Excelente! Dominás el tema.')).toBeVisible();
+    await expect(
+      panel.getByRole('progressbar', { name: 'Quiz completado: 3 de 3 correctas' }),
+    ).toBeVisible();
   });
 
-  test('should show red feedback and reveal correct answer for wrong answer', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('grades a partially correct run', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Select wrong answer (index 1, 2, or 3)
-      const wrongAnswer = page.locator('button:has-text("Producir energía")').first();
-      if (await wrongAnswer.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await wrongAnswer.click();
-        await page.waitForTimeout(300);
+    await answer(panel, 0, QUIZ[0].correct);
+    await answer(panel, 1, QUIZ[1].correct);
+    await answer(panel, 2, QUIZ[2].correct === 0 ? 1 : 0);
 
-        const submitBtn = page.getByRole('button', { name: /verificar|comprobar|enviar/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(500);
-
-          // Should show incorrect feedback
-          const incorrectFeedback = await page.getByText(/incorrecto|error|intenta|respuesta correcta/i).isVisible({ timeout: 2000 }).catch(() => false);
-          expect(incorrectFeedback).toBeTruthy();
-        }
-      }
-    }
+    await expect(panel.getByText('2 de 3 correctas')).toBeVisible();
+    await expect(panel.getByText('67%')).toBeVisible();
   });
 
-  test('should show score summary after completing all questions', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('records the finished quiz in analytics storage', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Answer all 3 questions (simplified - just click through)
-      for (let i = 0; i < 3; i++) {
-        const anyAnswer = page.locator('button[class*="option"], input[type="radio"]').first();
-        if (await anyAnswer.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await anyAnswer.click();
-          await page.waitForTimeout(200);
+    await answerAllCorrectly(panel);
 
-          const submitBtn = page.getByRole('button', { name: /verificar|comprobar|siguiente/i }).first();
-          if (await submitBtn.isVisible({ timeout: 1000 })) {
-            await submitBtn.click();
-            await page.waitForTimeout(500);
-          }
-        }
-      }
+    const attempts = await readStoredJson<Array<Record<string, unknown>>>(
+      page,
+      'studere.quiz-attempts.v1',
+      (value) => Array.isArray(value) && value.length > 0,
+    );
 
-      // Should show completion/score summary
-      const scoreVisible = await page.getByText(/puntuación|score|completado|finalizado|3\/3|100%/i).isVisible({ timeout: 3000 }).catch(() => false);
-      expect(scoreVisible).toBeTruthy();
-    }
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]).toMatchObject({
+      sessionId: SESSION.id,
+      correct: QUIZ.length,
+      total: QUIZ.length,
+    });
   });
 
-  test('should save quiz score to analytics localStorage', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('writes the accuracy back onto the session', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Complete quiz quickly
-      for (let i = 0; i < 3; i++) {
-        const anyAnswer = page.locator('button[class*="option"], input[type="radio"]').first();
-        if (await anyAnswer.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await anyAnswer.click();
-          await page.waitForTimeout(200);
+    await answerAllCorrectly(panel);
 
-          const submitBtn = page.getByRole('button', { name: /verificar|comprobar|siguiente/i }).first();
-          if (await submitBtn.isVisible({ timeout: 1000 })) {
-            await submitBtn.click();
-            await page.waitForTimeout(500);
-          }
-        }
-      }
+    const stored = await readStoredJson<Array<{ studyMetrics: Record<string, unknown> }>>(
+      page,
+      'studere.sessions.v1',
+      (value) => value?.[0]?.studyMetrics?.quizAccuracy === 100,
+    );
 
-      await page.waitForTimeout(1000);
-
-      // Check localStorage for quiz attempts
-      const analyticsData = await page.evaluate(() => {
-        const data = localStorage.getItem('studere.quiz-attempts.v1');
-        return data ? JSON.parse(data) : null;
-      });
-
-      expect(analyticsData).toBeTruthy();
-      if (analyticsData && Array.isArray(analyticsData)) {
-        expect(analyticsData.length).toBeGreaterThan(0);
-      }
-    }
+    expect(stored[0].studyMetrics).toMatchObject({ quizAccuracy: 100 });
   });
 
-  test('should reset quiz when retaking', async ({ page }) => {
-    const quizTab = page.getByRole('button', { name: /quiz/i });
-    if (await quizTab.isVisible({ timeout: 2000 })) {
-      await quizTab.click();
-      await page.waitForTimeout(500);
+  test('reiniciar clears every answer', async ({ page }) => {
+    const panel = await openQuiz(page);
 
-      // Complete quiz once
-      for (let i = 0; i < 3; i++) {
-        const anyAnswer = page.locator('button[class*="option"], input[type="radio"]').first();
-        if (await anyAnswer.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await anyAnswer.click();
-          await page.waitForTimeout(200);
+    await answerAllCorrectly(panel);
+    await panel.getByRole('button', { name: 'Reiniciar' }).click();
 
-          const submitBtn = page.getByRole('button', { name: /verificar|comprobar|siguiente/i }).first();
-          if (await submitBtn.isVisible({ timeout: 1000 })) {
-            await submitBtn.click();
-            await page.waitForTimeout(500);
-          }
-        }
-      }
-
-      await page.waitForTimeout(500);
-
-      // Look for retry/restart button
-      const retryBtn = page.getByRole('button', { name: /reintentar|volver a intentar|restart/i });
-      if (await retryBtn.isVisible({ timeout: 2000 })) {
-        await retryBtn.click();
-        await page.waitForTimeout(500);
-
-        // Should show first question again
-        const firstQuestion = await page.getByText(/función.*sinapsis/i).isVisible({ timeout: 2000 }).catch(() => false);
-        expect(firstQuestion).toBeTruthy();
-      }
-    }
+    await expect(panel.getByText('0 / 3 respondidas')).toBeVisible();
+    await expect(panel.getByText('3 de 3 correctas')).toBeHidden();
+    await expect(questionCard(panel, 0).getByText('Explicación')).toBeHidden();
+    // Cleared, not merely hidden: the options accept input again.
+    await expect(
+      questionCard(panel, 0).getByRole('button', { name: QUIZ[0].options![0] }),
+    ).toBeEnabled();
   });
 });

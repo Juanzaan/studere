@@ -185,7 +185,6 @@ export function Sidebar() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar..."
-                aria-label="Buscar sesiones en la biblioteca"
                 className="h-[30px] w-full rounded-input bg-c-surface-2 pl-[28px] pr-[36px] text-[12px] text-c-text outline-none placeholder:text-c-muted focus:ring-1 focus:ring-c-blue-border"
               />
               <kbd className="pointer-events-none absolute right-[7px] top-1/2 -translate-y-1/2 rounded-[4px] border border-c-border bg-c-surface px-[4px] py-[1px] text-[9px] font-medium text-c-muted">

@@ -1,220 +1,238 @@
-import { test, expect } from '@playwright/test';
-import { mockGenerationResponse } from './fixtures/session-fixture';
+import { test, expect, type Locator, type Page } from '@playwright/test';
+import { createTestSession, mockGenerationResponse } from './fixtures/session-fixture';
+import { notesField, openComposer, stubBackend, submitButton, titleField } from './fixtures/composer';
+import { openPanel } from './fixtures/seed';
 
 /**
- * E2E Test: AI Study Session Generation Flow
- * 
- * Tests the critical user journey:
- * 1. User pastes transcript text
- * 2. AI generates study package
- * 3. User views generated results
+ * E2E: AI generation — what the composer does with the response from
+ * `/api/generate-study-session`.
+ *
+ * `session-create-flow.spec.ts` covers the form; this one covers the merge in
+ * `handleSubmit` step 3: which fields of the generated package replace the ones
+ * `createStudySession` derived locally, and what happens when the call fails.
+ *
+ * Every test here has to distinguish AI content from local content, because the
+ * composer builds a complete, plausible session from heuristics before it ever
+ * calls the backend. A session that renders a summary, a deck and a quiz proves
+ * nothing on its own — it looks identical with the network dead. So the
+ * assertions are on strings only the stub can produce.
+ *
+ * The previous version drove `/library` looking for `input[name="title"]` and
+ * `textarea[name="transcript"]`, none of which exist, so all sixteen
+ * `isVisible()` guards were false and all five bodies were skipped. Two of those
+ * tests were also unfixable as written: they asserted a "Reintentar" button and a
+ * content-filter message, and neither exists anywhere in the composer —
+ * "Reintentar" appears only in `audio-recorder-widget.tsx` and
+ * `error-boundary.tsx`, and there is no content-filter branch at all. What the
+ * app actually does on a failed generation is warn and keep the local content,
+ * which is what the two tests below assert instead.
  */
 
-test.describe('AI Generation Flow (E2E)', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/dashboard');
-    
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
-    
-    await page.reload();
-    await page.waitForTimeout(500);
-  });
+/** Clears the `rawText.length > 30` gate that enables generation. */
+const NOTES =
+  'La neuroplasticidad es la capacidad del cerebro de reorganizar sus conexiones. ' +
+  'Las sinapsis son las uniones entre neuronas que transmiten señales. ' +
+  'El aprendizaje activo fortalece esas conexiones mediante la práctica deliberada.';
 
-  test('should paste transcript, generate session, and display all content', async ({ page }) => {
-    // Mock generation API
-    await page.route('**/api/generate-study-session', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockGenerationResponse),
-      });
-    });
+/** Only there to give the hydration barrier something to wait for. */
+const SEED = createTestSession({ id: 'ai-seed', title: 'Sesión previa', course: 'Historia' });
 
-    await page.goto('/library');
-    await page.waitForTimeout(500);
+const GENERATE_URL = '**/api/generate-study-session';
 
-    // Click create button
-    const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
-    if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click();
-      await page.waitForTimeout(500);
+/** The package the stub returns, and the source of every expected string below. */
+const AI = mockGenerationResponse.output;
 
-      // Fill title
-      const titleInput = page.locator('input[name="title"], input[placeholder*="título"]').first();
-      if (await titleInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await titleInput.fill('Test AI Generation Session');
-      }
+type GenerateRequest = { transcript: string; language: string; summaryFocus: string };
 
-      // Fill transcript
-      const transcriptInput = page.locator('textarea[name="transcript"], textarea[placeholder*="transcript"], textarea[placeholder*="texto"]').first();
-      if (await transcriptInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await transcriptInput.fill(
-          'La neuroplasticidad es la capacidad del cerebro para reorganizarse. ' +
-          'Las sinapsis son conexiones entre neuronas. ' +
-          'El aprendizaje activo mejora la retención de información.'
-        );
+const stubGeneration = (page: Page) =>
+  stubBackend<GenerateRequest, typeof mockGenerationResponse>(page, GENERATE_URL, () => ({
+    body: mockGenerationResponse,
+  }));
 
-        await page.waitForTimeout(300);
+/** Fill the composer and submit it. Returns the card, which the skeleton replaces. */
+async function compose(page: Page, title: string, notes = NOTES): Promise<Locator> {
+  const card = await openComposer(page, SEED);
+  await titleField(card).fill(title);
+  await notesField(card).fill(notes);
+  await submitButton(card).click();
+  return card;
+}
 
-        // Submit
-        const submitBtn = page.getByRole('button', { name: /generar|crear|guardar/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(2000);
+test.describe('Generación con IA', () => {
+  test('the generated package replaces the local content in every panel', async ({ page }) => {
+    const sent = await stubGeneration(page);
+    await compose(page, 'Neuroplasticidad');
 
-          // Should show session content
-          const contentVisible = await page.getByText(/neuroplasticidad|sinapsis/i).isVisible({ timeout: 3000 }).catch(() => false);
-          expect(contentVisible).toBeTruthy();
-        }
-      }
-    }
-  });
-
-  test('should display all tabs after generation (Summary, Flashcards, Quiz, Mind Map, Action Items)', async ({ page }) => {
-    // Mock generation API
-    await page.route('**/api/generate-study-session', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockGenerationResponse),
-      });
+    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toMatchObject({
+      transcript: NOTES,
+      language: 'auto',
+      summaryFocus: 'Neuroplasticidad',
     });
 
-    await page.goto('/library');
-    await page.waitForTimeout(500);
+    // The generated summary is Markdown with an `#` heading; the local one is
+    // just the first sentences of the notes joined by blank lines. So a real
+    // heading in the panel can only have come from the response.
+    const summary = page.getByRole('region', { name: 'Resumen IA' });
+    await expect(summary.getByRole('heading', { name: 'Resumen de la Clase' })).toBeVisible();
 
-    const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
-    if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click();
-      await page.waitForTimeout(500);
+    // Counts as well as text: the local generator produces up to 18 cards and up
+    // to 12 quiz items from these notes, so "de 2" and "/ 1" are themselves proof
+    // that the AI arrays replaced them rather than being appended to them.
+    await openPanel(page, 'Flashcards');
+    const flashcards = page.getByRole('region', { name: 'Flashcards' });
+    await expect(flashcards.getByText(AI.flashcards[0].question)).toBeVisible();
+    await expect(flashcards.getByText(`1 de ${AI.flashcards.length}`)).toBeVisible();
 
-      const transcriptInput = page.locator('textarea[name="transcript"], textarea[placeholder*="transcript"]').first();
-      if (await transcriptInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await transcriptInput.fill('Test transcript for tab generation');
-        await page.waitForTimeout(300);
+    await openPanel(page, 'Quiz');
+    const quiz = page.getByRole('region', { name: 'Quiz' });
+    await expect(quiz.getByText(`1. ${AI.quiz[0].question}`)).toBeVisible();
+    await expect(quiz.getByText(`0 / ${AI.quiz.length} respondidas`)).toBeVisible();
 
-        const submitBtn = page.getByRole('button', { name: /generar|crear/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(2000);
-
-          // Check for tab buttons
-          const hasFlashcards = await page.getByRole('button', { name: /flashcard/i }).isVisible({ timeout: 2000 }).catch(() => false);
-          const hasQuiz = await page.getByRole('button', { name: /quiz/i }).isVisible({ timeout: 2000 }).catch(() => false);
-          const hasMindMap = await page.getByRole('button', { name: /mapa|mind.*map/i }).isVisible({ timeout: 2000 }).catch(() => false);
-
-          const hasTabs = hasFlashcards || hasQuiz || hasMindMap;
-          expect(hasTabs).toBeTruthy();
-        }
-      }
-    }
+    await openPanel(page, 'Tareas');
+    await expect(
+      page.getByRole('region', { name: 'Tareas' }).getByText(AI.actionItems[0].title),
+    ).toBeVisible();
   });
 
-  test('should show retry option when generation fails with 500 error', async ({ page }) => {
-    // Mock 500 error
-    await page.route('**/api/generate-study-session', async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Internal server error' }),
-      });
+  test('the skeleton reports progress while the request is in flight', async ({ page }) => {
+    // The stub holds the response open, so the in-flight UI is observable instead
+    // of being a frame between the click and the redirect.
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
     });
+    await stubBackend<GenerateRequest, typeof mockGenerationResponse>(
+      page,
+      GENERATE_URL,
+      async () => {
+        await held;
+        return { body: mockGenerationResponse };
+      },
+    );
 
-    await page.goto('/library');
-    await page.waitForTimeout(500);
+    const card = await compose(page, 'Sesión en vuelo');
 
-    const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
-    if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click();
-      await page.waitForTimeout(500);
+    await expect(card.getByText('Generando con IA...')).toBeVisible();
+    await expect(
+      card.getByText('Esto puede tardar unos segundos. No cerrés la página.'),
+    ).toBeVisible();
+    await expect(card.getByText('Generar resumen, flashcards y quiz')).toBeVisible();
+    // The skeleton replaces the form outright, so a second submit is impossible
+    // while a generation is running.
+    await expect(submitButton(card)).toBeHidden();
 
-      const transcriptInput = page.locator('textarea[name="transcript"], textarea[placeholder*="transcript"]').first();
-      if (await transcriptInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await transcriptInput.fill('Test transcript');
-        await page.waitForTimeout(300);
+    release();
 
-        const submitBtn = page.getByRole('button', { name: /generar|crear/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(1500);
-
-          // Should show error message
-          const errorVisible = await page.getByText(/error|falló|no se pudo|reintentar/i).isVisible({ timeout: 3000 }).catch(() => false);
-          expect(errorVisible).toBeTruthy();
-        }
-      }
-    }
+    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
   });
 
-  test('should show content filter error message', async ({ page }) => {
-    // Mock content filter error
-    await page.route('**/api/generate-study-session', async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ 
-          error: 'Content filter blocked the request',
-          code: 'content_filter'
-        }),
-      });
-    });
+  /**
+   * Assert the session was created from local content only.
+   *
+   * The positive half carries as much weight as the negative one: the deck
+   * rendering at all is what separates "generation failed and the local package
+   * stood in" from "nothing was created".
+   */
+  async function expectLocalFallback(page: Page, title: string) {
+    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
+    await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
 
-    await page.goto('/library');
-    await page.waitForTimeout(500);
+    await expect(
+      page.getByRole('region', { name: 'Resumen IA' }).getByRole('heading', {
+        name: 'Resumen de la Clase',
+      }),
+    ).toBeHidden();
 
-    const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
-    if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click();
-      await page.waitForTimeout(500);
+    await openPanel(page, 'Flashcards');
+    const flashcards = page.getByRole('region', { name: 'Flashcards' });
+    await expect(flashcards.getByText(AI.flashcards[0].question)).toBeHidden();
+    await expect(flashcards.getByRole('button', { name: 'Ver respuesta' })).toBeVisible();
+  }
 
-      const transcriptInput = page.locator('textarea[name="transcript"], textarea[placeholder*="transcript"]').first();
-      if (await transcriptInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await transcriptInput.fill('Inappropriate content that triggers filter');
-        await page.waitForTimeout(300);
+  test('a server error warns and keeps the local content', async ({ page }) => {
+    await stubBackend<GenerateRequest, { error: string }>(page, GENERATE_URL, () => ({
+      status: 500,
+      body: { error: 'El modelo no está disponible' },
+    }));
 
-        const submitBtn = page.getByRole('button', { name: /generar|crear/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(1500);
+    await compose(page, 'Sesión sin IA');
 
-          // Should show content filter message
-          const filterMsgVisible = await page.getByText(/contenido|filtro|bloqueado|restricciones/i).isVisible({ timeout: 3000 }).catch(() => false);
-          expect(filterMsgVisible).toBeTruthy();
-        }
-      }
-    }
+    // Asserted before the redirect on purpose: toasts auto-dismiss after 5 s and
+    // a cold `/sessions/[id]` compile can take far longer than that.
+    await expect(page.getByText('Generación con IA falló')).toBeVisible();
+    await expect(
+      page.getByText(
+        'Error al generar sesión de estudio: El modelo no está disponible. Usando contenido local.',
+      ),
+    ).toBeVisible();
+
+    await expectLocalFallback(page, 'Sesión sin IA');
   });
 
-  test('should show validation error for empty transcript', async ({ page }) => {
-    await page.goto('/library');
-    await page.waitForTimeout(500);
+  test('a response with no usable output is treated as a failed generation', async ({ page }) => {
+    // `generateStudySession` rejects anything whose `output` is missing or a
+    // string, so this is the malformed-payload path rather than a transport one.
+    await stubBackend<GenerateRequest, { output: string }>(page, GENERATE_URL, () => ({
+      body: { output: 'La IA devolvió texto plano' },
+    }));
 
-    const createBtn = page.getByRole('button', { name: /nueva sesión|crear sesión|pegar texto/i }).first();
-    if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click();
-      await page.waitForTimeout(500);
+    await compose(page, 'Sesión con respuesta inválida');
 
-      const transcriptInput = page.locator('textarea[name="transcript"], textarea[placeholder*="transcript"]').first();
-      if (await transcriptInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        // Leave transcript empty
-        await transcriptInput.fill('');
-        await page.waitForTimeout(300);
+    await expect(page.getByText('Generación con IA falló')).toBeVisible();
+    // The doubled period is the app's: it appends ". Usando contenido local." to
+    // a message that already ends in one.
+    await expect(
+      page.getByText(
+        'AI returned an unparseable response. Please try again.. Usando contenido local.',
+      ),
+    ).toBeVisible();
 
-        const submitBtn = page.getByRole('button', { name: /generar|crear/i }).first();
-        if (await submitBtn.isVisible({ timeout: 2000 })) {
-          await submitBtn.click();
-          await page.waitForTimeout(500);
+    await expectLocalFallback(page, 'Sesión con respuesta inválida');
+  });
 
-          // Should show validation error
-          const validationError = await page.getByText(/requerido|obligatorio|vacío|necesario/i).isVisible({ timeout: 2000 }).catch(() => false);
-          const buttonStillVisible = await submitBtn.isVisible();
+  test('generated content that fails the normalizer is dropped on read', async ({ page }) => {
+    // `normalizeSession` re-validates every session as it comes back out of
+    // localStorage: a quiz explanation under 8 words is rejected outright. So the
+    // composer can merge, save and redirect successfully and the panel still ends
+    // up empty — the merge is not the last word on what the user sees.
+    await stubBackend<GenerateRequest, typeof mockGenerationResponse>(page, GENERATE_URL, () => ({
+      body: {
+        ...mockGenerationResponse,
+        output: {
+          ...AI,
+          quiz: [{ ...AI.quiz[0], explanation: 'Conecta neuronas.' }],
+        },
+      },
+    }));
 
-          // Either validation error shows or button is still visible (form didn't submit)
-          expect(validationError || buttonStillVisible).toBeTruthy();
-        }
-      }
-    }
+    await compose(page, 'Sesión con quiz inválido');
+
+    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
+    // The rest of the package survives, so this is the normalizer rejecting one
+    // field rather than the whole generation having failed.
+    await expect(
+      page.getByRole('region', { name: 'Resumen IA' }).getByRole('heading', {
+        name: 'Resumen de la Clase',
+      }),
+    ).toBeVisible();
+
+    await openPanel(page, 'Quiz');
+    await expect(
+      page.getByRole('region', { name: 'Quiz' }).getByText('No hay preguntas para esta sesión.'),
+    ).toBeVisible();
+  });
+
+  test('notes below the length gate never reach the generator', async ({ page }) => {
+    const sent = await stubGeneration(page);
+    await compose(page, 'Apunte breve', 'Repasar el capítulo 4.');
+
+    // The button still promised AI — the label only looks at whether there is any
+    // material, while `handleSubmit` requires more than 30 characters of it. The
+    // session is created locally with no warning that the AI was skipped.
+    await expect(page).toHaveURL(/\/sessions\/[^/]+$/, { timeout: 60_000 });
+    expect(sent).toEqual([]);
+    await expect(page.getByRole('heading', { name: 'Apunte breve', level: 1 })).toBeVisible();
   });
 });
