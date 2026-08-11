@@ -149,6 +149,50 @@ describe('storage.ts', () => {
     });
   });
 
+  describe('write path preserves raw data', () => {
+    function sessionWithLongChat(): StudySession {
+      return {
+        ...mockSession,
+        chatHistory: Array.from({ length: 150 }, (_, i) => ({
+          id: `msg-${i}`,
+          role: i % 2 === 0 ? 'user' : 'assistant',
+          content: `Message ${i}`,
+          createdAt: new Date().toISOString(),
+        })),
+      };
+    }
+
+    it('should not truncate chatHistory when patching unrelated fields', () => {
+      upsertSession(sessionWithLongChat());
+
+      patchSession('test-123', { starred: true });
+
+      const raw = JSON.parse(localStorage.getItem('studere.sessions.v1')!) as StudySession[];
+      expect(raw[0].chatHistory).toHaveLength(150);
+      expect(raw[0].starred).toBe(true);
+    });
+
+    it('should cap chatHistory at 100 only on read', () => {
+      upsertSession(sessionWithLongChat());
+
+      patchSession('test-123', { starred: true });
+
+      const normalized = getSessionById('test-123');
+      expect(normalized?.chatHistory).toHaveLength(100);
+    });
+
+    it('should not re-normalize other sessions when upserting a new one', () => {
+      const longChat = sessionWithLongChat();
+      upsertSession(longChat);
+
+      upsertSession({ ...mockSession, id: 'other-456' });
+
+      const raw = JSON.parse(localStorage.getItem('studere.sessions.v1')!) as StudySession[];
+      const original = raw.find((session) => session.id === 'test-123');
+      expect(original?.chatHistory).toHaveLength(150);
+    });
+  });
+
   describe('SSR and browser compatibility', () => {
     it('should handle getSessions gracefully when localStorage not available', () => {
       const originalLocalStorage = global.localStorage;

@@ -36,6 +36,20 @@ function emitSessionsUpdated() {
  * Returns empty array if storage is unavailable, data is corrupt, or no sessions exist.
  */
 export function getSessions(): StudySession[] {
+  return getRawSessions().map((session) => normalizeSession(session));
+}
+
+/**
+ * Retrieve stored sessions WITHOUT normalizing them.
+ *
+ * The write path (upsert/patch/delete) must operate on the raw data: read-side
+ * filters in {@link normalizeSession} (chat capped at 100 messages, flashcard
+ * dedupe, concept/task validation) are meant to shape what the UI sees, not
+ * what is persisted. Persisting normalized data would silently strip content
+ * on every write — a star toggle would permanently truncate a 150-message
+ * chat to 100 messages and delete "duplicate" flashcards the user kept.
+ */
+function getRawSessions(): StudySession[] {
   if (!canUseStorage()) {
     return [];
   }
@@ -48,7 +62,7 @@ export function getSessions(): StudySession[] {
 
   try {
     const parsed = JSON.parse(raw) as StudySession[];
-    return Array.isArray(parsed) ? parsed.map((session) => normalizeSession(session)) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -88,7 +102,7 @@ export function saveSessions(sessions: StudySession[]): boolean {
  *          or the quota was exceeded (caller should surface the failure).
  */
 export function upsertSession(session: StudySession): boolean {
-  const sessions = getSessions();
+  const sessions = getRawSessions();
   const index = sessions.findIndex((item) => item.id === session.id);
 
   if (index >= 0) {
@@ -104,7 +118,7 @@ export function upsertSession(session: StudySession): boolean {
  * Delete a session by its ID.
  */
 export function deleteSession(id: string) {
-  const sessions = getSessions().filter((session) => session.id !== id);
+  const sessions = getRawSessions().filter((session) => session.id !== id);
   saveSessions(sessions);
 }
 
@@ -117,25 +131,26 @@ export function getSessionById(id: string) {
 
 /**
  * Apply a partial update to an existing session.
- * Merges the patch into the existing session and saves it as provided
- * (normalization happens on read).
+ * Merges the patch into the RAW stored session (not the normalized view) and
+ * saves it as provided (normalization happens on read).
  *
  * @param id - Session ID to patch
  * @param patch - Partial StudySession fields to merge
- * @returns The merged session, or null if not found
+ * @returns The merged raw session, or null if not found
  */
 export function patchSession(id: string, patch: Partial<StudySession>) {
-  const session = getSessionById(id);
+  const sessions = getRawSessions();
+  const index = sessions.findIndex((session) => session.id === id);
 
-  if (!session) {
+  if (index < 0) {
     return null;
   }
 
   const nextSession = {
-    ...session,
+    ...sessions[index],
     ...patch,
   };
 
-  upsertSession(nextSession);
-  return nextSession;
+  sessions[index] = nextSession;
+  return saveSessions(sessions) ? nextSession : null;
 }

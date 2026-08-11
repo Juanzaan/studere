@@ -294,6 +294,9 @@ export { buildBrainReply, BRAIN_PROMPT_TEMPLATES } from "@/lib/brain-reply";
 export type { BrainPromptTemplate } from "@/lib/brain-reply";
 
 function dayKey(date: Date): string {
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   return date.toISOString().split("T")[0];
 }
 
@@ -317,7 +320,9 @@ function shiftDay(key: string, delta: number): string {
 export function calculateStreak(sessions: Pick<StudySession, "createdAt">[]): number {
   if (sessions.length === 0) return 0;
 
-  const days = new Set(sessions.map((session) => dayKey(new Date(session.createdAt))));
+  const days = new Set(
+    sessions.map((session) => dayKey(new Date(session.createdAt))).filter(Boolean),
+  );
   const today = dayKey(new Date());
 
   let cursor = days.has(today) ? today : shiftDay(today, -1);

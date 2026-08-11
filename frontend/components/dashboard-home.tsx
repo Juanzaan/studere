@@ -133,7 +133,7 @@ export function DashboardHome() {
   const toggleStar = useCallback((sessionId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
-    patchSession(sessionId, { ...session, starred: !session.starred });
+    patchSession(sessionId, { starred: !session.starred });
     refreshSessions();
   }, [sessions, refreshSessions]);
 
