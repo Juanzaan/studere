@@ -84,13 +84,13 @@ npm run build            # build de producción
 
 ## Issues abiertas
 
-Cuatro en cola. **Una por sesión de Claude, sin mezclar** — cada una toca archivos distintos y combinarlas hace el review imposible.
+Cuatro en cola en el milestone `v0.2`. **Una por sesión de Claude, sin mezclar** — cada una toca archivos distintos y combinarlas hace el review imposible.
 
-| # | Tema |
-|---|---|
-| #7 | Integraciones |
-| #6 | Calendario |
-| #4 | Limpiar git history |
-| #3 | E2E con login de Clerk |
+| # | Tema | Prioridad |
+|---|---|---|
+| #7 | Integraciones | `priority: medium` |
+| #6 | Calendario | `priority: low` |
+| #4 | Limpiar git history | `priority: medium` |
+| #3 | E2E con login de Clerk | `priority: high` |
 
-El `config.yml` y los templates de issues ya existen: usarlos en lugar de abrir issues a mano.
+El `config.yml` y los templates de issues ya existen: usarlos en lugar de abrir issues a mano. Al crear/editar issues: label de tipo (`enhancement`/`bug`/`ci`/`chore`/`docs`/`security`) + label de prioridad (`priority: high`/`medium`/`low`) + milestone `v0.2`, y cuerpo con checklist de objetivos y criterios de aceptación.
