@@ -372,7 +372,7 @@ test.describe('Drawer móvil', () => {
 
 test.describe('Páginas estáticas', () => {
   test('Integraciones lists every provider with real connection states', async ({ page }) => {
-    await seedAndGoto(page, SESSIONS, '/integrations');
+    await openShell(page, '/integrations');
 
     await expect(page.getByRole('heading', { name: 'Integraciones', level: 1 })).toBeVisible();
     // Fresh context starts with nothing connected, so the development banner shows.
