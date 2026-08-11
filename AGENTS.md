@@ -58,7 +58,7 @@ npm run build            # build de producción
 3. **Los agentes no generan ni rotan keys.** `CLERK_SECRET_KEY` la rota el owner desde el dashboard de Clerk. Un agente nunca inventa una key, nunca la commitea y no imprime su valor completo en logs ni en respuestas.
 4. **Commits estilo Conventional Commits** (`fix(frontend): ...`, `feat(backend): ...`). Sin amend, sin force-push.
 5. **Antes de usar una librería nueva, verificar que no exista ya en `package.json`.** Seguir los patrones existentes (contexts, hooks, componentes).
-6. **No tocar `components/landing-page.tsx` ni `app/page.tsx`** — el swap de landing está pendiente como tarea aparte.
+6. **Landing cerrada:** el swap ya está hecho (commit `88263fe`) — `/` sirve `public/landing-prototype.html` vía middleware rewrite; `app/page.tsx` solo redirige. `components/landing-page.tsx` quedó como código muerto (nadie lo importa): no resucitarlo para nuevos cambios.
 7. **Presupuesto:** las sesiones de desarrollo tienen presupuesto en USD. Parar y reportar al llegar al límite, no seguir silenciosamente.
 
 ## Convenciones de código
