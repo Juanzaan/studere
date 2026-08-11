@@ -371,12 +371,15 @@ test.describe('Drawer móvil', () => {
 });
 
 test.describe('Páginas estáticas', () => {
-  test('Integraciones lists every provider as not yet available', async ({ page }) => {
-    await seedAndGoto(page, SESSIONS, '/integrations');
+  test('Integraciones lists every provider with real connection states', async ({ page }) => {
+    await openShell(page, '/integrations');
 
     await expect(page.getByRole('heading', { name: 'Integraciones', level: 1 })).toBeVisible();
+    // Fresh context starts with nothing connected, so the development banner shows.
     await expect(
-      page.getByText('Las integraciones están en desarrollo. Estarán disponibles próximamente.'),
+      page.getByText(
+        'Las integraciones reales están en desarrollo. Podés conectar las integraciones locales y el resto estará disponible próximamente.',
+      ),
     ).toBeVisible();
 
     const providers = [
@@ -391,13 +394,42 @@ test.describe('Páginas estáticas', () => {
       await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible();
     }
 
-    // `FEATURE_ENABLED` is false, so every card's CTA is inert. Asserting the
-    // disabled state keeps a half-wired integration from shipping unnoticed.
-    const ctas = page.getByRole('button', { name: 'Próximamente' });
-    await expect(ctas).toHaveCount(providers.length);
-    for (const cta of await ctas.all()) {
-      await expect(cta).toBeDisabled();
-    }
+    // Every card starts disconnected with an enabled Conectar CTA.
+    await expect(page.getByText('Desconectada', { exact: true })).toHaveCount(providers.length);
+    await expect(page.getByRole('button', { name: 'Conectar', exact: true })).toHaveCount(providers.length);
+
+    // Connecting a builtin integration (Automatizaciones) persists end to end:
+    // the card flips to Conectada, the storage key is written, and the banner
+    // disappears because there is now at least one real connection.
+    const automationsCard = page
+      .locator('.int-card')
+      .filter({ has: page.getByRole('heading', { name: 'Automatizaciones', level: 2 }) });
+
+    await automationsCard.getByRole('button', { name: 'Conectar' }).click();
+    await expect(automationsCard.getByText('Conectada', { exact: true })).toBeVisible();
+    await expect(
+      automationsCard.getByRole('button', { name: 'Desconectar', exact: true }),
+    ).toBeVisible();
+
+    await readStoredJson<string[]>(
+      page,
+      'studere.integrations.v1',
+      (value) => Array.isArray(value) && value.includes('automations'),
+    );
+
+    await expect(
+      page.getByText(
+        'Las integraciones reales están en desarrollo. Podés conectar las integraciones locales y el resto estará disponible próximamente.',
+      ),
+    ).toHaveCount(0);
+    await expect(page.getByText('Desconectada', { exact: true })).toHaveCount(providers.length - 1);
+
+    // Disconnecting reverts to the disconnected state and unpersists the id.
+    await automationsCard.getByRole('button', { name: 'Desconectar' }).click();
+    await expect(automationsCard.getByText('Desconectada', { exact: true })).toBeVisible();
+    await readStoredJson<string[]>(page, 'studere.integrations.v1', (value) =>
+      Array.isArray(value) ? !value.includes('automations') : false,
+    );
   });
 
   test('Próximos lists its events and links both calendars to Integraciones', async ({ page }) => {
