@@ -542,6 +542,16 @@ describe('session-utils.ts', () => {
       const sessions = [{ createdAt: iso(-1) }, { createdAt: iso(1) }];
       expect(calculateStreak(sessions)).toBe(1);
     });
+
+    it('should not throw on an invalid createdAt date', () => {
+      const sessions = [{ createdAt: 'not-a-date' }, { createdAt: iso(0) }];
+      expect(() => calculateStreak(sessions)).not.toThrow();
+    });
+
+    it('should ignore sessions with an invalid createdAt', () => {
+      const sessions = [{ createdAt: 'not-a-date' }, { createdAt: iso(1) }];
+      expect(calculateStreak(sessions)).toBe(1);
+    });
   });
 
   describe('calculateTrialMinutesUsed', () => {

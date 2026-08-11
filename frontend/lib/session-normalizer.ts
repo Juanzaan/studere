@@ -193,6 +193,9 @@ export function normalizeSession(raw: StudySession): StudySession {
     ...raw,
     starred: raw.starred ?? false,
     templateId: raw.templateId ?? "class-summary",
+    createdAt: typeof raw.createdAt === "string" && !Number.isNaN(new Date(raw.createdAt).getTime())
+      ? raw.createdAt
+      : new Date().toISOString(),
     transcript,
     summary,
     keyConcepts,

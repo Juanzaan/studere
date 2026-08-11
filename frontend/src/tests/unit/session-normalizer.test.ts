@@ -495,6 +495,24 @@ describe('normalizeSession — field defaults', () => {
     expect(normalized.starred).toBe(false);
   });
 
+  it('should backfill createdAt when missing', () => {
+    const session = makeMinimalSession({ createdAt: undefined as any });
+    const normalized = normalizeSession(session);
+    expect(Number.isNaN(new Date(normalized.createdAt).getTime())).toBe(false);
+  });
+
+  it('should backfill createdAt when invalid', () => {
+    const session = makeMinimalSession({ createdAt: 'not-a-date' });
+    const normalized = normalizeSession(session);
+    expect(Number.isNaN(new Date(normalized.createdAt).getTime())).toBe(false);
+  });
+
+  it('should keep a valid createdAt unchanged', () => {
+    const session = makeMinimalSession({ createdAt: '2024-03-01T10:00:00Z' });
+    const normalized = normalizeSession(session);
+    expect(normalized.createdAt).toBe('2024-03-01T10:00:00Z');
+  });
+
   it('should preserve starred when true', () => {
     const session = makeMinimalSession({ starred: true });
     const normalized = normalizeSession(session);
