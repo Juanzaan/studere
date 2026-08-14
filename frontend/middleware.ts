@@ -18,6 +18,16 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  // Legal pages are public (Terms of Service and Privacy Policy, both languages).
+  if (
+    pathname === "/terms" ||
+    pathname === "/privacy" ||
+    pathname.startsWith("/en/terms") ||
+    pathname.startsWith("/en/privacy")
+  ) {
+    return;
+  }
+
   // Auth pages, plus the OAuth return leg. /sso-callback must stay public:
   // Clerk lands there before a session exists, so protecting it would bounce
   // the user back to sign-in and never complete the handshake.

@@ -26,7 +26,7 @@ npm run test:e2e:ui
 CI corre `--project=setup --project=chromium` con las claves como secrets del repo
 (`Test & Build (20.x)` y `E2E Tests` son checks requeridos para mergear).
 
-## Tests disponibles (9 spec files, 92 tests en Chromium)
+## Tests disponibles (9 spec files, 93 tests en Chromium)
 
 ### `critical-flows.spec.ts`
 **Flujos críticos del usuario:**
@@ -41,6 +41,7 @@ CI corre `--project=setup --project=chromium` con las claves como secrets del re
 - ✅ Integraciones (6 providers, estados reales Conectada/Desconectada, persistencia)
 - ✅ Upcoming (eventos, calendario links Google/Outlook)
 - ✅ Dark mode persistencia entre páginas
+- ✅ Legal pages (Términos/Privacidad en ES+EN, rutas públicas)
 
 ### `session-create-flow.spec.ts`
 **Flujo completo de creación de sesión:**

@@ -2,8 +2,8 @@
   <img src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white" alt="Next.js 14" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/tests-369-22c55e" alt="369 unit tests" />
-  <img src="https://img.shields.io/badge/E2E-92%20tests-3b82f6" alt="92 E2E tests (Chromium)" />
+  <img src="https://img.shields.io/badge/tests-373-22c55e" alt="373 unit tests" />
+  <img src="https://img.shields.io/badge/E2E-93%20tests-3b82f6" alt="93 E2E tests (Chromium)" />
 </p>
 
 <div align="center">
@@ -111,7 +111,7 @@ components/
 ## 🧪 Testing
 
 ```bash
-# Unit tests (369 tests, 17 files)
+# Unit tests (373 tests, 18 files)
 npm test
 
 # UI interactivo
@@ -132,6 +132,7 @@ npm run test:e2e
 | `tutorial-overlay.test.tsx` | 22 | keyboard, blocking, persistencia |
 | `session-composer-card.test.tsx` | 16 | idle/generating/transcribing, submit IA |
 | `integrations.test.ts` | 18 | connect/disconnect, persistencia, SSR sin storage |
+| `legal-content.test.ts` | 4 | paridad ES/EN, disclosures requeridos |
 | storage tests | — | CRUD, normalización, eventos |
 | audio tests | — | validación, chunking, formatos |
 | utils tests | — | session-utils, normalizers, analytics |
