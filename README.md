@@ -151,6 +151,7 @@ the caller's Clerk token when `CLERK_SECRET_KEY` is configured.
 frontend/
   app/           (app)/ dashboard, library, sessions/[id], analytics, upcoming,
                  integrations, starred; sign-in/, sign-up/, sso-callback/, api/, dev/
+                 terms/, privacy/ (public, ES + EN)
   components/    UI, session panels, auth screens, mind-map-graph.tsx
   lib/           API client, local storage, audio pipeline, types
   src/tests/     Vitest unit suites

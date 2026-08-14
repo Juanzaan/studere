@@ -445,4 +445,27 @@ test.describe('Páginas estáticas', () => {
       await expect(page.getByRole('link', { name })).toHaveAttribute('href', '/integrations');
     }
   });
+
+  test('Legal pages render in both languages', async ({ page }) => {
+    await seedAndGoto(page, SESSIONS, '/terms');
+    // Legal pages live outside the (app) shell, so the sidebar-based
+    // waitForHydration does not apply. Next hydrates after `load`: wait for
+    // `document.readyState === 'complete'` plus a settle window.
+    await expect.poll(() => page.evaluate(() => document.readyState)).toBe('complete');
+    await page.waitForTimeout(1000);
+
+    await expect(page.getByRole('heading', { name: 'Términos de Servicio', level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/en/terms');
+
+    await page.getByRole('link', { name: 'English' }).click();
+    await expect(page).toHaveURL(/\/en\/terms$/);
+    await expect(page.getByRole('heading', { name: 'Terms of Service', level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Español' })).toHaveAttribute('href', '/terms');
+
+    await page.goto('/privacy');
+    await expect(page.getByRole('heading', { name: 'Política de Privacidad', level: 1 })).toBeVisible();
+
+    await page.goto('/en/privacy');
+    await expect(page.getByRole('heading', { name: 'Privacy Policy', level: 1 })).toBeVisible();
+  });
 });

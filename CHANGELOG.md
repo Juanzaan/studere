@@ -5,6 +5,7 @@ All notable changes to the Studere project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Legal pages** (`/terms`, `/privacy` + English versions at `/en/terms`, `/en/privacy`): Terms of Service (AI disclosure, arbitration-by-agreement with consumer rights preserved, billing clauses for the subscription model) and Privacy Policy (Uruguay Ley 18.331 / Decree 414/009, processors Clerk + Azure OpenAI + payment processor, ARCO rights, local-first storage) — both languages, public routes, linked from the landing footer. Drafts pending owner data (`[email]`, `[city]`, legal name, payment processor).
 - **Integration framework** (`frontend/lib/integrations.ts`): registry-driven integrations (Google Calendar, Outlook, Drive/Dropbox, Slack/Discord, Chrome, Automatizaciones) with localStorage persistence (`studere.integrations.v1`) and an `INTEGRATIONS_UPDATED_EVENT` broadcast. `/integrations` now shows real connection states with Conectar/Desconectar CTAs instead of static "Próximamente" cards. Framework only — real OAuth per provider is pending owner keys. See issue #7 (PR #20).
 
 ### Changed

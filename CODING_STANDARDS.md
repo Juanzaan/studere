@@ -30,7 +30,7 @@
 - **UI:** React 18.3.1, TailwindCSS 3.4.7
 - **Animations:** GSAP 3.14.2
 - **Visualizations:** ECharts 6.1 (mind map), Recharts 3.8, KaTeX
-- **Testing:** Vitest (369 tests, 17 suites), Playwright (9 E2E specs)
+- **Testing:** Vitest (373 tests, 18 suites), Playwright (9 E2E specs)
 
 ### Backend
 - **Runtime:** Node.js 18 LTS
@@ -64,7 +64,7 @@ frontend/
 ├── src/
 │   ├── domains/         # Domain-specific modules
 │   ├── shared/          # Shared hooks & utilities (useAnimations, useFadeInStagger)
-│   └── tests/           # 17 test files, 369 tests
+│   └── tests/           # 18 test files, 373 tests
 └── e2e/                 # 9 Playwright spec files
 ```
 
@@ -233,11 +233,12 @@ const { scope, enter } = useFadeInStagger({
 
 ## 10. TESTING
 
-### Unit Tests (Vitest — 369 tests, 17 files)
+### Unit Tests (Vitest — 373 tests, 18 files)
 - **SessionSkeleton:** 13 tests — render modes (transcribing/generating/idle), a11y, responsive, progress phases
 - **TutorialOverlay:** 22 tests — keyboard nav, blocking, aria-modal, mobile, aria-live, persistence
 - **SessionComposerCard:** 16 tests — form validation, AI toggle, submit flows, error handling, callbacks
 - **Integrations:** 18 tests — connect/disconnect, persistence, SSR without storage
+- **Legal content:** 4 tests — ES/EN parity, required disclosures present
 - **Storage:** localStorage quota, read/write, error recovery
 - **Audio chunker:** Chunk size, format, edge cases
 - **Session normalizer:** Data transformation, version migration, field defaults
@@ -318,7 +319,7 @@ func azure functionapp publish your-function-app-name
 - **Mobile-responsive layout** across all pages
 - **Accessibility audit** — WCAG AA contrast, semantic HTML, ARIA roles/attributes
 - **Color contrast WCAG AA** — all text/background combinations pass ≥4.5:1
-- **369 unit tests + 92 E2E tests per browser (9 specs)** passing
+- **373 unit tests + 93 E2E tests per browser (9 specs)** passing
 
 ### Known Issues
 None — all critical issues resolved.
