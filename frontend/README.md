@@ -2,9 +2,8 @@
   <img src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white" alt="Next.js 14" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/tests-311-22c55e" alt="311 unit tests" />
-  <img src="https://img.shields.io/badge/E2E-21%20critical-3b82f6" alt="21 E2E tests" />
-  <img src="https://img.shields.io/badge/docs-71%25-8b5cf6" alt="JSDoc 71%" />
+  <img src="https://img.shields.io/badge/tests-369-22c55e" alt="369 unit tests" />
+  <img src="https://img.shields.io/badge/E2E-92%20tests-3b82f6" alt="92 E2E tests (Chromium)" />
 </p>
 
 <div align="center">
@@ -112,7 +111,7 @@ components/
 ## 🧪 Testing
 
 ```bash
-# Unit tests (311 tests, 14 suites)
+# Unit tests (369 tests, 17 files)
 npm test
 
 # UI interactivo
@@ -132,6 +131,7 @@ npm run test:e2e
 | `session-skeleton.test.tsx` | 13 | transcribing, generating, children slots |
 | `tutorial-overlay.test.tsx` | 22 | keyboard, blocking, persistencia |
 | `session-composer-card.test.tsx` | 16 | idle/generating/transcribing, submit IA |
+| `integrations.test.ts` | 18 | connect/disconnect, persistencia, SSR sin storage |
 | storage tests | — | CRUD, normalización, eventos |
 | audio tests | — | validación, chunking, formatos |
 | utils tests | — | session-utils, normalizers, analytics |
@@ -154,7 +154,7 @@ npm install
 npm run dev
 ```
 
-Abierto en **http://localhost:3000** · Backend esperado en **http://localhost:7071**
+Abierto en **http://127.0.0.1:3000** (usar IPv4, no `localhost` — en hosts dual-stack el dev server no flushea el body por IPv6) · Backend esperado en **http://localhost:7071**
 
 ### Variables de entorno
 

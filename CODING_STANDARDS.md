@@ -1,7 +1,7 @@
 # Studere — Coding Standards & Architecture Guide
 
 **Project:** Studere - AI-Powered Study Assistant  
-**Updated:** 2026-07-25  
+**Updated:** 2026-08-11  
 **Maintainer:** [@Juanzaan](https://github.com/Juanzaan)
 
 ---
@@ -29,8 +29,8 @@
 - **Language:** TypeScript 5.5.4 (strict mode)
 - **UI:** React 18.3.1, TailwindCSS 3.4.7
 - **Animations:** GSAP 3.14.2
-- **Visualizations:** React Flow, Recharts, KaTeX
-- **Testing:** Vitest (320 tests, 15 suites), Playwright (9 E2E specs)
+- **Visualizations:** ECharts 6.1 (mind map), Recharts 3.8, KaTeX
+- **Testing:** Vitest (369 tests, 17 suites), Playwright (9 E2E specs)
 
 ### Backend
 - **Runtime:** Node.js 18 LTS
@@ -40,7 +40,7 @@
 - **Storage:** Azure Blob Storage
 
 ### Infrastructure
-- **Frontend Deploy:** Vercel
+- **Frontend Deploy:** Netlify (`frontend/netlify.toml`, Node 20)
 - **Backend Deploy:** Azure Functions
 - **Monitoring:** Application Insights
 
@@ -59,12 +59,12 @@
 ```
 frontend/
 ├── app/                  # Next.js routes
-├── components/           # 32 React components
+├── components/           # React components
 ├── lib/                  # Utilities, API, storage
 ├── src/
 │   ├── domains/         # Domain-specific modules
 │   ├── shared/          # Shared hooks & utilities (useAnimations, useFadeInStagger)
-│   └── tests/           # 15 test suites, 320 tests
+│   └── tests/           # 17 test files, 369 tests
 └── e2e/                 # 9 Playwright spec files
 ```
 
@@ -92,14 +92,14 @@ backend/
 - **Caching:** Backend uses node-cache (TTL: 1-24 hours)
 
 ### Audio Processing Pipeline
-- **Client-Side (<10MB):** Web Audio API → base64 chunks → Whisper
-- **Server-Side (>10MB):** Binary upload → FFmpeg → Parallel Whisper
+- **Client-Side (≤25MB):** audio → Whisper transcription endpoint (capped at 25 MB)
+- **Server-Side (>25MB):** 10 MB chunks to Blob Storage → FFmpeg split → parallel Whisper
 - **Max file:** 200MB (~2-3 hours)
 
 ### State Management
 - **Storage:** localStorage (lib/storage.ts)
 - **Auth:** Clerk (custom UI in components/auth/, sign-in/sign-up public routes; backend verifies with `Clerk.verifyToken(token, { secretKey })`)
-- **Emit SESSIONS_UPDATED_EVENT** after storage changes
+- **Emit SESSIONS_UPDATED_EVENT / INTEGRATIONS_UPDATED_EVENT** after storage changes
 
 ### AI Integration
 - **Provider:** Azure OpenAI Service
@@ -233,18 +233,19 @@ const { scope, enter } = useFadeInStagger({
 
 ## 10. TESTING
 
-### Unit Tests (Vitest — 320 tests, 15 suites)
+### Unit Tests (Vitest — 369 tests, 17 files)
 - **SessionSkeleton:** 13 tests — render modes (transcribing/generating/idle), a11y, responsive, progress phases
 - **TutorialOverlay:** 22 tests — keyboard nav, blocking, aria-modal, mobile, aria-live, persistence
 - **SessionComposerCard:** 16 tests — form validation, AI toggle, submit flows, error handling, callbacks
+- **Integrations:** 18 tests — connect/disconnect, persistence, SSR without storage
 - **Storage:** localStorage quota, read/write, error recovery
 - **Audio chunker:** Chunk size, format, edge cases
 - **Session normalizer:** Data transformation, version migration, field defaults
 - **API client:** Request building, error handling, timeout
 - **Local storage guard:** Quota detection, safe fallbacks
 
-### E2E Tests (Playwright — 8 spec files)
-- **Critical flows (21 tests):** Navigation, theme toggle, session table, library filters, session detail panels, StudeChat, mobile hamburger, search, integrations, upcoming, dark persistence
+### E2E Tests (Playwright — 9 spec files)
+- **Critical flows (92 tests across Chromium):** Navigation, theme toggle, session table, library filters, session detail panels, StudeChat, mobile hamburger, search, integrations, upcoming, dark persistence
 - **Audio transcription flow**
 - **AI generation flow**
 - **Flashcard spaced repetition**
@@ -276,10 +277,10 @@ const { scope, enter } = useFadeInStagger({
 
 ## 12. DEPLOYMENT
 
-### Frontend (Vercel)
+### Frontend (Netlify)
 ```bash
-# Auto-deploys on push to main
-# Set NEXT_PUBLIC_BACKEND_URL env var
+# Auto-deploys on push to main (netlify.toml uses Node 20)
+# Set NEXT_PUBLIC_BACKEND_URL env var in the site settings
 ```
 
 ### Backend (Azure Functions)
@@ -295,6 +296,7 @@ func azure functionapp publish your-function-app-name
 - `AZURE_OPENAI_WHISPER_DEPLOYMENT`
 - `AZURE_STORAGE_CONNECTION_STRING`
 - `ALLOWED_ORIGIN`
+- `CLERK_SECRET_KEY` (fail-closed auth; unset means unauthenticated requests are served)
 
 ---
 
@@ -316,13 +318,14 @@ func azure functionapp publish your-function-app-name
 - **Mobile-responsive layout** across all pages
 - **Accessibility audit** — WCAG AA contrast, semantic HTML, ARIA roles/attributes
 - **Color contrast WCAG AA** — all text/background combinations pass ≥4.5:1
-- **320 unit tests + 76 E2E tests per browser (9 specs)** passing
+- **369 unit tests + 92 E2E tests per browser (9 specs)** passing
 
 ### Known Issues
 None — all critical issues resolved.
 
 ### Planned (Long-term)
-- Authentication & cloud sync
+- Cloud sync (sessions across devices)
+- Real OAuth integrations (Google Calendar, Outlook, ...) — framework shipped, connections pending owner keys
 - Mobile app (React Native)
 - Live class integration
 - URL transcription
@@ -367,5 +370,5 @@ Backend: `http://localhost:7071`
 
 ---
 
-**Last Updated:** 2026-07-25  
-**License:** MIT © [Juan Pablo Zanolli](https://github.com/Juanzaan)
+**Last Updated:** 2026-08-11  
+**License:** Proprietary © [Juan Pablo Zanolli](https://github.com/Juanzaan)

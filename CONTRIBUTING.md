@@ -65,7 +65,9 @@ remain manual (owner).
 ## CI
 
 - The workflow lives at `.github/workflows/ci.yml` (root) and runs on every push/PR.
-- Jobs: TypeScript check, unit tests (Vitest), production build. E2E is
-  disabled until specs get Clerk test-user auth — see issue #3.
+- Jobs: TypeScript check, unit tests (Vitest), production build, and the Chromium
+  E2E suite (`setup` project signs in with Clerk test credentials, then runs
+  `--project=chromium`). The E2E job needs the `CLERK_PUBLISHABLE_KEY`,
+  `CLERK_SECRET_KEY` and `E2E_CLERK_USER_EMAIL` secrets to exist.
 - Branch protection on `main` requires the `Test & Build (20.x)` check to pass
   before merging.
