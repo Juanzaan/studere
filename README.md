@@ -117,7 +117,7 @@ Playwright's base URL is pinned to the IPv4 address for the same reason.
 | `CLERK_SECRET_KEY` | prod | **unset means auth is disabled** — see [Security](#security) |
 | `FFMPEG_PATH` | no | falls back to the bundled binary |
 
-Both files are gitignored. Keys belong in the Clerk and Azure dashboards, in Vercel
+Both files are gitignored. Keys belong in the Clerk and Azure dashboards, in Netlify
 project settings, and in GitHub Actions secrets — never in a commit.
 
 ## Stack
@@ -149,8 +149,8 @@ the caller's Clerk token when `CLERK_SECRET_KEY` is configured.
 
 ```
 frontend/
-  app/           (app)/ dashboard, library, sessions/[id], analytics, upcoming
-                 sign-in/, sign-up/, sso-callback/, api/, dev/
+  app/           (app)/ dashboard, library, sessions/[id], analytics, upcoming,
+                 integrations, starred; sign-in/, sign-up/, sso-callback/, api/, dev/
   components/    UI, session panels, auth screens, mind-map-graph.tsx
   lib/           API client, local storage, audio pipeline, types
   src/tests/     Vitest unit suites
@@ -183,8 +183,9 @@ suite. CodeQL runs on its own workflow.
 
 ## Deploying
 
-The frontend targets Vercel: connect the repo, copy the `.env.local` variables into the
-project settings, and it deploys on push to `main`. The backend goes out with
+The frontend deploys to Netlify (see `netlify.toml`): connect the repo to the project
+and copy the `.env.local` variables into the site settings, and it deploys on push to
+`main` and on every PR as a preview. The backend goes out with
 `func azure functionapp publish <app-name>` from `backend/`; the keys from
 `local.settings.json` become Application Settings in the Function App, with
 `ALLOWED_ORIGIN` pointing at the deployed frontend and `CLERK_SECRET_KEY` set — see

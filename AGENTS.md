@@ -60,6 +60,7 @@ npm run build            # build de producción
 5. **Antes de usar una librería nueva, verificar que no exista ya en `package.json`.** Seguir los patrones existentes (contexts, hooks, componentes).
 6. **Landing cerrada:** el swap ya está hecho (commit `88263fe`) — `/` sirve `public/landing-prototype.html` vía middleware rewrite; `app/page.tsx` solo redirige. `components/landing-page.tsx` quedó como código muerto (nadie lo importa): no resucitarlo para nuevos cambios.
 7. **Presupuesto:** las sesiones de desarrollo tienen presupuesto en USD. Parar y reportar al llegar al límite, no seguir silenciosamente.
+8. **Docs a fecha en el mismo commit:** todo cambio de comportamiento o estructura actualiza en el MISMO commit los docs que lo referencian (`README.md`, `CHANGELOG.md`, `AGENTS.md`, `CODING_STANDARDS.md`, `frontend/README.md`, `frontend/e2e/README.md`). Antes de dar una tarea por terminada, grepear `*.md` por el archivo/feature tocada y verificar que nada quedó desactualizado — no copiar texto de docs viejos sin contrastarlo contra el código actual.
 
 ## Convenciones de código
 
@@ -80,17 +81,17 @@ npm run build            # build de producción
 ## Git y ramas
 
 - Rama principal: `main` (regla remota: cambios vía PR; el owner puede bypassear). Workflow: rama propia → PR → merge.
-- `frontend/.github/workflows/ci.yml` está en la raíz `.github/workflows/ci.yml` (GitHub solo lee la raíz) — CI corre tsc + vitest + build + E2E.
+- El workflow de CI vive en `.github/workflows/ci.yml` (GitHub solo lee la raíz, no `frontend/.github/`) — CI corre tsc + vitest + build + E2E.
 
 ## Issues abiertas
 
-Cuatro en cola en el milestone `v0.2`. **Una por sesión de Claude, sin mezclar** — cada una toca archivos distintos y combinarlas hace el review imposible.
+Dos en cola en el milestone `v0.2`. **Una por sesión de Claude, sin mezclar** — cada una toca archivos distintos y combinarlas hace el review imposible.
 
 | # | Tema | Prioridad |
 |---|---|---|
-| #7 | Integraciones | `priority: medium` |
 | #6 | Calendario | `priority: low` |
 | #4 | Limpiar git history | `priority: medium` |
-| #3 | E2E con login de Clerk | `priority: high` |
 
-El `config.yml` y los templates de issues ya existen: usarlos en lugar de abrir issues a mano. Al crear/editar issues: label de tipo (`enhancement`/`bug`/`ci`/`chore`/`docs`/`security`) + label de prioridad (`priority: high`/`medium`/`low`) + milestone `v0.2`, y cuerpo con checklist de objetivos y criterios de aceptación.
+Cerradas: #7 (integración framework, PR #20) y #3 (E2E con login de Clerk, PR #12) — el milestone v0.2 las tiene en `Done`.
+
+El `config.yml` (`ISSUE_TEMPLATE/config.yml`) y los templates de issues ya existen: usarlos en lugar de abrir issues a mano. Al crear/editar issues: label de tipo (`enhancement`/`bug`/`ci`/`chore`/`docs`/`security`) + label de prioridad (`priority: high`/`medium`/`low`) + milestone `v0.2`, y cuerpo con checklist de objetivos y criterios de aceptación.

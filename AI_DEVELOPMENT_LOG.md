@@ -268,4 +268,4 @@ Planned features that will likely use AI assistance:
 
 **Last Updated:** 2026-07-25  
 **Maintained by:** [@Juanzaan](https://github.com/Juanzaan)  
-**License:** MIT
+**License:** Proprietary (see LICENSE — commercial use, redistribution and reuse are not permitted)

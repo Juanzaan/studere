@@ -2,6 +2,19 @@
 
 All notable changes to the Studere project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Integration framework** (`frontend/lib/integrations.ts`): registry-driven integrations (Google Calendar, Outlook, Drive/Dropbox, Slack/Discord, Chrome, Automatizaciones) with localStorage persistence (`studere.integrations.v1`) and an `INTEGRATIONS_UPDATED_EVENT` broadcast. `/integrations` now shows real connection states with Conectar/Desconectar CTAs instead of static "Próximamente" cards. Framework only — real OAuth per provider is pending owner keys. See issue #7 (PR #20).
+
+### Changed
+- **Storage write path** (PR #18): `upsertSession`/`patchSession`/`deleteSession` now operate on raw stored data instead of normalized snapshots, so a stale normalizer version can no longer clobber fields it does not know about. `getRawSessions()` added; the dashboard star toggle patches only `{ starred }`.
+- **Data guards** (PR #18): `dayKey` returns `""` for invalid dates instead of `NaN`, `calculateStreak` ignores falsy day keys, and the normalizer backfills a missing `createdAt` — streak and calendar math no longer crash on legacy sessions.
+- **E2E hydration wait:** the integrations spec clicks only after React hydration (`openShell`), fixing a class of flaky "click landed before listeners attached" failures caused by `gotoThroughHandshake` resolving on `domcontentloaded` while React mounts on `load`.
+
+### Fixed
+- **Stale docs audit:** AGENTS.md (issue queue, landing swap, CI path), CONTRIBUTING.md (E2E job re-enabled), README.md (Netlify instead of Vercel, route layout), CODING_STANDARDS.md (ECharts, test counts, license, auth), frontend/README.md and e2e/README.md (test counts, selectors, webServer) brought in sync with the code.
+
 ## [1.5.0] - 2026-08-07
 
 ### Added
